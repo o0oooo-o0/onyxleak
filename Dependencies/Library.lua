@@ -224,7 +224,8 @@ end
 
 function Library:CursorPos()
     local loc = Services.UserInputService:GetMouseLocation()
-    return loc.X, loc.Y
+    local inset = Services.GuiService:GetGuiInset()
+    return loc.X + inset.X, loc.Y + inset.Y
 end
 
 function Library:IsPointerInput(Input)
