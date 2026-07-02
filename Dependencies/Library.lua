@@ -258,11 +258,12 @@ end
 
 function Library:IsInstanceVisible(Frame)
     local f = Frame
-    while f and f ~= ScreenGui do
+    while f do
+        if f:IsA('LayerCollector') then return true end
         if f:IsA('GuiObject') and not f.Visible then return false end
         f = f.Parent
     end
-    return f == ScreenGui
+    return false
 end
 
 do
