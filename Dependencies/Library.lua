@@ -2337,7 +2337,7 @@ do
 
         local MAX = 8
         local itemH = S(20)
-        local Blocker = Library:Create('TextButton', { Name='DropdownBlocker'; Active=true; AutoButtonColor=false; BackgroundTransparency=1; Text=''; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
+        local Blocker = Library:Create('Frame', { Name='DropdownBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
         local ListOuter = Library:Create('Frame', { Active=true; BorderColor3=Color3.new(0,0,0); Size=UDim2.fromOffset(200, MAX*itemH+2); ZIndex=20; Visible=false; Parent=ScreenGui })
         local ListOuterScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = ListOuter })
         table.insert(Library.ThemeScales, ListOuterScale)
@@ -2473,16 +2473,17 @@ do
             Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
         end
 
-        DropdownOuter.InputBegan:Connect(function(Input)
+        Services.UserInputService.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            if ListOuter.Visible then DropdownData:CloseDropdown(); return end
-            if Library:MouseIsOverOpenedFrame() then return end
-            DropdownData:OpenDropdown()
-        end)
-        Blocker.Activated:Connect(function()
-            if Library:IsMouseOverFrame(ListOuter) then return end
-            if Library:IsMouseOverFrame(DropdownOuter) then return end
-            DropdownData:CloseDropdown()
+            if not DropdownOuter.Parent then return end
+            if ListOuter.Visible then
+                if Library:IsMouseOverFrame(ListOuter) then return end
+                DropdownData:CloseDropdown()
+            else
+                if not Library:IsMouseOverFrame(DropdownOuter) then return end
+                if Library:MouseIsOverOpenedFrame() then return end
+                DropdownData:OpenDropdown()
+            end
         end)
 
         DropdownData:SetValues()
