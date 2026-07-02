@@ -2477,9 +2477,12 @@ do
         Library.DropdownRegistry = Library.DropdownRegistry or {}
         table.insert(Library.DropdownRegistry, DropdownData)
 
+        local ignoreOpenUntil = 0
+
         DropdownOuter.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
+            if os.clock() < ignoreOpenUntil then return end
             for _, dd in next, Library.DropdownRegistry do
                 if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
             end
@@ -2489,6 +2492,7 @@ do
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             DropdownData:CloseDropdown()
+            ignoreOpenUntil = os.clock() + 0.15
         end)
 
         DropdownData:SetValues()
