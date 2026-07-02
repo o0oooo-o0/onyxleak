@@ -2475,15 +2475,12 @@ do
 
         DropdownOuter.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            if ListOuter.Visible then DropdownData:CloseDropdown(); return end
-            if Library:MouseIsOverOpenedFrame() then return end
-            DropdownData:OpenDropdown()
+            if ListOuter.Visible then DropdownData:CloseDropdown() else DropdownData:OpenDropdown() end
         end)
-        Services.UserInputService.InputBegan:Connect(function(Input)
+        Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if not ListOuter.Visible then return end
             if Library:IsMouseOverFrame(ListOuter) then return end
-            if Library:IsMouseOverFrame(DropdownOuter) then return end
             DropdownData:CloseDropdown()
         end)
 
