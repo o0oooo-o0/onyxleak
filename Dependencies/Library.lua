@@ -363,7 +363,6 @@ function Library:MakeDraggable(Frame, DragHandleOrCutoff)
     local DragHandle = (typeof(DragHandleOrCutoff) == 'Instance' and DragHandleOrCutoff) or Frame
     local Cutoff = (type(DragHandleOrCutoff) == 'number' and DragHandleOrCutoff)
 
-
     DragHandle.InputBegan:Connect(function(Input)
         if Library:IsPointerInput(Input) and not Library:MouseIsOverOpenedFrame() then
             if Cutoff then
@@ -1086,7 +1085,7 @@ do
             local sap = Swatch.AbsolutePosition
             PickerFrameOuter.Position = UDim2.fromOffset(sap.X, sap.Y + Swatch.AbsoluteSize.Y + 1)
         end
-        -- Measure where it actually landed and pin it under the swatch (UIScale-proof).
+
         local pickerCorrecting = false
         local function StartPickerCorrecting()
             if pickerCorrecting then return end
@@ -1321,7 +1320,7 @@ do
 
         local pickerW = S(230)
         local mapSz   = S(200)
-        -- vertical layout anchors (top -> bottom): preview bar, stop tabs, map+hue, inputs, transparency
+
         local prevY   = S(22)
         local tabsY   = S(44)
         local mapY    = S(70)
@@ -1341,8 +1340,7 @@ do
             local sap = Swatch.AbsolutePosition
             PickerFrameOuter.Position = UDim2.fromOffset(sap.X, sap.Y + Swatch.AbsoluteSize.Y + 1)
         end
-        -- Bulletproof: measure where the picker actually rendered and nudge until its top-left
-        -- sits exactly under the swatch (the UIScale otherwise shifts it off, worse when tall).
+
         local pickerCorrecting = false
         local function StartPickerCorrecting()
             if pickerCorrecting then return end
@@ -1372,7 +1370,6 @@ do
 
         local TitleLabel = Library:CreateLabel({ Size=UDim2.new(1,0,0,S(14)); Position=UDim2.fromOffset(S(5),S(4)); TextSize=S(13); Text=GradColorPickerInfo.Title..' (start)'; TextXAlignment=Enum.TextXAlignment.Left; TextWrapped=false; ZIndex=17; Parent=PickerFrameInner })
 
-        -- Live gradient preview bar (checkerboard shows through transparent stops).
         local PreviewOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Position=UDim2.fromOffset(S(4),prevY); Size=UDim2.new(1,-S(8),0,S(18)); ZIndex=17; Parent=PickerFrameInner })
         local PreviewInner = Library:Create('Frame', { BackgroundColor3=Library.OutlineColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; BorderSizePixel=1; Size=UDim2.new(1,0,1,0); ZIndex=17; Parent=PreviewOuter })
         Library:AddToRegistry(PreviewInner, { BackgroundColor3='OutlineColor'; BorderColor3='OutlineColor' })
@@ -1380,7 +1377,6 @@ do
         local PreviewFill = Library:Create('Frame', { BackgroundColor3=Color3.new(1,1,1); BorderSizePixel=0; Size=UDim2.new(1,0,1,0); ZIndex=19; Parent=PreviewInner })
         local PreviewGrad = Library:Create('UIGradient', { Parent=PreviewFill })
 
-        -- Horizontal stop selector: start | middle | end. Active stop = accent border + text.
         local STOP_TAB_NAMES = { 'Start', 'Middle', 'End' }
         local tabGap   = S(3)
         local tabW     = math.floor((pickerW - S(8) - tabGap * 2) / 3)
@@ -1697,7 +1693,7 @@ do
             HudBindLabel.Visible = showInList
             HudBindLabel.TextColor3 = state and Library.AccentColor or Library.FontColor
             Library.RegistryMap[HudBindLabel].Properties.TextColor3 = state and 'AccentColor' or 'FontColor'
-            
+
             local ys, xs = 0, 0
             for _, ch in ipairs(Library.KeybindContainer:GetChildren()) do
                 if ch:IsA('TextLabel') and ch.Visible then
@@ -2341,8 +2337,6 @@ do
 
         local MAX = 8
         local itemH = S(20)
-        -- Full-screen blocker behind the open list: sinks every click that isn't on the list
-        -- itself, so a click can never fall through to a dropdown (or anything) behind it.
         local Blocker = Library:Create('TextButton', { Name='DropdownBlocker'; Active=true; AutoButtonColor=false; BackgroundTransparency=1; Text=''; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
         local ListOuter = Library:Create('Frame', { Active=true; BorderColor3=Color3.new(0,0,0); Size=UDim2.fromOffset(200, MAX*itemH+2); ZIndex=20; Visible=false; Parent=ScreenGui })
         local ListOuterScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = ListOuter })
@@ -2358,8 +2352,6 @@ do
         Library:AddToRegistry(Scroll, { ScrollBarImageColor3='AccentColor' })
         Library:Create('UIListLayout', { Padding=UDim.new(0,0); FillDirection=Enum.FillDirection.Vertical; SortOrder=Enum.SortOrder.LayoutOrder; Parent=Scroll })
 
-        -- Best-effort initial guess (so the first frame isn't wildly off). The corrective
-        -- loop below then pins the list exactly, regardless of how the UIScale behaves.
         local function UpdateListPos()
             if not DropdownOuter.Parent then return end
             local scale = Library.UIScaleValue or 1.0
@@ -2369,10 +2361,6 @@ do
             ListOuter.Position = UDim2.fromOffset(ap.X, ap.Y + asz.Y + 1)
         end
 
-        -- Bulletproof placement: AbsolutePosition is the REAL rendered top-left. Whatever the
-        -- UIScale does to position/size/pivot, we read where the list actually landed and nudge
-        -- its offset until its top-left sits exactly at the dropdown's bottom-left. Runs only
-        -- while the list is open and goes idle once it converges (error < 0.5px).
         local correcting = false
         local function StartCorrecting()
             if correcting then return end
@@ -2485,21 +2473,14 @@ do
             Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
         end
 
-        -- Header click toggles the dropdown. When already open, clicking the header again closes
-        -- it. The MouseIsOverOpenedFrame guard only gates OPENING so a click that lands on this
-        -- header THROUGH another dropdown's open list (Roblox fires InputBegan on every overlapping
-        -- object, not just the top one) can't open this dropdown.
         DropdownOuter.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
             if Library:MouseIsOverOpenedFrame() then return end
             DropdownData:OpenDropdown()
         end)
-        -- Blocker is a TextButton so Activated only fires when the Blocker itself is the real
-        -- topmost hit target — unlike Frame.InputBegan, which fires on every overlapping Active
-        -- object regardless of stacking. Items render above the Blocker, so clicks on them never
-        -- reach this handler; only genuine outside clicks (or the header, handled separately) do.
         Blocker.Activated:Connect(function()
+            if Library:IsMouseOverFrame(ListOuter) then return end
             if Library:IsMouseOverFrame(DropdownOuter) then return end
             DropdownData:CloseDropdown()
         end)
@@ -2560,8 +2541,6 @@ do
         table.insert(Library.DependencyBoxes, Depbox)
         return Depbox
     end
-
-
 
     function Funcs:AddInlineTabs(tabNames)
         local Groupbox = self
@@ -2876,7 +2855,7 @@ function Library:CreateWindow(...)
         ZIndex                  = 5;
         Parent                  = Inner;
     })
-    
+
     local SearchModal = Library:Create('Frame', {
         BackgroundColor3  = Library.MainColor;
         BorderColor3      = Library.OutlineColor;
@@ -2886,7 +2865,7 @@ function Library:CreateWindow(...)
         ZIndex            = 50;
         Parent            = Inner;
     })
-    
+
     local SearchBackBtn = Library:Create('TextButton', {
         BackgroundTransparency  = 1;
         Position                = UDim2.new(0, S(4), 0, S(4));
@@ -2913,7 +2892,7 @@ function Library:CreateWindow(...)
         ZIndex                  = 51;
         Parent                  = SearchModal;
     })
-    
+
     Library:Create('Frame', {
         BackgroundColor3  = Library.OutlineColor;
         BorderSizePixel   = 0;
@@ -2922,7 +2901,7 @@ function Library:CreateWindow(...)
         ZIndex            = 51;
         Parent            = SearchModal;
     })
-    
+
     local SearchResults = Library:Create('ScrollingFrame', {
         BackgroundTransparency  = 1;
         BorderSizePixel         = 0;
@@ -2934,24 +2913,24 @@ function Library:CreateWindow(...)
         ZIndex                  = 51;
         Parent                  = SearchModal;
     })
-    
+
     local SearchLayout = Library:Create('UIListLayout', {
         Padding    = UDim.new(0, S(4));
         SortOrder  = Enum.SortOrder.LayoutOrder;
         Parent     = SearchResults;
     })
-    
+
     SearchLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
         SearchResults.CanvasSize = UDim2.fromOffset(0, SearchLayout.AbsoluteContentSize.Y)
     end)
-    
+
     local function CloseSearch()
         SearchModal.Visible = false
         SearchInput.Text = ""
     end
-    
+
     SearchBackBtn.MouseButton1Click:Connect(CloseSearch)
-    
+
     SearchBtn.MouseButton1Click:Connect(function()
         SearchModal.Visible = not SearchModal.Visible
         if SearchModal.Visible then
@@ -2979,7 +2958,7 @@ function Library:CreateWindow(...)
             end
         end
         scan(TabContainer)
-        
+
         for i, m in ipairs(matches) do
             if i > 50 then break end
             local btn = Library:Create('TextButton', {
@@ -2994,7 +2973,7 @@ function Library:CreateWindow(...)
                 ZIndex            = 52;
                 Parent            = SearchResults;
             })
-            
+
             local locLabel = Library:CreateLabel({
                 Size            = UDim2.new(1, -S(10), 1, 0);
                 Text            = m.Location;
@@ -3016,7 +2995,7 @@ function Library:CreateWindow(...)
         while curr and curr ~= game do
             for tabName, tab in pairs(Library.MainWindow.Tabs) do
                 if tab.TabFrame == curr then return tabName end
-                
+
                 if tab.Groupboxes then
                     for _, gb in pairs(tab.Groupboxes) do
                         if gb.InlineTabs then
@@ -3038,7 +3017,7 @@ function Library:CreateWindow(...)
                 if tab.SubTabSystem then
                     for stabName, stab in pairs(tab.SubTabSystem.Tabs) do
                         if stab.LeftContainer == curr or stab.RightContainer == curr then return stabName end
-                        
+
                         if stab.Groupboxes then
                             for _, gb in pairs(stab.Groupboxes) do
                                 if gb.InlineTabs then
@@ -3645,7 +3624,7 @@ function Library:CreateWindow(...)
                 SubTabSystem.Tabs[SubName] = ST
                 local count = 0; for _ in next, SubTabSystem.Tabs do count=count+1 end
                 if count == 1 then ST:ShowTab() end
-                
+
                 for _, cb in ipairs(Library.TabResizeCallbacks) do pcall(cb) end
                 return ST
             end
@@ -3690,8 +3669,6 @@ function Library:CreateWindow(...)
         tw:Play()
         return tw
     end
-
-
 
     local Blur
     if not IsTouch then
@@ -3926,8 +3903,6 @@ Services.Players.PlayerAdded:Connect(OnPlayerChange)
 Services.Players.PlayerRemoving:Connect(OnPlayerChange)
 task.spawn(OnPlayerChange)
 
-
-
 function Library:CreateFloatingPanel(config)
     local w = config.Width or 860
     local h = config.Height or 520
@@ -4077,7 +4052,7 @@ function Library:CreatePrompt(config)
             Parent            = inner,
         })
         Library:AddToRegistry(confirmBtn, {BackgroundColor3="RiskColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
-        
+
         local cancelBtn = Library:Create("TextButton", {
             Position          = UDim2.new(0.5, S(5), 1, -S(30)),
             Size              = UDim2.new(0.5, -S(15), 0, S(20)),
@@ -4118,7 +4093,7 @@ function Library:CreatePrompt(config)
             Parent            = inner,
         })
         Library:AddToRegistry(textBox, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
-        
+
         local nameInput
         if config.Mode == "Import" then
             nameInput = Library:Create("TextBox", {
@@ -4136,7 +4111,7 @@ function Library:CreatePrompt(config)
             })
             Library:AddToRegistry(nameInput, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
         end
-        
+
         local actionBtn = Library:Create("TextButton", {
             Position          = UDim2.new(0, S(10), 1, -S(30)),
             Size              = UDim2.new(1, -S(20), 0, S(20)),
@@ -4150,7 +4125,7 @@ function Library:CreatePrompt(config)
             Parent            = inner,
         })
         Library:AddToRegistry(actionBtn, {BackgroundColor3="AccentColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
-        
+
         actionBtn.MouseButton1Click:Connect(function()
             if config.Mode == "Export" then
                 if setclipboard then
@@ -4168,9 +4143,6 @@ function Library:CreatePrompt(config)
         end)
     end
 end
-
-
---[[ ThemeManager ]]
 
 local ThemeManager = {} do
 	ThemeManager.Folder = 'Elite Zone/Rivals'
@@ -4272,7 +4244,6 @@ ThemeManager.BuiltInThemes = {
 				out.mainWindowSize = { w = w, h = h }
 			end
 		end
-
 
 		return out
 	end
@@ -4556,7 +4527,6 @@ ThemeManager.BuiltInThemes = {
 		normalTab:AddLabel('outline'):AddColorPicker('OutlineColor', { Title = 'outline', Default = self.Library.OutlineColor })
 		normalTab:AddLabel('font color'):AddColorPicker('FontColor', { Title = 'font color', Default = self.Library.FontColor })
 
-
 		self:BuildThemeSections(settingsGroupbox, false)
 
 		settingsGroupbox:AddDivider()
@@ -4726,9 +4696,6 @@ ThemeManager.BuiltInThemes = {
 	ThemeManager:BuildFolderTree()
 end
 
-
---[[ SaveManager ]]
-
 local SaveManager = {} do
 
 SaveManager.Folder = 'Elite Zone/Rivals'
@@ -4856,8 +4823,6 @@ end
 function SaveManager.SetLibrary(self, library)
     self.Library = library
 end
-
-
 
 function SaveManager.GetConfigJSON(self)
     local data = { objects = {} }
@@ -5108,7 +5073,6 @@ end
 
 SaveManager:BuildFolderTree()
 end
-
 
 return {
     Library      = Library;
