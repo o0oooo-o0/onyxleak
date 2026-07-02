@@ -2343,7 +2343,7 @@ do
         local itemH = S(20)
         -- Full-screen blocker behind the open list: sinks every click that isn't on the list
         -- itself, so a click can never fall through to a dropdown (or anything) behind it.
-        local Blocker = Library:Create('Frame', { Name='DropdownBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
+        local Blocker = Library:Create('TextButton', { Name='DropdownBlocker'; Active=true; AutoButtonColor=false; BackgroundTransparency=1; Text=''; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
         local ListOuter = Library:Create('Frame', { Active=true; BorderColor3=Color3.new(0,0,0); Size=UDim2.fromOffset(200, MAX*itemH+2); ZIndex=20; Visible=false; Parent=ScreenGui })
         local ListOuterScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = ListOuter })
         table.insert(Library.ThemeScales, ListOuterScale)
@@ -2495,17 +2495,11 @@ do
             if Library:MouseIsOverOpenedFrame() then return end
             DropdownData:OpenDropdown()
         end)
-        -- Close-on-outside-click is driven off UserInputService instead of the Blocker's own
-        -- InputBegan: GuiObject InputBegan fires on every overlapping Active object (not just the
-        -- topmost one), which made clicks ON the list ambiguous with clicks outside it and caused
-        -- the list to close when selecting an item while never closing on a genuine outside click.
-        -- A single global input check with an explicit bounds test is unambiguous in both cases.
-        -- Clicks on the header itself are left to the header handler above so it can toggle the
-        -- list closed — otherwise this would close it and the header would immediately reopen it.
-        Services.UserInputService.InputBegan:Connect(function(Input)
-            if not Library:IsPointerInput(Input) then return end
-            if not ListOuter.Visible then return end
-            if Library:IsMouseOverFrame(ListOuter) then return end
+        -- Blocker is a TextButton so Activated only fires when the Blocker itself is the real
+        -- topmost hit target — unlike Frame.InputBegan, which fires on every overlapping Active
+        -- object regardless of stacking. Items render above the Blocker, so clicks on them never
+        -- reach this handler; only genuine outside clicks (or the header, handled separately) do.
+        Blocker.Activated:Connect(function()
             if Library:IsMouseOverFrame(DropdownOuter) then return end
             DropdownData:CloseDropdown()
         end)
