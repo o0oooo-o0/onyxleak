@@ -256,6 +256,15 @@ function Library:IsMouseOverFrame(Frame)
     return px >= ap.X and px <= ap.X + as.X and py >= ap.Y and py <= ap.Y + as.Y
 end
 
+function Library:IsGuiVisible(Frame)
+    local Current = Frame
+    while Current and Current:IsA('GuiObject') do
+        if not Current.Visible then return false end
+        Current = Current.Parent
+    end
+    return true
+end
+
 do
     local Pending = false
     function Library:UpdateDependencyBoxes()
@@ -2480,6 +2489,7 @@ do
                 if Library:IsMouseOverFrame(ListOuter) then return end
                 DropdownData:CloseDropdown()
             else
+                if not Library:IsGuiVisible(DropdownOuter) then return end
                 if not Library:IsMouseOverFrame(DropdownOuter) then return end
                 if Library:MouseIsOverOpenedFrame() then return end
                 DropdownData:OpenDropdown()
