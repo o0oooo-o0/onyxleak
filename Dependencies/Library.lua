@@ -224,8 +224,7 @@ end
 
 function Library:CursorPos()
     local loc = Services.UserInputService:GetMouseLocation()
-    local inset = Services.GuiService:GetGuiInset()
-    return loc.X + inset.X, loc.Y + inset.Y
+    return loc.X, loc.Y
 end
 
 function Library:IsPointerInput(Input)
@@ -255,16 +254,6 @@ function Library:IsMouseOverFrame(Frame)
     local px, py = Library:CursorPos()
     local ap, as = Frame.AbsolutePosition, Frame.AbsoluteSize
     return px >= ap.X and px <= ap.X + as.X and py >= ap.Y and py <= ap.Y + as.Y
-end
-
-function Library:IsInstanceVisible(Frame)
-    local f = Frame
-    while f do
-        if f:IsA('LayerCollector') then return true end
-        if f:IsA('GuiObject') and not f.Visible then return false end
-        f = f.Parent
-    end
-    return false
 end
 
 do
@@ -355,7 +344,6 @@ function Library:Unload()
         table.remove(Library.Signals, i):Disconnect()
     end
     Library.DropdownRegistry = {}
-    Library._DropdownGlobalConnected = false
     if Library.OnUnload then Library.OnUnload() end
     if not IsTouch then
         local ezBlur = Services.Lighting:FindFirstChild("EliteZone_Blur")
@@ -2486,45 +2474,22 @@ do
             Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
         end
 
-        DropdownData.ListOuter = ListOuter
-        DropdownData.DropdownOuter = DropdownOuter
-
         Library.DropdownRegistry = Library.DropdownRegistry or {}
         table.insert(Library.DropdownRegistry, DropdownData)
 
-        if not Library._DropdownGlobalConnected then
-            Library._DropdownGlobalConnected = true
-            Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
-                if not Library:IsPointerInput(Input) then return end
-                local reg = Library.DropdownRegistry
-                for _, dd in next, reg do
-                    if dd.ListOuter and dd.ListOuter.Parent and dd.ListOuter.Visible and Library:IsMouseOverFrame(dd.ListOuter) then
-                        return
-                    end
-                end
-                local target
-                for _, dd in next, reg do
-                    if dd.DropdownOuter and dd.DropdownOuter.Parent and Library:IsInstanceVisible(dd.DropdownOuter) and Library:IsMouseOverFrame(dd.DropdownOuter) then
-                        target = dd
-                        break
-                    end
-                end
-                if target then
-                    if target.ListOuter.Visible then
-                        target:CloseDropdown()
-                    else
-                        for _, dd in next, reg do
-                            if dd ~= target and dd.ListOuter and dd.ListOuter.Visible then dd:CloseDropdown() end
-                        end
-                        target:OpenDropdown()
-                    end
-                else
-                    for _, dd in next, reg do
-                        if dd.ListOuter and dd.ListOuter.Visible then dd:CloseDropdown() end
-                    end
-                end
-            end))
-        end
+        DropdownOuter.InputBegan:Connect(function(Input)
+            if not Library:IsPointerInput(Input) then return end
+            if ListOuter.Visible then DropdownData:CloseDropdown(); return end
+            for _, dd in next, Library.DropdownRegistry do
+                if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
+            end
+            DropdownData:OpenDropdown()
+        end)
+
+        Blocker.InputBegan:Connect(function(Input)
+            if not Library:IsPointerInput(Input) then return end
+            DropdownData:CloseDropdown()
+        end)
 
         DropdownData:SetValues()
 
