@@ -2495,12 +2495,16 @@ do
             if Library:MouseIsOverOpenedFrame() then return end
             DropdownData:OpenDropdown()
         end)
-        -- The Blocker also receives clicks that land on the list (InputBegan isn't sunk between
-        -- GUI objects), so only close when the click is genuinely OUTSIDE the list. Clicks on the
-        -- header itself are left to the header handler above so it can toggle the list closed —
-        -- otherwise the Blocker would close it and the header would immediately reopen it.
-        Blocker.InputBegan:Connect(function(Input)
+        -- Close-on-outside-click is driven off UserInputService instead of the Blocker's own
+        -- InputBegan: GuiObject InputBegan fires on every overlapping Active object (not just the
+        -- topmost one), which made clicks ON the list ambiguous with clicks outside it and caused
+        -- the list to close when selecting an item while never closing on a genuine outside click.
+        -- A single global input check with an explicit bounds test is unambiguous in both cases.
+        -- Clicks on the header itself are left to the header handler above so it can toggle the
+        -- list closed — otherwise this would close it and the header would immediately reopen it.
+        Services.UserInputService.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            if not ListOuter.Visible then return end
             if Library:IsMouseOverFrame(ListOuter) then return end
             if Library:IsMouseOverFrame(DropdownOuter) then return end
             DropdownData:CloseDropdown()
