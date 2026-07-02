@@ -343,6 +343,8 @@ function Library:Unload()
     for i = #Library.Signals, 1, -1 do
         table.remove(Library.Signals, i):Disconnect()
     end
+    Library.DropdownRegistry = {}
+    Library._DropdownGlobalConnected = false
     if Library.OnUnload then Library.OnUnload() end
     if not IsTouch then
         local ezBlur = Services.Lighting:FindFirstChild("EliteZone_Blur")
@@ -2473,18 +2475,45 @@ do
             Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
         end
 
-        DropdownOuter.InputBegan:Connect(function(Input)
-            if not Library:IsPointerInput(Input) then return end
-            if ListOuter.Visible then DropdownData:CloseDropdown(); return end
-            if Library:MouseIsOverOpenedFrame() then return end
-            DropdownData:OpenDropdown()
-        end)
-        Blocker.InputBegan:Connect(function(Input)
-            if not Library:IsPointerInput(Input) then return end
-            if not ListOuter.Visible then return end
-            if Library:IsMouseOverFrame(ListOuter) then return end
-            DropdownData:CloseDropdown()
-        end)
+        DropdownData.ListOuter = ListOuter
+        DropdownData.DropdownOuter = DropdownOuter
+
+        Library.DropdownRegistry = Library.DropdownRegistry or {}
+        table.insert(Library.DropdownRegistry, DropdownData)
+
+        if not Library._DropdownGlobalConnected then
+            Library._DropdownGlobalConnected = true
+            Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
+                if not Library:IsPointerInput(Input) then return end
+                local reg = Library.DropdownRegistry
+                for _, dd in next, reg do
+                    if dd.ListOuter and dd.ListOuter.Parent and dd.ListOuter.Visible and Library:IsMouseOverFrame(dd.ListOuter) then
+                        return
+                    end
+                end
+                local target
+                for _, dd in next, reg do
+                    if dd.DropdownOuter and dd.DropdownOuter.Parent and Library:IsMouseOverFrame(dd.DropdownOuter) then
+                        target = dd
+                        break
+                    end
+                end
+                if target then
+                    if target.ListOuter.Visible then
+                        target:CloseDropdown()
+                    else
+                        for _, dd in next, reg do
+                            if dd ~= target and dd.ListOuter and dd.ListOuter.Visible then dd:CloseDropdown() end
+                        end
+                        target:OpenDropdown()
+                    end
+                else
+                    for _, dd in next, reg do
+                        if dd.ListOuter and dd.ListOuter.Visible then dd:CloseDropdown() end
+                    end
+                end
+            end))
+        end
 
         DropdownData:SetValues()
 
