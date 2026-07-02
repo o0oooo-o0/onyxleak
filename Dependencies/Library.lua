@@ -256,6 +256,15 @@ function Library:IsMouseOverFrame(Frame)
     return px >= ap.X and px <= ap.X + as.X and py >= ap.Y and py <= ap.Y + as.Y
 end
 
+function Library:IsInstanceVisible(Frame)
+    local f = Frame
+    while f and f ~= ScreenGui do
+        if f:IsA('GuiObject') and not f.Visible then return false end
+        f = f.Parent
+    end
+    return f == ScreenGui
+end
+
 do
     local Pending = false
     function Library:UpdateDependencyBoxes()
@@ -2493,7 +2502,7 @@ do
                 end
                 local target
                 for _, dd in next, reg do
-                    if dd.DropdownOuter and dd.DropdownOuter.Parent and Library:IsMouseOverFrame(dd.DropdownOuter) then
+                    if dd.DropdownOuter and dd.DropdownOuter.Parent and Library:IsInstanceVisible(dd.DropdownOuter) and Library:IsMouseOverFrame(dd.DropdownOuter) then
                         target = dd
                         break
                     end
