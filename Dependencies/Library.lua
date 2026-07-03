@@ -232,6 +232,17 @@ function Library:IsPointerInput(Input)
         or Input.UserInputType == Enum.UserInputType.Touch
 end
 
+function Library:IsTopmostAtCursor(Obj)
+    local player = Services.Players.LocalPlayer
+    local pg = player and player:FindFirstChildOfClass('PlayerGui')
+    if not pg then return true end
+    local px, py = Library:CursorPos()
+    local ok, hits = pcall(function() return pg:GetGuiObjectsAtPosition(px, py) end)
+    if not ok or not hits or #hits == 0 then return true end
+    local top = hits[1]
+    return top == Obj or Obj:IsAncestorOf(top)
+end
+
 function Library:MouseIsOverOpenedFrame()
     local px, py = Library:CursorPos()
     for Frame in next, Library.OpenedFrames do
@@ -2485,7 +2496,7 @@ do
             if not Library:IsPointerInput(Input) then return end
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
             if os.clock() < ignoreOpenUntil then return end
-            if Library:MouseIsOverOpenedFrame() then return end
+            if not Library:IsTopmostAtCursor(DropdownOuter) then return end
             for _, dd in next, Library.DropdownRegistry do
                 if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
             end
