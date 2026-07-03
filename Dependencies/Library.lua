@@ -3240,6 +3240,7 @@ function Library:CreateWindow(...)
             TInline.Visible = true
         end
         function Tab:HideTab()
+            for _, dd in next, Library.DropdownRegistry do dd:CloseDropdown() end
             TUnder.Visible = false; TFrame.Visible = false
             TBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
             TBtn.BackgroundColor3 = Library.BackgroundColor
@@ -3541,6 +3542,7 @@ function Library:CreateWindow(...)
                     STRight.Visible = true
                 end
                 function ST:HideTab()
+                    for _, dd in next, Library.DropdownRegistry do dd:CloseDropdown() end
                     STUnder.Visible = false
                     STInline.Visible = false
                     STBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
