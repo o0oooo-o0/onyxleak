@@ -42,6 +42,7 @@ local Library = {
     Font                    = Enum.Font.Code;
     CustomFontFace          = nil;
     OpenedFrames            = {};
+    ActiveDropdownList      = nil;
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -2459,8 +2460,8 @@ do
             UpdateListPos()
         end
 
-        function DropdownData:OpenDropdown()  UpdateListPos(); Blocker.Visible = true; ListOuter.Visible = true;  Library.OpenedFrames[ListOuter] = true;  Arrow.Rotation = 90; StartCorrecting() end
-        function DropdownData:CloseDropdown() Blocker.Visible = false; ListOuter.Visible = false; Library.OpenedFrames[ListOuter] = nil;   Arrow.Rotation = 0  end
+        function DropdownData:OpenDropdown()  UpdateListPos(); Blocker.Visible = true; ListOuter.Visible = true;  Library.OpenedFrames[ListOuter] = true;  Library.ActiveDropdownList = ListOuter; Arrow.Rotation = 90; StartCorrecting() end
+        function DropdownData:CloseDropdown() Blocker.Visible = false; ListOuter.Visible = false; Library.OpenedFrames[ListOuter] = nil;   if Library.ActiveDropdownList == ListOuter then Library.ActiveDropdownList = nil end; Arrow.Rotation = 0  end
         function DropdownData:OnChanged(fn)   DropdownData.Changed = fn; fn(DropdownData.Value) end
         function DropdownData:SetValue(val)
             if DropdownData.Multi then
@@ -2485,6 +2486,8 @@ do
             if not Library:IsPointerInput(Input) then return end
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
             if os.clock() < ignoreOpenUntil then return end
+            local otherOpen = Library.ActiveDropdownList
+            if otherOpen and otherOpen ~= ListOuter and Library:IsMouseOverFrame(otherOpen) then return end
             for _, dd in next, Library.DropdownRegistry do
                 if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
             end
