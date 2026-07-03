@@ -252,6 +252,11 @@ function Library:HasOpenedFrames()
     return false
 end
 
+function Library:IsPositionOverFrame(px, py, Frame)
+    local ap, as = Frame.AbsolutePosition, Frame.AbsoluteSize
+    return px >= ap.X and px <= ap.X + as.X and py >= ap.Y and py <= ap.Y + as.Y
+end
+
 function Library:IsMouseOverFrame(Frame)
     local px, py = Library:CursorPos()
     local ap, as = Frame.AbsolutePosition, Frame.AbsoluteSize
@@ -2487,7 +2492,7 @@ do
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
             if os.clock() < ignoreOpenUntil then return end
             local otherOpen = Library.ActiveDropdownList
-            if otherOpen and otherOpen ~= ListOuter and Library:IsMouseOverFrame(otherOpen) then return end
+            if otherOpen and otherOpen ~= ListOuter and Library:IsPositionOverFrame(Input.Position.X, Input.Position.Y, otherOpen) then return end
             for _, dd in next, Library.DropdownRegistry do
                 if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
             end
