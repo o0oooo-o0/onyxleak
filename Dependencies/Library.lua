@@ -936,6 +936,7 @@ end
 
 function Library:Notify(Text, Time)
     if not Text or Text == "" then return end
+    Text = '[Elite Zone] ' .. Text
     local xw = Library:GetTextBounds(Text, Library.Font, (14)) or 200
     local H   = (22)
     local Outer = Library:Create('Frame', {
