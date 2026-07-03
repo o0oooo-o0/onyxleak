@@ -232,15 +232,13 @@ function Library:IsPointerInput(Input)
         or Input.UserInputType == Enum.UserInputType.Touch
 end
 
-function Library:IsTopmostAtCursor(Obj)
-    local player = Services.Players.LocalPlayer
-    local pg = player and player:FindFirstChildOfClass('PlayerGui')
-    if not pg then return true end
-    local px, py = Library:CursorPos()
-    local ok, hits = pcall(function() return pg:GetGuiObjectsAtPosition(px, py) end)
-    if not ok or not hits or #hits == 0 then return true end
-    local top = hits[1]
-    return top == Obj or Obj:IsAncestorOf(top)
+function Library:IsMouseOverOtherOpenDropdown(SelfData)
+    for _, dd in next, Library.DropdownRegistry or {} do
+        if dd ~= SelfData and dd._ListOuter and dd._ListOuter.Visible then
+            if Library:IsMouseOverFrame(dd._ListOuter) then return true end
+        end
+    end
+    return false
 end
 
 function Library:MouseIsOverOpenedFrame()
@@ -2351,6 +2349,7 @@ do
         local itemH = S(20)
         local Blocker = Library:Create('Frame', { Name='DropdownBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
         local ListOuter = Library:Create('Frame', { Active=true; BorderColor3=Color3.new(0,0,0); Size=UDim2.fromOffset(200, MAX*itemH+2); ZIndex=20; Visible=false; Parent=ScreenGui })
+        DropdownData._ListOuter = ListOuter
         local ListOuterScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = ListOuter })
         table.insert(Library.ThemeScales, ListOuterScale)
         local ListInner  = Library:Create('Frame', { Active=true; BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; BorderSizePixel=0; Size=UDim2.new(1,0,1,0); ZIndex=21; Parent=ListOuter })
@@ -2496,7 +2495,7 @@ do
             if not Library:IsPointerInput(Input) then return end
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
             if os.clock() < ignoreOpenUntil then return end
-            if not Library:IsTopmostAtCursor(DropdownOuter) then return end
+            if Library:IsMouseOverOtherOpenDropdown(DropdownData) then return end
             for _, dd in next, Library.DropdownRegistry do
                 if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
             end
