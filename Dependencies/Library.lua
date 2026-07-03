@@ -42,6 +42,7 @@ local Library = {
     Font                    = Enum.Font.Code;
     CustomFontFace          = nil;
     OpenedFrames            = {};
+    ActiveDropdownList      = nil;
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -230,15 +231,6 @@ end
 function Library:IsPointerInput(Input)
     return Input.UserInputType == Enum.UserInputType.MouseButton1
         or Input.UserInputType == Enum.UserInputType.Touch
-end
-
-function Library:IsMouseOverOtherOpenDropdown(SelfData)
-    for _, dd in next, Library.DropdownRegistry or {} do
-        if dd ~= SelfData and dd._ListOuter and dd._ListOuter.Visible then
-            if Library:IsMouseOverFrame(dd._ListOuter) then return true end
-        end
-    end
-    return false
 end
 
 function Library:MouseIsOverOpenedFrame()
@@ -2349,7 +2341,6 @@ do
         local itemH = S(20)
         local Blocker = Library:Create('Frame', { Name='DropdownBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromScale(0,0); Size=UDim2.fromScale(1,1); ZIndex=19; Visible=false; Parent=ScreenGui })
         local ListOuter = Library:Create('Frame', { Active=true; BorderColor3=Color3.new(0,0,0); Size=UDim2.fromOffset(200, MAX*itemH+2); ZIndex=20; Visible=false; Parent=ScreenGui })
-        DropdownData._ListOuter = ListOuter
         local ListOuterScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = ListOuter })
         table.insert(Library.ThemeScales, ListOuterScale)
         local ListInner  = Library:Create('Frame', { Active=true; BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; BorderSizePixel=0; Size=UDim2.new(1,0,1,0); ZIndex=21; Parent=ListOuter })
@@ -2469,8 +2460,8 @@ do
             UpdateListPos()
         end
 
-        function DropdownData:OpenDropdown()  UpdateListPos(); Blocker.Visible = true; ListOuter.Visible = true;  Library.OpenedFrames[ListOuter] = true;  Arrow.Rotation = 90; StartCorrecting() end
-        function DropdownData:CloseDropdown() Blocker.Visible = false; ListOuter.Visible = false; Library.OpenedFrames[ListOuter] = nil;   Arrow.Rotation = 0  end
+        function DropdownData:OpenDropdown()  UpdateListPos(); Blocker.Visible = true; ListOuter.Visible = true;  Library.OpenedFrames[ListOuter] = true;  Library.ActiveDropdownList = ListOuter; Arrow.Rotation = 90; StartCorrecting() end
+        function DropdownData:CloseDropdown() Blocker.Visible = false; ListOuter.Visible = false; Library.OpenedFrames[ListOuter] = nil;   if Library.ActiveDropdownList == ListOuter then Library.ActiveDropdownList = nil end; Arrow.Rotation = 0  end
         function DropdownData:OnChanged(fn)   DropdownData.Changed = fn; fn(DropdownData.Value) end
         function DropdownData:SetValue(val)
             if DropdownData.Multi then
@@ -2495,7 +2486,8 @@ do
             if not Library:IsPointerInput(Input) then return end
             if ListOuter.Visible then DropdownData:CloseDropdown(); return end
             if os.clock() < ignoreOpenUntil then return end
-            if Library:IsMouseOverOtherOpenDropdown(DropdownData) then return end
+            local otherOpen = Library.ActiveDropdownList
+            if otherOpen and otherOpen ~= ListOuter and Library:IsMouseOverFrame(otherOpen) then return end
             for _, dd in next, Library.DropdownRegistry do
                 if dd ~= DropdownData and dd.CloseDropdown then dd:CloseDropdown() end
             end
