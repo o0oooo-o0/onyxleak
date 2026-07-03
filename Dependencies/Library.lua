@@ -146,6 +146,39 @@ function Library:SetTRProperty(inst, prop, raw)
     inst[prop] = raw
 end
 
+Library.CaseSettings = {
+    Tabs       = "Capitalized",
+    SubTabs    = "Capitalized",
+    Groupboxes = "Capitalized",
+    Content    = "Capitalized",
+}
+Library.TextRegistry = {}
+
+function Library:ApplyCase(text, category)
+    local s = tostring(text or "")
+    local mode = (Library.CaseSettings and Library.CaseSettings[category]) or "Capitalized"
+    if mode == "Uppercase" then
+        return s:upper()
+    elseif mode == "Lowercase" then
+        return s:lower()
+    else -- Capitalized: title case each word
+        return (s:gsub("(%a)([%w]*)", function(a, b) return a:upper() .. b end))
+    end
+end
+
+function Library:TrackLabel(lbl, originalText, category)
+    if not lbl then return end
+    Library.TextRegistry[#Library.TextRegistry + 1] = { lbl = lbl, text = originalText, cat = category }
+end
+
+function Library:RefreshTextRegistry()
+    for _, e in ipairs(Library.TextRegistry) do
+        if e.lbl and e.lbl.Parent then
+            e.lbl.Text = Library:ApplyCase(e.text, e.cat)
+        end
+    end
+end
+
 function Library:SafeCallback(f, ...)
     if not f then return end
     if not Library.NotifyOnError then return f(...) end
@@ -1784,7 +1817,7 @@ do
         local TextLabelRef    = Library:CreateLabel({
             Size            = UDim2.new(1, -(4), 0, (15));
             TextSize        = (14);
-            Text            = Text;
+            Text            = Library:ApplyCase(Text or "", "Content");
             TextWrapped     = DoesWrap or false;
             RichText        = true;
             TextXAlignment  = Enum.TextXAlignment.Left;
@@ -1800,7 +1833,7 @@ do
         Label.TextLabel = TextLabelRef
         Label.Container = Groupbox.Container
         function Label:SetText(t)
-            Library:SetTRText(TextLabelRef, tostring(t or ""))
+            Library:SetTRText(TextLabelRef, Library:ApplyCase(tostring(t or ""), "Content"))
             if DoesWrap then
                 local _, y = Library:GetTextBounds(TextLabelRef.Text, Library.Font, (14), Vector2.new(TextLabelRef.AbsoluteSize.X, math.huge))
                 TextLabelRef.Size = UDim2.new(1, -(4), 0, y)
@@ -1991,7 +2024,8 @@ do
         local function MakeBtn(b)
             local o = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size = UDim2.new(1,-(4),0,(20)); ZIndex=5 })
             local i = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex=6; Parent=o })
-            local l = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(14); Text=b.Text; ZIndex=6; Parent=i })
+            local l = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(14); Text=Library:ApplyCase(b.Text or "", "Content"); ZIndex=6; Parent=i })
+            Library:TrackLabel(l, b.Text or "", "Content")
             Library:Create('UIGradient', { Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,Color3.fromRGB(212,212,212))}); Rotation=90; Parent=i })
             Library:AddToRegistry(o, { BorderColor3='Black' })
             Library:AddToRegistry(i, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
@@ -2050,7 +2084,8 @@ do
         assert(Info.Text, 'AddInput: Missing `Text`.')
         local Textbox = { Value=Info.Default or ''; Numeric=Info.Numeric; Finished=Info.Finished; Type='Input'; Callback=Info.Callback or function() end }
         local Groupbox = self
-        Library:CreateLabel({ Size=UDim2.new(1,0,0,(15)); TextSize=(14); Text=Info.Text; TextXAlignment=Enum.TextXAlignment.Left; ZIndex=5; Parent=Groupbox.Container })
+        local _inputLbl = Library:CreateLabel({ Size=UDim2.new(1,0,0,(15)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Content"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=5; Parent=Groupbox.Container })
+        Library:TrackLabel(_inputLbl, Info.Text or "", "Content")
         Groupbox:AddBlank(1)
         local BoxHeight = (20)
         local Outer = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size=UDim2.new(1,-(4),0,BoxHeight); ZIndex=5; Parent=Groupbox.Container })
@@ -2119,7 +2154,8 @@ do
         Library:AddToRegistry(TOuter, { BorderColor3='Black' })
         local TInner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=TOuter })
         Library:AddToRegistry(TInner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
-        local TLabel = Library:CreateLabel({ Size=UDim2.new(0,(245),1,0); Position=UDim2.new(1,(6),0,0); TextSize=(14); Text=Info.Text; TextXAlignment=Enum.TextXAlignment.Left; ZIndex=6; Parent=TInner })
+        local TLabel = Library:CreateLabel({ Size=UDim2.new(0,(245),1,0); Position=UDim2.new(1,(6),0,0); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Content"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=6; Parent=TInner })
+        Library:TrackLabel(TLabel, Info.Text or "", "Content")
         Library:Create('UIListLayout', { Padding=UDim.new(0,(4)); FillDirection=Enum.FillDirection.Horizontal; HorizontalAlignment=Enum.HorizontalAlignment.Right; SortOrder=Enum.SortOrder.LayoutOrder; Parent=TLabel })
         local function syncTLW()
             local cw = Groupbox.Container.AbsoluteSize.X
@@ -2232,7 +2268,7 @@ do
         end
         function Slider:Display()
             local suf = Info.Suffix or ''
-            DropdownLabel.Text = Info.Text..': '..Slider.Value..suf
+            DropdownLabel.Text = Library:ApplyCase(Info.Text or "", "Content")..': '..Slider.Value..suf
             TargetX = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize))
             StartLerp()
         end
@@ -2280,7 +2316,8 @@ do
         local RelOff = 0
 
         if not Info.Compact then
-            Library:CreateLabel({ PreserveCase = true; Size=UDim2.new(1,0,0,(10)); TextSize=(14); Text=Info.Text; TextXAlignment=Enum.TextXAlignment.Left; TextYAlignment=Enum.TextYAlignment.Bottom; ZIndex=5; Parent=Groupbox.Container })
+            local _ddLbl = Library:CreateLabel({ PreserveCase = true; Size=UDim2.new(1,0,0,(10)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Content"); TextXAlignment=Enum.TextXAlignment.Left; TextYAlignment=Enum.TextYAlignment.Bottom; ZIndex=5; Parent=Groupbox.Container })
+            Library:TrackLabel(_ddLbl, Info.Text or "", "Content")
             Groupbox:AddBlank(3)
         end
         for _, el in ipairs(Groupbox.Container:GetChildren()) do
@@ -3112,13 +3149,15 @@ function Library:CreateWindow(...)
     function Window:AddTab(Name)
         Library:BuildTick()
         local Tab = { Groupboxes={}; Tabboxes={} }
-        local tabDisplayName = tostring(Name or "")
+        local tabOrigName    = tostring(Name or "")
+        local tabDisplayName = Library:ApplyCase(tabOrigName, "Tabs")
 
         local tabFontSz = (13)
         local tbW = Library:GetTextBounds(tabDisplayName, Library.Font, tabFontSz) + (18)
         local TBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; Size=UDim2.new(0,tbW,1,0); ZIndex=1; Parent=TabArea })
         Library:AddToRegistry(TBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
         local TBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=tabFontSz; Text=tabDisplayName; PreserveCase=true; ZIndex=3; Parent=TBtn })
+        Library:TrackLabel(TBtnLabel, tabOrigName, "Tabs")
         local TInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=TBtn })
         Library:RemoveFromRegistry(TBtnLabel)
         TBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
@@ -3212,7 +3251,8 @@ function Library:CreateWindow(...)
             Library:AddToRegistry(Button, { BackgroundColor3='BackgroundColor' })
             local GroupboxUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Parent=Button })
             Library:AddToRegistry(GroupboxUnder, { BackgroundColor3='AccentColor' })
-            Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(12); Text=Info2.Name; PreserveCase=true; TextXAlignment=Enum.TextXAlignment.Center; ZIndex=7; Parent=Button })
+            local _gbLbl2 = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(12); Text=Library:ApplyCase(Info2.Name or "", "Groupboxes"); PreserveCase=true; TextXAlignment=Enum.TextXAlignment.Center; ZIndex=7; Parent=Button })
+            Library:TrackLabel(_gbLbl2, Info2.Name or "", "Groupboxes")
             local ContentFrame = Library:Create('Frame', { BackgroundTransparency=1; Position=UDim2.new(0,(4),0,(20)); Size=UDim2.new(1,-(8),0,0); ZIndex=1; Parent=SliderBarInner })
             local linkedList = Library:Create('UIListLayout', { FillDirection=Enum.FillDirection.Vertical; SortOrder=Enum.SortOrder.LayoutOrder; Padding=UDim.new(0,(2)); Parent=ContentFrame })
 
@@ -3253,7 +3293,8 @@ function Library:CreateWindow(...)
                     BackgroundColor3  = function() return TBTab.selected and Library.BackgroundColor or Library.MainColor end;
                     BorderColor3      = function() return Library.OutlineColor end;
                 })
-                local ButtonLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=TabName; ZIndex=7; Parent=Button })
+                local ButtonLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=Library:ApplyCase(TabName or "", "Groupboxes"); ZIndex=7; Parent=Button })
+                Library:TrackLabel(ButtonLabel, TabName or "", "Groupboxes")
                 local UpperLine = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Visible=false; Parent=Button })
                 Library:AddToRegistry(UpperLine, { BackgroundColor3='AccentColor' })
 
@@ -3463,13 +3504,15 @@ function Library:CreateWindow(...)
             function SubTabSystem:AddTab(SubName)
                 Library:BuildTick()
                 local ST = { Groupboxes={}; Tabboxes={} }
-                local subDisplayName = tostring(SubName or "")
+                local subOrigName    = tostring(SubName or "")
+                local subDisplayName = Library:ApplyCase(subOrigName, "SubTabs")
 
                 local stFontSz = (13)
                 local stW = Library:GetTextBounds(subDisplayName, Library.Font, stFontSz) + (18)
                 local STBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=1; Size=UDim2.new(0,stW,1,0); ZIndex=4; Parent=SubArea })
                 Library:AddToRegistry(STBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
                 local STBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=stFontSz; Text=subDisplayName; PreserveCase=true; ZIndex=5; Parent=STBtn })
+                Library:TrackLabel(STBtnLabel, subOrigName, "SubTabs")
                 Library:RemoveFromRegistry(STBtnLabel)
                 STBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
                 local STInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=STBtn })
@@ -3515,7 +3558,8 @@ function Library:CreateWindow(...)
                     Library:AddToRegistry(Button, { BackgroundColor3='BackgroundColor' })
                     local GroupboxUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Parent=Button })
                     Library:AddToRegistry(GroupboxUnder, { BackgroundColor3='AccentColor' })
-                    Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(12); Text=Info3.Name; PreserveCase=true; TextXAlignment=Enum.TextXAlignment.Center; ZIndex=7; Parent=Button })
+                    local _gbLbl3 = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(12); Text=Library:ApplyCase(Info3.Name or "", "Groupboxes"); PreserveCase=true; TextXAlignment=Enum.TextXAlignment.Center; ZIndex=7; Parent=Button })
+                    Library:TrackLabel(_gbLbl3, Info3.Name or "", "Groupboxes")
                     local ContentFrame = Library:Create('Frame', { BackgroundTransparency=1; Position=UDim2.new(0,(4),0,(20)); Size=UDim2.new(1,-(8),0,0); ZIndex=1; Parent=SliderBarInner })
                     local linkedList = Library:Create('UIListLayout', { FillDirection=Enum.FillDirection.Vertical; SortOrder=Enum.SortOrder.LayoutOrder; Padding=UDim.new(0,(2)); Parent=ContentFrame })
                     function Groupbox:Resize()
@@ -3552,7 +3596,8 @@ function Library:CreateWindow(...)
                             BackgroundColor3  = function() return TBTab2.selected and Library.BackgroundColor or Library.MainColor end;
                             BorderColor3      = function() return Library.OutlineColor end;
                         })
-                        Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=TN; ZIndex=7; Parent=Button2 })
+                        local _tb2Lbl = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=Library:ApplyCase(TN or "", "Groupboxes"); ZIndex=7; Parent=Button2 })
+                        Library:TrackLabel(_tb2Lbl, TN or "", "Groupboxes")
                         local UpperLine2 = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Visible=false; Parent=Button2 })
                         Library:AddToRegistry(UpperLine2, { BackgroundColor3='AccentColor' })
                         local ContentFrame2 = Library:Create('Frame', { BackgroundTransparency=1; Position=UDim2.new(0,(4),0,(20)); Size=UDim2.new(1,-(8),0,0); ZIndex=1; Visible=false; Parent=SliderBarInner })
@@ -3601,6 +3646,7 @@ function Library:CreateWindow(...)
                 return ST
             end
 
+            SubTabSystem.SubArea = SubArea
             Tab.SubTabSystem = SubTabSystem
             return SubTabSystem
         end
