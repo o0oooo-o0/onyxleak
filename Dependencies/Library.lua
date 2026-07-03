@@ -1674,7 +1674,7 @@ do
                 Library.RegistryMap[lbl].Properties.TextColor3 = 'FontColor'
             end
             lbl.InputBegan:Connect(function(Input)
-                if Library:IsPointerInput(Input) then btn:Select(); Library:AttemptSave() end
+                if Library:IsPointerInput(Input) and not Library:MouseIsOverOpenedFrame() then btn:Select(); Library:AttemptSave() end
             end)
             if mode == KeybindInfo.Mode then btn:Select() end
             ModeButtonList[mode] = btn
@@ -3635,7 +3635,7 @@ function Library:CreateWindow(...)
                 function ST:AddRightTabbox(n) return ST:AddTabbox({ Name=n; Side=2 }) end
 
                 STBtn.InputBegan:Connect(function(Input)
-                    if Library:IsPointerInput(Input) then ST:ShowTab() end
+                    if Library:IsPointerInput(Input) and not Library:MouseIsOverOpenedFrame() then ST:ShowTab() end
                 end)
 
                 SubTabSystem.Tabs[SubName] = ST
@@ -3651,7 +3651,7 @@ function Library:CreateWindow(...)
         end
 
         TBtn.InputBegan:Connect(function(Input)
-            if Library:IsPointerInput(Input) then Tab:ShowTab() end
+            if Library:IsPointerInput(Input) and not Library:MouseIsOverOpenedFrame() then Tab:ShowTab() end
         end)
         local cnt = 0; for _ in next, Window.Tabs do cnt=cnt+1 end
         if cnt == 0 then Tab:ShowTab() end
