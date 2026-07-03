@@ -2436,7 +2436,6 @@ do
                     SliderBackFrame.InputBegan:Connect(function(Input)
                         if not Library:IsPointerInput(Input) then return end
                         justClickedItem = true
-                        task.defer(function() justClickedItem = false end)
                         local want = not selected
                         if DropdownData:GetActiveValues() == 1 and not want and not Info.AllowNull then return end
                         if Info.Multi then
@@ -2494,9 +2493,12 @@ do
 
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            if justClickedItem or Library:IsMouseOverFrame(ListOuter) then return end
-            DropdownData:CloseDropdown()
-            ignoreOpenUntil = os.clock() + 0.15
+            task.defer(function()
+                if justClickedItem then justClickedItem = false; return end
+                if Library:IsMouseOverFrame(ListOuter) then return end
+                DropdownData:CloseDropdown()
+                ignoreOpenUntil = os.clock() + 0.15
+            end)
         end)
 
         DropdownData:SetValues()
