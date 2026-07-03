@@ -2889,6 +2889,7 @@ function Library:CreateWindow(...)
         ZIndex            = 50;
         Parent            = Inner;
     })
+    Library:AddToRegistry(SearchModal, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
 
     local SearchBackBtn = Library:Create('TextButton', {
         BackgroundTransparency  = 1;
@@ -2901,6 +2902,7 @@ function Library:CreateWindow(...)
         ZIndex                  = 52;
         Parent                  = SearchModal;
     })
+    Library:AddToRegistry(SearchBackBtn, { TextColor3 = 'FontColor' })
 
     local SearchInput = Library:Create('TextBox', {
         BackgroundTransparency  = 1;
@@ -2916,8 +2918,9 @@ function Library:CreateWindow(...)
         ZIndex                  = 51;
         Parent                  = SearchModal;
     })
+    Library:AddToRegistry(SearchInput, { TextColor3 = 'FontColor'; Font = 'Font' })
 
-    Library:Create('Frame', {
+    local SearchDivider = Library:Create('Frame', {
         BackgroundColor3  = Library.OutlineColor;
         BorderSizePixel   = 0;
         Position          = UDim2.new(0, S(8), 0, S(28));
@@ -2925,6 +2928,7 @@ function Library:CreateWindow(...)
         ZIndex            = 51;
         Parent            = SearchModal;
     })
+    Library:AddToRegistry(SearchDivider, { BackgroundColor3 = 'OutlineColor' })
 
     local SearchResults = Library:Create('ScrollingFrame', {
         BackgroundTransparency  = 1;
@@ -2937,6 +2941,7 @@ function Library:CreateWindow(...)
         ZIndex                  = 51;
         Parent                  = SearchModal;
     })
+    Library:AddToRegistry(SearchResults, { ScrollBarImageColor3 = 'AccentColor' })
 
     local SearchLayout = Library:Create('UIListLayout', {
         Padding    = UDim.new(0, S(4));
@@ -2986,7 +2991,7 @@ function Library:CreateWindow(...)
         for i, m in ipairs(matches) do
             if i > 50 then break end
             local btn = Library:Create('TextButton', {
-                BackgroundColor3  = Library.BackgroundColor;
+                BackgroundColor3  = Library.MainColor;
                 BorderColor3      = Library.OutlineColor;
                 Size              = UDim2.new(1, -S(8), 0, S(24));
                 Text              = "  " .. m.Text;
@@ -2997,6 +3002,7 @@ function Library:CreateWindow(...)
                 ZIndex            = 52;
                 Parent            = SearchResults;
             })
+            Library:AddToRegistry(btn, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor'; TextColor3 = 'FontColor'; Font = 'Font' })
 
             local locLabel = Library:CreateLabel({
                 Size            = UDim2.new(1, -S(10), 1, 0);
