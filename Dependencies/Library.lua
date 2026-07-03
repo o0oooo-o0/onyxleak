@@ -43,6 +43,7 @@ local Library = {
     CustomFontFace          = nil;
     OpenedFrames            = {};
     ActiveDropdownList      = nil;
+    DropdownRegistry        = {};
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -2477,7 +2478,6 @@ do
             Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
         end
 
-        Library.DropdownRegistry = Library.DropdownRegistry or {}
         table.insert(Library.DropdownRegistry, DropdownData)
 
         local ignoreOpenUntil = 0
