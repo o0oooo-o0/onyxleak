@@ -2491,6 +2491,7 @@ do
 
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            if Library:IsMouseOverFrame(ListOuter) then return end
             DropdownData:CloseDropdown()
             ignoreOpenUntil = os.clock() + 0.15
         end)
