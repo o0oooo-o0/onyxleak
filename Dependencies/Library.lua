@@ -2282,7 +2282,7 @@ do
         local function StartLerp()
             if LerpConn then return end
             LerpConn = Services.RunService.RenderStepped:Connect(function(dt)
-                CurX = CurX + (TargetX - CurX) * math.clamp(dt * 12, 0, 1)
+                CurX = CurX + (TargetX - CurX) * math.clamp(dt * 8, 0, 1)
                 if math.abs(TargetX - CurX) <= 0.5 then CurX = TargetX; ApplyFill(CurX); StopLerp(); return end
                 ApplyFill(CurX)
             end)
@@ -2487,26 +2487,19 @@ do
         local DropdownAnimInfo = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
         function DropdownData:OpenDropdown()
             UpdateListPos()
-            local targetY = ListOuter.Size.Y.Offset
-            ListOuter.Size = UDim2.fromOffset(ListOuter.Size.X.Offset, 0)
             Blocker.Visible = true
             ListOuter.Visible = true
             Library.OpenedFrames[ListOuter] = true
             Library.ActiveDropdownList = ListOuter
             Services.TweenService:Create(Arrow, DropdownAnimInfo, { Rotation = 90 }):Play()
-            Services.TweenService:Create(ListOuter, DropdownAnimInfo, { Size = UDim2.fromOffset(ListOuter.Size.X.Offset, targetY) }):Play()
             StartCorrecting()
         end
         function DropdownData:CloseDropdown()
             Blocker.Visible = false
+            ListOuter.Visible = false
             Library.OpenedFrames[ListOuter] = nil
             if Library.ActiveDropdownList == ListOuter then Library.ActiveDropdownList = nil end
             Services.TweenService:Create(Arrow, DropdownAnimInfo, { Rotation = 0 }):Play()
-            local tw = Services.TweenService:Create(ListOuter, DropdownAnimInfo, { Size = UDim2.fromOffset(ListOuter.Size.X.Offset, 0) })
-            tw.Completed:Connect(function()
-                if not Library.OpenedFrames[ListOuter] then ListOuter.Visible = false end
-            end)
-            tw:Play()
         end
         function DropdownData:OnChanged(fn)   DropdownData.Changed = fn; fn(DropdownData.Value) end
         function DropdownData:SetValue(val)
