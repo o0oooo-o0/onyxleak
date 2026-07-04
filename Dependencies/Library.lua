@@ -4450,9 +4450,10 @@ ThemeManager.BuiltInThemes = {
 		end
 
 		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs"}
-		local saved = data.caseSettings or {}
-		for _, k in ipairs(caseKeys) do
-			if Options[k] then Options[k]:SetValue(saved[k] or "Capitalized") end
+		if data.caseSettings then
+			for _, k in ipairs(caseKeys) do
+				if Options[k] then Options[k]:SetValue(data.caseSettings[k] or "Capitalized") end
+			end
 		end
 
 		self.ApplyingTheme = nil
@@ -4927,6 +4928,14 @@ SaveManager.Parser = {
                 transes[i] = tonumber(data.transparencies and data.transparencies[i]) or 0
             end
             Options[idx]:SetValues(vals, transes)
+        end,
+    },
+    CaseRow = {
+        Save = function(idx, object)
+            return { type = 'CaseRow', idx = idx, value = object.Value }
+        end,
+        Load = function(idx, data)
+            if Options[idx] and type(data.value) == 'string' then Options[idx]:SetValue(data.value) end
         end,
     },
 }
