@@ -4965,6 +4965,8 @@ function SaveManager.IgnoreThemeSettings(self)
         'ThemeManager_ThemeList', 'ThemeManager_CustomThemeList', 'ThemeManager_CustomThemeName',
         'MenuBind',
         'SaveManager_ConfigList', 'SaveManager_ConfigName',
+        'CaseTabs', 'CaseSubTabs', 'CaseGroupboxes', 'CaseToggles', 'CaseButtons',
+        'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs',
     }
 end
 
