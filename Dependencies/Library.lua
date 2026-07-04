@@ -2484,8 +2484,30 @@ do
             UpdateListPos()
         end
 
-        function DropdownData:OpenDropdown()  UpdateListPos(); Blocker.Visible = true; ListOuter.Visible = true;  Library.OpenedFrames[ListOuter] = true;  Library.ActiveDropdownList = ListOuter; Arrow.Rotation = 90; StartCorrecting() end
-        function DropdownData:CloseDropdown() Blocker.Visible = false; ListOuter.Visible = false; Library.OpenedFrames[ListOuter] = nil;   if Library.ActiveDropdownList == ListOuter then Library.ActiveDropdownList = nil end; Arrow.Rotation = 0  end
+        local DropdownAnimInfo = TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        function DropdownData:OpenDropdown()
+            UpdateListPos()
+            local targetY = ListOuter.Size.Y.Offset
+            ListOuter.Size = UDim2.fromOffset(ListOuter.Size.X.Offset, 0)
+            Blocker.Visible = true
+            ListOuter.Visible = true
+            Library.OpenedFrames[ListOuter] = true
+            Library.ActiveDropdownList = ListOuter
+            Services.TweenService:Create(Arrow, DropdownAnimInfo, { Rotation = 90 }):Play()
+            Services.TweenService:Create(ListOuter, DropdownAnimInfo, { Size = UDim2.fromOffset(ListOuter.Size.X.Offset, targetY) }):Play()
+            StartCorrecting()
+        end
+        function DropdownData:CloseDropdown()
+            Blocker.Visible = false
+            Library.OpenedFrames[ListOuter] = nil
+            if Library.ActiveDropdownList == ListOuter then Library.ActiveDropdownList = nil end
+            Services.TweenService:Create(Arrow, DropdownAnimInfo, { Rotation = 0 }):Play()
+            local tw = Services.TweenService:Create(ListOuter, DropdownAnimInfo, { Size = UDim2.fromOffset(ListOuter.Size.X.Offset, 0) })
+            tw.Completed:Connect(function()
+                if not Library.OpenedFrames[ListOuter] then ListOuter.Visible = false end
+            end)
+            tw:Play()
+        end
         function DropdownData:OnChanged(fn)   DropdownData.Changed = fn; fn(DropdownData.Value) end
         function DropdownData:SetValue(val)
             if DropdownData.Multi then
@@ -5199,9 +5221,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
             Mode = "Export",
             Text = encoded,
         })
-    end)
-
-    section:AddButton('Import Config', function()
+    end):AddButton('Import Config', function()
         self.Library:CreatePrompt({
             Title = "Import Config",
             Mode = "Import",
