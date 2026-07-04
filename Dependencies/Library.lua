@@ -2719,6 +2719,7 @@ do
             BackgroundColor3 = Library.MainColor;
             BorderColor3     = Library.OutlineColor;
             BorderMode       = Enum.BorderMode.Inset;
+            AutoButtonColor  = false;
             Size             = UDim2.new(1, 0, 1, 0);
             Text             = '';
             ZIndex           = 6;
