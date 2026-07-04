@@ -4369,6 +4369,10 @@ ThemeManager.BuiltInThemes = {
 			out.uiScale = uiScale
 		end
 
+		if type(data.caseSettings) == 'table' then
+			out.caseSettings = data.caseSettings
+		end
+
 		if type(data.mainWindowSize) == 'table' then
 			local w = tonumber(data.mainWindowSize.w)
 			local h = tonumber(data.mainWindowSize.h)
