@@ -183,6 +183,15 @@ function Library:RefreshTextRegistry()
             e.lbl.Text = Library:ApplyCase(e.text, e.cat)
         end
     end
+    for _, dd in ipairs(Library.DropdownRegistry or {}) do
+        if dd.ItemLabels then
+            for _, entry in ipairs(dd.ItemLabels) do
+                if entry.lbl and entry.lbl.Parent then
+                    entry.lbl.Text = Library:ApplyCase(entry.val, "DropdownItems")
+                end
+            end
+        end
+    end
 end
 
 function Library:SafeCallback(f, ...)
@@ -2422,9 +2431,11 @@ do
 
         local Buttons = {}
         local justClickedItem = false
+        DropdownData.ItemLabels = {}
         function DropdownData:SetValues()
             for _, ch in ipairs(Scroll:GetChildren()) do if not ch:IsA('UIListLayout') then ch:Destroy() end end
             Buttons = {}
+            DropdownData.ItemLabels = {}
             local count = 0
             for _, val in ipairs(DropdownData.Values) do
                 count = count + 1
@@ -2432,6 +2443,7 @@ do
                 Library:AddToRegistry(SliderBackFrame, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
                 local SliderBarSelected = Library:Create('Frame', { BackgroundColor3=Color3.new(1,1,1); BackgroundTransparency=0.75; BorderSizePixel=0; Size=UDim2.new(1,0,1,0); Visible=false; ZIndex=24; Parent=SliderBackFrame })
                 local SliderBarLabel = Library:CreateLabel({ PreserveCase = true; Active=false; Size=UDim2.new(1,-(6),1,0); Position=UDim2.new(0,(6),0,0); TextSize=(13); Text=Library:ApplyCase(val, "DropdownItems"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=25; Parent=SliderBackFrame })
+                table.insert(DropdownData.ItemLabels, { lbl = SliderBarLabel, val = val })
                 local selected = Info.Multi and DropdownData.Value[val] or (DropdownData.Value == val)
                 local function UpdateBtn()
                     selected = Info.Multi and (DropdownData.Value[val] ~= nil) or (DropdownData.Value == val)
@@ -2703,11 +2715,17 @@ do
         local labels = { "Cap", "Low", "Up" }
         local btns   = {}
 
-        local underlines = {}
+        local toplines = {}
 
         local function refresh()
-            for i, u in ipairs(underlines) do
-                u.Visible = (Option.Value == modes[i])
+            for i, btn in ipairs(btns) do
+                local active = (Option.Value == modes[i])
+                btn.BackgroundColor3 = active and Library.BackgroundColor or Library.MainColor
+                btn.BorderSizePixel  = active and 0 or 1
+                toplines[i].Visible  = active
+                if Library.RegistryMap[btn] then
+                    Library.RegistryMap[btn].Properties.BackgroundColor3 = active and 'BackgroundColor' or 'MainColor'
+                end
             end
         end
 
@@ -2734,18 +2752,16 @@ do
                 Parent           = BtnArea;
             })
             Library:AddToRegistry(btn, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor'; TextColor3='FontColor'; Font='Font' })
-            local u = Library:Create('Frame', {
+            local tl = Library:Create('Frame', {
                 BackgroundColor3 = Library.AccentColor;
                 BorderSizePixel  = 0;
-                AnchorPoint      = Vector2.new(0, 1);
-                Position         = UDim2.new(0, 0, 1, 0);
-                Size             = UDim2.new(1, 0, 0, 2);
+                Size             = UDim2.new(1, 0, 0, 1);
                 Visible          = false;
                 ZIndex           = 7;
                 Parent           = btn;
             })
-            Library:AddToRegistry(u, { BackgroundColor3='AccentColor' })
-            underlines[i] = u
+            Library:AddToRegistry(tl, { BackgroundColor3='AccentColor' })
+            toplines[i] = tl
             btns[i] = btn
             btn.MouseButton1Click:Connect(function()
                 if not Library:HasOpenedFrames() then
