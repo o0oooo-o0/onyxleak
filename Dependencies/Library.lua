@@ -157,6 +157,7 @@ Library.CaseSettings = {
     DropdownItems = "Capitalized",
     Labels        = "Capitalized",
     Inputs        = "Capitalized",
+    Tooltip       = "Lowercase",
 }
 Library.TextRegistry = {}
 
@@ -560,7 +561,8 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         ZIndex                  = 101;
         Parent                  = tip;
     })
-    Library:SetTRText(TooltipLabel, InfoStr)
+    Library:SetTRText(TooltipLabel, Library:ApplyCase(InfoStr, "Tooltip"))
+    Library:TrackLabel(TooltipLabel, InfoStr, "Tooltip")
     Library:AddToRegistry(tip,    { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
     Library:AddToRegistry(TooltipLabel, { TextColor3 = 'FontColor'; Font = 'Font' })
 
@@ -4468,7 +4470,7 @@ ThemeManager.BuiltInThemes = {
 			end
 		end
 
-		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs"}
+		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs","CaseTooltip"}
 		if data.caseSettings then
 			for _, k in ipairs(caseKeys) do
 				if Options[k] then Options[k]:SetValue(data.caseSettings[k] or "Capitalized") end
@@ -4728,7 +4730,7 @@ ThemeManager.BuiltInThemes = {
 			theme.colors[field] = Options[field].Value:ToHex()
 		end
 
-		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs"}
+		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs","CaseTooltip"}
 		theme.caseSettings = {}
 		for _, k in ipairs(caseKeys) do
 			if Options[k] then theme.caseSettings[k] = Options[k].Value end
@@ -4985,7 +4987,7 @@ function SaveManager.IgnoreThemeSettings(self)
         'MenuBind',
         'SaveManager_ConfigList', 'SaveManager_ConfigName',
         'CaseTabs', 'CaseSubTabs', 'CaseGroupboxes', 'CaseToggles', 'CaseButtons',
-        'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs',
+        'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
     }
 end
 
