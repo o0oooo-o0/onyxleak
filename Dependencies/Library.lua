@@ -1850,7 +1850,11 @@ do
         Label.TextLabel = TextLabelRef
         Label.Container = Groupbox.Container
         function Label:SetText(t)
-            Library:SetTRText(TextLabelRef, Library:ApplyCase(tostring(t or ""), "Labels"))
+            local raw = tostring(t or "")
+            for _, e in ipairs(Library.TextRegistry) do
+                if e.lbl == TextLabelRef then e.text = raw; break end
+            end
+            Library:SetTRText(TextLabelRef, Library:ApplyCase(raw, "Labels"))
             if DoesWrap then
                 local _, y = Library:GetTextBounds(TextLabelRef.Text, Library.Font, (14), Vector2.new(TextLabelRef.AbsoluteSize.X, math.huge))
                 TextLabelRef.Size = UDim2.new(1, -(4), 0, y)
@@ -2752,7 +2756,7 @@ do
             Library:SafeCallback(Option.Changed,  v)
         end
 
-        Library:OnHighlight(Outer, Outer, { BorderColor3='OutlineColor' }, { BorderColor3='Black' })
+        Library:OnHighlight(Inner, Outer, { BorderColor3='OutlineColor' }, { BorderColor3='Black' })
 
         Inner.MouseButton1Click:Connect(function()
             if not Library:HasOpenedFrames() then
@@ -4444,6 +4448,12 @@ ThemeManager.BuiltInThemes = {
 			end
 		end
 
+		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs"}
+		local saved = data.caseSettings or {}
+		for _, k in ipairs(caseKeys) do
+			if Options[k] then Options[k]:SetValue(saved[k] or "Capitalized") end
+		end
+
 		self.ApplyingTheme = nil
 		self:ThemeUpdate()
 	end
@@ -4695,6 +4705,12 @@ ThemeManager.BuiltInThemes = {
 
 		for _, field in next, self.ColorFields do
 			theme.colors[field] = Options[field].Value:ToHex()
+		end
+
+		local caseKeys = {"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons","CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs"}
+		theme.caseSettings = {}
+		for _, k in ipairs(caseKeys) do
+			if Options[k] then theme.caseSettings[k] = Options[k].Value end
 		end
 
 		local ok, encoded = pcall(Services.HttpService.JSONEncode, Services.HttpService, theme)
