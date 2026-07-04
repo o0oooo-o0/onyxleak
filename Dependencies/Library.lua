@@ -147,10 +147,16 @@ function Library:SetTRProperty(inst, prop, raw)
 end
 
 Library.CaseSettings = {
-    Tabs       = "Capitalized",
-    SubTabs    = "Capitalized",
-    Groupboxes = "Capitalized",
-    Content    = "Capitalized",
+    Tabs          = "Capitalized",
+    SubTabs       = "Capitalized",
+    Groupboxes    = "Capitalized",
+    Toggles       = "Capitalized",
+    Buttons       = "Capitalized",
+    Sliders       = "Capitalized",
+    Dropdowns     = "Capitalized",
+    DropdownItems = "Capitalized",
+    Labels        = "Capitalized",
+    Inputs        = "Capitalized",
 }
 Library.TextRegistry = {}
 
@@ -1817,7 +1823,7 @@ do
         local TextLabelRef    = Library:CreateLabel({
             Size            = UDim2.new(1, -(4), 0, (15));
             TextSize        = (14);
-            Text            = Library:ApplyCase(Text or "", "Content");
+            Text            = Library:ApplyCase(Text or "", "Labels");
             TextWrapped     = DoesWrap or false;
             RichText        = true;
             TextXAlignment  = Enum.TextXAlignment.Left;
@@ -1833,7 +1839,7 @@ do
         Label.TextLabel = TextLabelRef
         Label.Container = Groupbox.Container
         function Label:SetText(t)
-            Library:SetTRText(TextLabelRef, Library:ApplyCase(tostring(t or ""), "Content"))
+            Library:SetTRText(TextLabelRef, Library:ApplyCase(tostring(t or ""), "Labels"))
             if DoesWrap then
                 local _, y = Library:GetTextBounds(TextLabelRef.Text, Library.Font, (14), Vector2.new(TextLabelRef.AbsoluteSize.X, math.huge))
                 TextLabelRef.Size = UDim2.new(1, -(4), 0, y)
@@ -2024,8 +2030,8 @@ do
         local function MakeBtn(b)
             local o = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size = UDim2.new(1,-(4),0,(20)); ZIndex=5 })
             local i = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex=6; Parent=o })
-            local l = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(14); Text=Library:ApplyCase(b.Text or "", "Content"); ZIndex=6; Parent=i })
-            Library:TrackLabel(l, b.Text or "", "Content")
+            local l = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(14); Text=Library:ApplyCase(b.Text or "", "Buttons"); ZIndex=6; Parent=i })
+            Library:TrackLabel(l, b.Text or "", "Buttons")
             Library:Create('UIGradient', { Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,Color3.fromRGB(212,212,212))}); Rotation=90; Parent=i })
             Library:AddToRegistry(o, { BorderColor3='Black' })
             Library:AddToRegistry(i, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
@@ -2084,8 +2090,8 @@ do
         assert(Info.Text, 'AddInput: Missing `Text`.')
         local Textbox = { Value=Info.Default or ''; Numeric=Info.Numeric; Finished=Info.Finished; Type='Input'; Callback=Info.Callback or function() end }
         local Groupbox = self
-        local _inputLbl = Library:CreateLabel({ Size=UDim2.new(1,0,0,(15)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Content"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=5; Parent=Groupbox.Container })
-        Library:TrackLabel(_inputLbl, Info.Text or "", "Content")
+        local _inputLbl = Library:CreateLabel({ Size=UDim2.new(1,0,0,(15)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Inputs"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=5; Parent=Groupbox.Container })
+        Library:TrackLabel(_inputLbl, Info.Text or "", "Inputs")
         Groupbox:AddBlank(1)
         local BoxHeight = (20)
         local Outer = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size=UDim2.new(1,-(4),0,BoxHeight); ZIndex=5; Parent=Groupbox.Container })
@@ -2154,8 +2160,8 @@ do
         Library:AddToRegistry(TOuter, { BorderColor3='Black' })
         local TInner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=TOuter })
         Library:AddToRegistry(TInner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
-        local TLabel = Library:CreateLabel({ Size=UDim2.new(0,(245),1,0); Position=UDim2.new(1,(6),0,0); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Content"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=6; Parent=TInner })
-        Library:TrackLabel(TLabel, Info.Text or "", "Content")
+        local TLabel = Library:CreateLabel({ Size=UDim2.new(0,(245),1,0); Position=UDim2.new(1,(6),0,0); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Toggles"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=6; Parent=TInner })
+        Library:TrackLabel(TLabel, Info.Text or "", "Toggles")
         Library:Create('UIListLayout', { Padding=UDim.new(0,(4)); FillDirection=Enum.FillDirection.Horizontal; HorizontalAlignment=Enum.HorizontalAlignment.Right; SortOrder=Enum.SortOrder.LayoutOrder; Parent=TLabel })
         local function syncTLW()
             local cw = Groupbox.Container.AbsoluteSize.X
@@ -2268,7 +2274,7 @@ do
         end
         function Slider:Display()
             local suf = Info.Suffix or ''
-            DropdownLabel.Text = Library:ApplyCase(Info.Text or "", "Content")..': '..Slider.Value..suf
+            DropdownLabel.Text = Library:ApplyCase(Info.Text or "", "Sliders")..': '..Slider.Value..suf
             TargetX = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize))
             StartLerp()
         end
@@ -2316,8 +2322,8 @@ do
         local RelOff = 0
 
         if not Info.Compact then
-            local _ddLbl = Library:CreateLabel({ PreserveCase = true; Size=UDim2.new(1,0,0,(10)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Content"); TextXAlignment=Enum.TextXAlignment.Left; TextYAlignment=Enum.TextYAlignment.Bottom; ZIndex=5; Parent=Groupbox.Container })
-            Library:TrackLabel(_ddLbl, Info.Text or "", "Content")
+            local _ddLbl = Library:CreateLabel({ PreserveCase = true; Size=UDim2.new(1,0,0,(10)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Dropdowns"); TextXAlignment=Enum.TextXAlignment.Left; TextYAlignment=Enum.TextYAlignment.Bottom; ZIndex=5; Parent=Groupbox.Container })
+            Library:TrackLabel(_ddLbl, Info.Text or "", "Dropdowns")
             Groupbox:AddBlank(3)
         end
         for _, el in ipairs(Groupbox.Container:GetChildren()) do
@@ -2424,7 +2430,7 @@ do
                 local SliderBackFrame = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Middle; Size=UDim2.new(1,-1,0,itemH); ZIndex=23; Active=true; Parent=Scroll })
                 Library:AddToRegistry(SliderBackFrame, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
                 local SliderBarSelected = Library:Create('Frame', { BackgroundColor3=Color3.new(1,1,1); BackgroundTransparency=0.75; BorderSizePixel=0; Size=UDim2.new(1,0,1,0); Visible=false; ZIndex=24; Parent=SliderBackFrame })
-                local SliderBarLabel = Library:CreateLabel({ PreserveCase = true; Active=false; Size=UDim2.new(1,-(6),1,0); Position=UDim2.new(0,(6),0,0); TextSize=(13); Text=val; TextXAlignment=Enum.TextXAlignment.Left; ZIndex=25; Parent=SliderBackFrame })
+                local SliderBarLabel = Library:CreateLabel({ PreserveCase = true; Active=false; Size=UDim2.new(1,-(6),1,0); Position=UDim2.new(0,(6),0,0); TextSize=(13); Text=Library:ApplyCase(val, "DropdownItems"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=25; Parent=SliderBackFrame })
                 local selected = Info.Multi and DropdownData.Value[val] or (DropdownData.Value == val)
                 local function UpdateBtn()
                     selected = Info.Multi and (DropdownData.Value[val] ~= nil) or (DropdownData.Value == val)
@@ -2656,6 +2662,95 @@ do
         Groupbox:AddBlank(2)
         Groupbox:Resize()
         return result
+    end
+
+    function Funcs:AddCaseRow(Idx, Info)
+        Library:BuildTick()
+        local Groupbox = self
+        local Option = { Value = Info.Default or "Capitalized"; Type = 'CaseRow'; Callback = Info.Callback or function() end }
+
+        local rowH = 14
+        local Row = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, -(4), 0, rowH);
+            ZIndex = 5;
+            Parent = Groupbox.Container;
+        })
+        Library:CreateLabel({
+            Size           = UDim2.new(0, 90, 1, 0);
+            TextSize       = 12;
+            Text           = Info.Text or Idx;
+            TextXAlignment = Enum.TextXAlignment.Left;
+            ZIndex         = 6;
+            Parent         = Row;
+        })
+        local BtnArea = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0, 94, 0, 0);
+            Size     = UDim2.new(1, -94, 1, 0);
+            ZIndex   = 5;
+            Parent   = Row;
+        })
+        Library:Create('UIListLayout', {
+            FillDirection = Enum.FillDirection.Horizontal;
+            SortOrder     = Enum.SortOrder.LayoutOrder;
+            Padding       = UDim.new(0, 1);
+            Parent        = BtnArea;
+        })
+
+        local modes  = { "Capitalized", "Lowercase", "Uppercase" }
+        local labels = { "Cap", "Low", "Up" }
+        local btns   = {}
+
+        local function refresh()
+            for i, btn in ipairs(btns) do
+                local active = (Option.Value == modes[i])
+                btn.BackgroundColor3 = active and Library.AccentColor or Library.MainColor
+                btn.BorderColor3     = active and Library.AccentColorDark or Library.OutlineColor
+                if Library.RegistryMap[btn] then
+                    Library.RegistryMap[btn].Properties.BackgroundColor3 = active and 'AccentColor' or 'MainColor'
+                    Library.RegistryMap[btn].Properties.BorderColor3     = active and 'AccentColorDark' or 'OutlineColor'
+                end
+            end
+        end
+
+        function Option:OnChanged(fn) Option.Changed = fn; fn(Option.Value) end
+        function Option:SetValue(v)
+            Option.Value = v
+            refresh()
+            Library:SafeCallback(Option.Callback, v)
+            Library:SafeCallback(Option.Changed,  v)
+        end
+
+        for i = 1, 3 do
+            local m = modes[i]
+            local btn = Library:Create('TextButton', {
+                BackgroundColor3 = Library.MainColor;
+                BorderColor3     = Library.OutlineColor;
+                BorderSizePixel  = 1;
+                Size             = UDim2.new(1/3, -1, 1, 0);
+                Text             = labels[i];
+                TextSize         = 11;
+                TextColor3       = Library.FontColor;
+                Font             = Library.Font;
+                ZIndex           = 6;
+                Parent           = BtnArea;
+            })
+            Library:AddToRegistry(btn, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor'; TextColor3='FontColor'; Font='Font' })
+            btns[i] = btn
+            btn.MouseButton1Click:Connect(function()
+                if not Library:HasOpenedFrames() then
+                    Option:SetValue(m)
+                    Library:AttemptSave()
+                end
+            end)
+        end
+
+        refresh()
+        Groupbox:AddBlank(3)
+        Groupbox:Resize()
+        Options[Idx] = Option
+        return Option
     end
 
     BaseGroupbox.__index = Funcs
