@@ -2731,7 +2731,7 @@ do
             PreserveCase    = true;
             AnchorPoint     = Vector2.new(0, 0.5);
             Position        = UDim2.new(0, 5, 0.5, 0);
-            Size            = UDim2.new(1, -18, 1, 0);
+            Size            = UDim2.new(1, -8, 1, 0);
             TextSize        = 12;
             Text            = Option.Value;
             TextXAlignment  = Enum.TextXAlignment.Left;
@@ -2739,29 +2739,6 @@ do
             ZIndex          = 7;
             Parent          = Inner;
         })
-
-        -- small arrow indicator on right
-        Library:CreateLabel({
-            PreserveCase    = true;
-            AnchorPoint     = Vector2.new(1, 0.5);
-            Position        = UDim2.new(1, -4, 0.5, 0);
-            Size            = UDim2.fromOffset(10, 14);
-            TextSize        = 11;
-            Font            = Enum.Font.GothamBold;
-            Text            = '>';
-            ZIndex          = 7;
-            Parent          = Inner;
-        })
-
-        -- AccentColor top line (always visible, thin accent strip)
-        local AccentLine = Library:Create('Frame', {
-            BackgroundColor3 = Library.AccentColor;
-            BorderSizePixel  = 0;
-            Size             = UDim2.new(1, 0, 0, 1);
-            ZIndex           = 8;
-            Parent           = Inner;
-        })
-        Library:AddToRegistry(AccentLine, { BackgroundColor3='AccentColor' })
 
         local function refresh()
             ValueLabel.Text = Option.Value
