@@ -183,6 +183,9 @@ function Library:RefreshTextRegistry()
             e.lbl.Text = Library:ApplyCase(e.text, e.cat)
         end
     end
+    for _, dd in ipairs(Library.DropdownRegistry or {}) do
+        if dd.SetValues then pcall(dd.SetValues, dd) end
+    end
 end
 
 function Library:SafeCallback(f, ...)
@@ -1836,6 +1839,7 @@ do
         else
             Library:Create('UIListLayout', { Padding=UDim.new(0,(4)); FillDirection=Enum.FillDirection.Horizontal; HorizontalAlignment=Enum.HorizontalAlignment.Right; SortOrder=Enum.SortOrder.LayoutOrder; Parent=TextLabelRef })
         end
+        Library:TrackLabel(TextLabelRef, Text or "", "Labels")
         Label.TextLabel = TextLabelRef
         Label.Container = Groupbox.Container
         function Label:SetText(t)
@@ -2705,11 +2709,11 @@ do
         local function refresh()
             for i, btn in ipairs(btns) do
                 local active = (Option.Value == modes[i])
-                btn.BackgroundColor3 = active and Library.AccentColor or Library.MainColor
-                btn.BorderColor3     = active and Library.AccentColorDark or Library.OutlineColor
+                btn.TextColor3 = active and Library.AccentColor or Library.FontColor
+                btn.BorderColor3 = active and Library.AccentColor or Library.OutlineColor
                 if Library.RegistryMap[btn] then
-                    Library.RegistryMap[btn].Properties.BackgroundColor3 = active and 'AccentColor' or 'MainColor'
-                    Library.RegistryMap[btn].Properties.BorderColor3     = active and 'AccentColorDark' or 'OutlineColor'
+                    Library.RegistryMap[btn].Properties.TextColor3  = active and 'AccentColor' or 'FontColor'
+                    Library.RegistryMap[btn].Properties.BorderColor3 = active and 'AccentColor' or 'OutlineColor'
                 end
             end
         end
