@@ -555,7 +555,7 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         Font                    = Library.Font;
         Size                    = UDim2.fromOffset(0, 0);
         TextColor3              = Library.FontColor;
-        TextSize                = (14);
+        TextSize                = (11);
         TextWrapped             = false;
         TextXAlignment          = Enum.TextXAlignment.Left;
         ZIndex                  = 101;
@@ -2242,7 +2242,7 @@ do
     end
 
     local function BuildSliderPiece(Parent, OuterSize, Info)
-        local Slider = { Value=Info.Default; Min=Info.Min; Max=Info.Max; Rounding=Info.Rounding; MaxSize=(232); Type='Slider'; Callback=Info.Callback or function() end }
+        local Slider = { Value=Info.Default; Min=Info.Min; Max=Info.Max; Rounding=Info.Rounding; MaxSize=(232); Type='Slider'; Callback=Info.Callback or function() end; Info=Info }
         local SOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size=OuterSize; ZIndex=5; Parent=Parent })
         Library:AddToRegistry(SOuter, { BorderColor3='Black' })
         local SInner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=SOuter })
@@ -2282,10 +2282,15 @@ do
             end)
         end
         function Slider:Display()
-            local suf = Info.Suffix or ''
-            DropdownLabel.Text = Library:ApplyCase(Info.Text or "", "Sliders")..': '..Slider.Value..suf
+            local suf = Slider.Info.Suffix or ''
+            DropdownLabel.Text = Library:ApplyCase(Slider.Info.Text or "", "Sliders")..': '..Slider.Value..suf
             TargetX = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize))
             StartLerp()
+        end
+        function Slider:SetLabel(text, suffix)
+            Slider.Info.Text = text
+            if suffix ~= nil then Slider.Info.Suffix = suffix end
+            Slider:Display()
         end
         function Slider:UpdateColors()
             Fill.BackgroundColor3  = Library.AccentColor
