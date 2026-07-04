@@ -183,9 +183,6 @@ function Library:RefreshTextRegistry()
             e.lbl.Text = Library:ApplyCase(e.text, e.cat)
         end
     end
-    for _, dd in ipairs(Library.DropdownRegistry or {}) do
-        if dd.SetValues then pcall(dd.SetValues, dd) end
-    end
 end
 
 function Library:SafeCallback(f, ...)
@@ -2706,15 +2703,11 @@ do
         local labels = { "Cap", "Low", "Up" }
         local btns   = {}
 
+        local underlines = {}
+
         local function refresh()
-            for i, btn in ipairs(btns) do
-                local active = (Option.Value == modes[i])
-                btn.TextColor3 = active and Library.AccentColor or Library.FontColor
-                btn.BorderColor3 = active and Library.AccentColor or Library.OutlineColor
-                if Library.RegistryMap[btn] then
-                    Library.RegistryMap[btn].Properties.TextColor3  = active and 'AccentColor' or 'FontColor'
-                    Library.RegistryMap[btn].Properties.BorderColor3 = active and 'AccentColor' or 'OutlineColor'
-                end
+            for i, u in ipairs(underlines) do
+                u.Visible = (Option.Value == modes[i])
             end
         end
 
@@ -2741,6 +2734,18 @@ do
                 Parent           = BtnArea;
             })
             Library:AddToRegistry(btn, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor'; TextColor3='FontColor'; Font='Font' })
+            local u = Library:Create('Frame', {
+                BackgroundColor3 = Library.AccentColor;
+                BorderSizePixel  = 0;
+                AnchorPoint      = Vector2.new(0, 1);
+                Position         = UDim2.new(0, 0, 1, 0);
+                Size             = UDim2.new(1, 0, 0, 2);
+                Visible          = false;
+                ZIndex           = 7;
+                Parent           = btn;
+            })
+            Library:AddToRegistry(u, { BackgroundColor3='AccentColor' })
+            underlines[i] = u
             btns[i] = btn
             btn.MouseButton1Click:Connect(function()
                 if not Library:HasOpenedFrames() then
