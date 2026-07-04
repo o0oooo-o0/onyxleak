@@ -3349,6 +3349,7 @@ function Library:CreateWindow(...)
                 return TBTab
             end
 
+            Tabbox.Frame = SliderBarOuter
             Tab.Tabboxes[Info2.Name or ''] = Tabbox
             return Tabbox
         end
@@ -3628,6 +3629,7 @@ function Library:CreateWindow(...)
                         if nc==1 then TBTab2:Show() end
                         return TBTab2
                     end
+                    Tabbox2.Frame = SliderBarOuter
                     ST.Tabboxes[Info3.Name or ''] = Tabbox2
                     return Tabbox2
                 end
