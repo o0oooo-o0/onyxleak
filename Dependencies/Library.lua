@@ -2241,17 +2241,9 @@ do
         return Toggle
     end
 
-    function Funcs:AddSlider(Idx, Info)
-        Library:BuildTick()
-        assert(Info.Default ~= nil, 'AddSlider: Missing default.')
-        assert(Info.Text,           'AddSlider: Missing text.')
-        assert(Info.Min ~= nil,     'AddSlider: Missing min.')
-        assert(Info.Max ~= nil,     'AddSlider: Missing max.')
-        assert(Info.Rounding ~= nil,'AddSlider: Missing rounding.')
+    local function BuildSliderPiece(Parent, OuterSize, Info)
         local Slider = { Value=Info.Default; Min=Info.Min; Max=Info.Max; Rounding=Info.Rounding; MaxSize=(232); Type='Slider'; Callback=Info.Callback or function() end }
-        local Groupbox = self
-        local slH = (13)
-        local SOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size=UDim2.new(1,-(4),0,slH); ZIndex=5; Parent=Groupbox.Container })
+        local SOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size=OuterSize; ZIndex=5; Parent=Parent })
         Library:AddToRegistry(SOuter, { BorderColor3='Black' })
         local SInner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=SOuter })
         Library:AddToRegistry(SInner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
@@ -2321,6 +2313,34 @@ do
         end, function() Library:AttemptSave() end)
 
         Slider:Display()
+        Slider.Outer = SOuter
+        return Slider
+    end
+
+    function Funcs:AddSlider(Idx, Info)
+        Library:BuildTick()
+        assert(Info.Default ~= nil, 'AddSlider: Missing default.')
+        assert(Info.Text,           'AddSlider: Missing text.')
+        assert(Info.Min ~= nil,     'AddSlider: Missing min.')
+        assert(Info.Max ~= nil,     'AddSlider: Missing max.')
+        assert(Info.Rounding ~= nil,'AddSlider: Missing rounding.')
+        local Groupbox = self
+        local Slider = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info)
+
+        function Slider:AddSlider(Idx2, Info2)
+            assert(Info2.Default ~= nil, 'AddSlider: Missing default.')
+            assert(Info2.Text,           'AddSlider: Missing text.')
+            assert(Info2.Min ~= nil,     'AddSlider: Missing min.')
+            assert(Info2.Max ~= nil,     'AddSlider: Missing max.')
+            assert(Info2.Rounding ~= nil,'AddSlider: Missing rounding.')
+            self.Outer.Size = UDim2.new(0.5, -(3), 0, (13))
+            local Sub = BuildSliderPiece(self.Outer, UDim2.new(1,-(2),1,0), Info2)
+            Sub.Outer.Position = UDim2.new(1, (3), 0, 0)
+            function Sub:AddSlider(...) return Slider.AddSlider(Sub, ...) end
+            Options[Idx2] = Sub
+            return Sub
+        end
+
         Groupbox:AddBlank(Info.BlankSize or 6); Groupbox:Resize()
         Options[Idx] = Slider
         return Slider
