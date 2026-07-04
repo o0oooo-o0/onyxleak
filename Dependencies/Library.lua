@@ -191,6 +191,7 @@ function Library:RefreshTextRegistry()
                 end
             end
         end
+        if dd.Display then pcall(dd.Display, dd) end
     end
 end
 
@@ -2421,6 +2422,7 @@ do
             end
             if #s > 30 then s = s:sub(1, 30) .. '...' end
             if s == '' then s = '...' end
+            if s ~= '...' then s = Library:ApplyCase(s, "DropdownItems") end
             if ItemLabel and ItemLabel.Parent then ItemLabel.Text = s end
         end
 
