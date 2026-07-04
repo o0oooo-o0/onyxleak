@@ -2682,53 +2682,89 @@ do
     function Funcs:AddCaseRow(Idx, Info)
         Library:BuildTick()
         local Groupbox = self
+        local modes = { "Capitalized", "Lowercase", "Uppercase" }
         local Option = { Value = Info.Default or "Capitalized"; Type = 'CaseRow'; Callback = Info.Callback or function() end }
 
-        local rowH = 14
+        local rowH = 16
         local Row = Library:Create('Frame', {
             BackgroundTransparency = 1;
-            Size = UDim2.new(1, -(4), 0, rowH);
+            Size   = UDim2.new(1, -(4), 0, rowH);
             ZIndex = 5;
             Parent = Groupbox.Container;
         })
+
         Library:CreateLabel({
-            Size           = UDim2.new(0, 90, 1, 0);
+            Size           = UDim2.new(0.48, 0, 1, 0);
             TextSize       = 12;
             Text           = Info.Text or Idx;
             TextXAlignment = Enum.TextXAlignment.Left;
             ZIndex         = 6;
             Parent         = Row;
         })
-        local BtnArea = Library:Create('Frame', {
-            BackgroundTransparency = 1;
-            Position = UDim2.new(0, 94, 0, 0);
-            Size     = UDim2.new(1, -94, 1, 0);
-            ZIndex   = 5;
-            Parent   = Row;
+
+        -- cycle box: shows current value, click to cycle
+        local Outer = Library:Create('Frame', {
+            BorderColor3    = Color3.new(0,0,0);
+            Position        = UDim2.new(0.48, 2, 0, 1);
+            Size            = UDim2.new(0.52, -2, 1, -2);
+            ZIndex          = 5;
+            Parent          = Row;
         })
-        Library:Create('UIListLayout', {
-            FillDirection = Enum.FillDirection.Horizontal;
-            SortOrder     = Enum.SortOrder.LayoutOrder;
-            Padding       = UDim.new(0, 1);
-            Parent        = BtnArea;
+        Library:AddToRegistry(Outer, { BorderColor3='Black' })
+        local Inner = Library:Create('TextButton', {
+            BackgroundColor3 = Library.MainColor;
+            BorderColor3     = Library.OutlineColor;
+            BorderMode       = Enum.BorderMode.Inset;
+            Size             = UDim2.new(1, 0, 1, 0);
+            Text             = '';
+            ZIndex           = 6;
+            Parent           = Outer;
+        })
+        Library:AddToRegistry(Inner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
+        Library:Create('UIGradient', {
+            Color    = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.new(1,1,1)), ColorSequenceKeypoint.new(1, Color3.fromRGB(212,212,212)) });
+            Rotation = 90;
+            Parent   = Inner;
         })
 
-        local modes  = { "Capitalized", "Lowercase", "Uppercase" }
-        local labels = { "Cap", "Low", "Up" }
-        local btns   = {}
+        local ValueLabel = Library:CreateLabel({
+            PreserveCase    = true;
+            AnchorPoint     = Vector2.new(0, 0.5);
+            Position        = UDim2.new(0, 5, 0.5, 0);
+            Size            = UDim2.new(1, -18, 1, 0);
+            TextSize        = 12;
+            Text            = Option.Value;
+            TextXAlignment  = Enum.TextXAlignment.Left;
+            TextTruncate    = Enum.TextTruncate.AtEnd;
+            ZIndex          = 7;
+            Parent          = Inner;
+        })
 
-        local toplines = {}
+        -- small arrow indicator on right
+        Library:CreateLabel({
+            PreserveCase    = true;
+            AnchorPoint     = Vector2.new(1, 0.5);
+            Position        = UDim2.new(1, -4, 0.5, 0);
+            Size            = UDim2.fromOffset(10, 14);
+            TextSize        = 11;
+            Font            = Enum.Font.GothamBold;
+            Text            = '>';
+            ZIndex          = 7;
+            Parent          = Inner;
+        })
+
+        -- AccentColor top line (always visible, thin accent strip)
+        local AccentLine = Library:Create('Frame', {
+            BackgroundColor3 = Library.AccentColor;
+            BorderSizePixel  = 0;
+            Size             = UDim2.new(1, 0, 0, 1);
+            ZIndex           = 8;
+            Parent           = Inner;
+        })
+        Library:AddToRegistry(AccentLine, { BackgroundColor3='AccentColor' })
 
         local function refresh()
-            for i, btn in ipairs(btns) do
-                local active = (Option.Value == modes[i])
-                btn.BackgroundColor3 = active and Library.BackgroundColor or Library.MainColor
-                btn.BorderSizePixel  = active and 0 or 1
-                toplines[i].Visible  = active
-                if Library.RegistryMap[btn] then
-                    Library.RegistryMap[btn].Properties.BackgroundColor3 = active and 'BackgroundColor' or 'MainColor'
-                end
-            end
+            ValueLabel.Text = Option.Value
         end
 
         function Option:OnChanged(fn) Option.Changed = fn; fn(Option.Value) end
@@ -2739,39 +2775,16 @@ do
             Library:SafeCallback(Option.Changed,  v)
         end
 
-        for i = 1, 3 do
-            local m = modes[i]
-            local btn = Library:Create('TextButton', {
-                BackgroundColor3 = Library.MainColor;
-                BorderColor3     = Library.OutlineColor;
-                BorderSizePixel  = 1;
-                Size             = UDim2.new(1/3, -1, 1, 0);
-                Text             = labels[i];
-                TextSize         = 11;
-                TextColor3       = Library.FontColor;
-                Font             = Library.Font;
-                ZIndex           = 6;
-                Parent           = BtnArea;
-            })
-            Library:AddToRegistry(btn, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor'; TextColor3='FontColor'; Font='Font' })
-            local tl = Library:Create('Frame', {
-                BackgroundColor3 = Library.AccentColor;
-                BorderSizePixel  = 0;
-                Size             = UDim2.new(1, 0, 0, 1);
-                Visible          = false;
-                ZIndex           = 7;
-                Parent           = btn;
-            })
-            Library:AddToRegistry(tl, { BackgroundColor3='AccentColor' })
-            toplines[i] = tl
-            btns[i] = btn
-            btn.MouseButton1Click:Connect(function()
-                if not Library:HasOpenedFrames() then
-                    Option:SetValue(m)
-                    Library:AttemptSave()
-                end
-            end)
-        end
+        Library:OnHighlight(Outer, Outer, { BorderColor3='OutlineColor' }, { BorderColor3='Black' })
+
+        Inner.MouseButton1Click:Connect(function()
+            if not Library:HasOpenedFrames() then
+                local idx = 1
+                for i, m in ipairs(modes) do if m == Option.Value then idx = i; break end end
+                Option:SetValue(modes[(idx % #modes) + 1])
+                Library:AttemptSave()
+            end
+        end)
 
         refresh()
         Groupbox:AddBlank(3)
