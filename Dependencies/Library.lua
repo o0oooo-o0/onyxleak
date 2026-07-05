@@ -40,6 +40,7 @@ local Library = {
     OpenedFrames            = {};
     ActiveDropdownList      = nil;
     DropdownRegistry        = {};
+    SliderRegistry          = {};
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -193,6 +194,9 @@ function Library:RefreshTextRegistry()
             end
         end
         if dd.Display then pcall(dd.Display, dd) end
+    end
+    for _, s in ipairs(Library.SliderRegistry or {}) do
+        if s.Display then pcall(s.Display, s) end
     end
 end
 
@@ -381,6 +385,7 @@ function Library:Unload()
         table.remove(Library.Signals, i):Disconnect()
     end
     Library.DropdownRegistry = {}
+    Library.SliderRegistry = {}
     if Library.OnUnload then Library.OnUnload() end
     if not IsTouch then
         local ezBlur = Services.Lighting:FindFirstChild("EliteZone_Blur")
@@ -541,10 +546,10 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         Parent            = ScreenGui;
     })
     Library:Create('UIPadding', {
-        PaddingLeft    = UDim.new(0, (4));
-        PaddingRight   = UDim.new(0, (4));
-        PaddingTop     = UDim.new(0, (3));
-        PaddingBottom  = UDim.new(0, (3));
+        PaddingLeft    = UDim.new(0, (6));
+        PaddingRight   = UDim.new(0, (6));
+        PaddingTop     = UDim.new(0, (4));
+        PaddingBottom  = UDim.new(0, (4));
         Parent         = tip;
     })
     local TooltipScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = tip })
@@ -555,7 +560,7 @@ function Library:AddToolTip(InfoStr, HoverInstance)
         Font                    = Library.Font;
         Size                    = UDim2.fromOffset(0, 0);
         TextColor3              = Library.FontColor;
-        TextSize                = (11);
+        TextSize                = (13);
         TextWrapped             = false;
         TextXAlignment          = Enum.TextXAlignment.Left;
         ZIndex                  = 101;
@@ -2314,6 +2319,7 @@ do
 
         Slider:Display()
         Slider.Outer = SOuter
+        table.insert(Library.SliderRegistry, Slider)
         return Slider
     end
 
