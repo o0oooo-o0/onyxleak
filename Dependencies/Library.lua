@@ -332,22 +332,36 @@ end
 
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor)
 
+-- ponytail: each entry remembers its own array index, so removal is a swap-with-last (O(1))
+-- instead of scanning the whole list to find it first; order doesn't matter here, these
+-- lists only get iterated for recoloring.
+local function SwapRemoveIndexed(list, data, indexField)
+    local i = data[indexField]
+    if not i then return end
+    local lastIdx  = #list
+    local lastItem = list[lastIdx]
+    list[i] = lastItem
+    if lastItem then lastItem[indexField] = i end
+    list[lastIdx] = nil
+    data[indexField] = nil
+end
+
 function Library:AddToRegistry(inst, props, isHud)
     local data = { Instance = inst; Properties = props }
-    table.insert(Library.Registry, data)
+    data.Index = #Library.Registry + 1
+    Library.Registry[data.Index] = data
     Library.RegistryMap[inst] = data
-    if isHud then table.insert(Library.HudRegistry, data) end
+    if isHud then
+        data.HudIndex = #Library.HudRegistry + 1
+        Library.HudRegistry[data.HudIndex] = data
+    end
 end
 
 function Library:RemoveFromRegistry(inst)
     local data = Library.RegistryMap[inst]
     if not data then return end
-    for i = #Library.Registry, 1, -1 do
-        if Library.Registry[i] == data then table.remove(Library.Registry, i) end
-    end
-    for i = #Library.HudRegistry, 1, -1 do
-        if Library.HudRegistry[i] == data then table.remove(Library.HudRegistry, i) end
-    end
+    SwapRemoveIndexed(Library.Registry, data, "Index")
+    SwapRemoveIndexed(Library.HudRegistry, data, "HudIndex")
     Library.RegistryMap[inst] = nil
 end
 
@@ -402,6 +416,41 @@ Library:GiveSignal(ScreenGui.DescendantRemoving:Connect(function(inst)
     if Library.RegistryMap[inst] then Library:RemoveFromRegistry(inst) end
 end))
 
+-- ponytail: shared by MakeDraggable and BindResizeHandleGhost below — both draw a
+-- fill+border Drawing.new("Square") pair as a live preview while the user drags/resizes.
+function Library:CreateGhostOverlay(x, y, w, h)
+    local Fill = Drawing.new("Square")
+    Fill.Filled       = true
+    Fill.Thickness    = 0
+    Fill.Transparency = 0.35
+    Fill.Color        = Library.AccentColor
+    Fill.Position     = Vector2.new(x, y)
+    Fill.Size         = Vector2.new(w, h)
+    Fill.Visible      = true
+
+    local Border = Drawing.new("Square")
+    Border.Filled       = false
+    Border.Thickness    = 1
+    Border.Transparency = 1
+    Border.Color        = Library.AccentColor
+    Border.Position     = Vector2.new(x, y)
+    Border.Size         = Vector2.new(w, h)
+    Border.Visible      = true
+
+    local function Update(nx, ny, nw, nh)
+        Fill.Color, Border.Color       = Library.AccentColor, Library.AccentColor
+        Fill.Position, Border.Position = Vector2.new(nx, ny), Vector2.new(nx, ny)
+        Fill.Size, Border.Size         = Vector2.new(nw, nh), Vector2.new(nw, nh)
+    end
+
+    local function Remove()
+        Fill:Remove()
+        Border:Remove()
+    end
+
+    return Update, Remove
+end
+
 function Library:MakeDraggable(Frame, DragHandleOrCutoff)
     local DragHandle = (typeof(DragHandleOrCutoff) == 'Instance' and DragHandleOrCutoff) or Frame
     local Cutoff = (type(DragHandleOrCutoff) == 'number' and DragHandleOrCutoff)
@@ -426,31 +475,7 @@ function Library:MakeDraggable(Frame, DragHandleOrCutoff)
             local gw = frameSize.X
             local gh = frameSize.Y
 
-            local GhostFill = Drawing.new("Square")
-            GhostFill.Filled       = true
-            GhostFill.Thickness    = 0
-            GhostFill.Transparency = 0.35
-            GhostFill.Visible      = false
-
-            local GhostBorder = Drawing.new("Square")
-            GhostBorder.Filled       = false
-            GhostBorder.Thickness    = 1
-            GhostBorder.Transparency = 1
-            GhostBorder.Visible      = false
-
-            local function applyGhost(dx, dy)
-                local ac = Library.AccentColor
-                GhostFill.Color    = ac
-                GhostBorder.Color  = ac
-                GhostFill.Position   = Vector2.new(gx + dx, gy + dy)
-                GhostFill.Size       = Vector2.new(gw, gh)
-                GhostBorder.Position = Vector2.new(gx + dx, gy + dy)
-                GhostBorder.Size     = Vector2.new(gw, gh)
-            end
-
-            applyGhost(0, 0)
-            GhostFill.Visible   = true
-            GhostBorder.Visible = true
+            local UpdateGhost, RemoveGhost = Library:CreateGhostOverlay(gx, gy, gw, gh)
 
             local moveConn = Services.UserInputService.InputChanged:Connect(function(mInput)
                 if mInput.UserInputType == Enum.UserInputType.MouseMovement or mInput.UserInputType == Enum.UserInputType.Touch then
@@ -465,15 +490,13 @@ function Library:MakeDraggable(Frame, DragHandleOrCutoff)
                     return
                 end
                 local delta = dragInput.Position - dragStart
-                applyGhost(delta.X, delta.Y)
+                UpdateGhost(gx + delta.X, gy + delta.Y, gw, gh)
             end)
 
             local endConn
             endConn = Services.UserInputService.InputEnded:Connect(function(eInput)
                 if Library:IsPointerInput(eInput) then
                     dragging = false
-                    GhostFill.Visible   = false
-                    GhostBorder.Visible = false
                     moveConn:Disconnect()
                     endConn:Disconnect()
                     local delta = dragInput.Position - dragStart
@@ -481,8 +504,7 @@ function Library:MakeDraggable(Frame, DragHandleOrCutoff)
                         startAbsPos.X + delta.X - pAbs.X,
                         startAbsPos.Y + delta.Y - pAbs.Y
                     )
-                    GhostFill:Remove()
-                    GhostBorder:Remove()
+                    RemoveGhost()
                 end
             end)
         end
@@ -917,23 +939,7 @@ function Library:BindResizeHandleGhost(clipInst, circleInst, getSize, setSize, o
         local gx = parentAbs.X - drawOff.X
         local gy = parentAbs.Y - drawOff.Y
 
-        local GhostFill = Drawing.new("Square")
-        GhostFill.Filled       = true
-        GhostFill.Thickness    = 0
-        GhostFill.Transparency = 0.35
-        GhostFill.Color        = Library.AccentColor
-        GhostFill.Position     = Vector2.new(gx, gy)
-        GhostFill.Size         = Vector2.new(startW, startH)
-        GhostFill.Visible      = true
-
-        local GhostBorder = Drawing.new("Square")
-        GhostBorder.Filled       = false
-        GhostBorder.Thickness    = 1
-        GhostBorder.Transparency = 1
-        GhostBorder.Color        = Library.AccentColor
-        GhostBorder.Position     = Vector2.new(gx, gy)
-        GhostBorder.Size         = Vector2.new(startW, startH)
-        GhostBorder.Visible      = true
+        local UpdateGhost, RemoveGhost = Library:CreateGhostOverlay(gx, gy, startW, startH)
 
         local dragging = true
         local dragInput = Input
@@ -952,10 +958,7 @@ function Library:BindResizeHandleGhost(clipInst, circleInst, getSize, setSize, o
             local dy = dragInput.Position.Y - startY
             local nw = math.max(startW + dx, minW)
             local nh = math.max(startH + dy, minH)
-            GhostFill.Color   = Library.AccentColor
-            GhostBorder.Color = Library.AccentColor
-            GhostFill.Size    = Vector2.new(nw, nh)
-            GhostBorder.Size  = Vector2.new(nw, nh)
+            UpdateGhost(gx, gy, nw, nh)
         end)
 
         local endConn
@@ -967,8 +970,7 @@ function Library:BindResizeHandleGhost(clipInst, circleInst, getSize, setSize, o
 
             local dx = dragInput.Position.X - startX
             local dy = dragInput.Position.Y - startY
-            GhostFill:Remove()
-            GhostBorder:Remove()
+            RemoveGhost()
 
             if type(setSize) == 'function' then
                 setSize(startW + dx, startH + dy)
