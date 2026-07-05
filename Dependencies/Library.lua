@@ -2369,6 +2369,87 @@ do
         return Slider
     end
 
+    -- ponytail: a dial for angle-style values (rotation, gradient angle, pitch/yaw/roll) —
+    -- dragging around the ring is a more natural input than a linear bar for a 0-360 wraparound.
+    function Funcs:AddCircleSlider(Idx, Info)
+        Library:BuildTick()
+        assert(Info.Default ~= nil, 'AddCircleSlider: Missing default.')
+        assert(Info.Text,           'AddCircleSlider: Missing text.')
+        Info.Min      = Info.Min or 0
+        Info.Max      = Info.Max or 360
+        Info.Rounding = Info.Rounding or 0
+        local Groupbox = self
+
+        local Dial = { Value=Info.Default; Min=Info.Min; Max=Info.Max; Rounding=Info.Rounding; Type='CircleSlider'; Callback=Info.Callback or function() end; Info=Info }
+
+        local size   = (36)
+        local radius = (size / 2) - 5
+
+        local DOuter = Library:Create('Frame', { BackgroundTransparency=1; Size=UDim2.new(1,-(4),0,size); ZIndex=5; Parent=Groupbox.Container })
+
+        local Label = Library:CreateLabel({ Size=UDim2.new(1,-(size+8),1,0); TextSize=(13); Text=''; TextXAlignment=Enum.TextXAlignment.Left; ZIndex=6; Parent=DOuter })
+        if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, Label) end
+
+        local Ring = Library:Create('Frame', { AnchorPoint=Vector2.new(1,0.5); BackgroundColor3=Library.Black; Position=UDim2.new(1,0,0.5,0); Size=UDim2.fromOffset(size,size); Active=true; ZIndex=6; Parent=DOuter })
+        Library:Create('UICorner', { CornerRadius=UDim.new(1,0); Parent=Ring })
+        Library:AddToRegistry(Ring, { BackgroundColor3='Black' })
+        Library:OnHighlight(Ring, Ring, { BackgroundColor3='AccentColor' }, { BackgroundColor3='Black' })
+
+        local Track = Library:Create('Frame', { AnchorPoint=Vector2.new(0.5,0.5); BackgroundColor3=Library.MainColor; Position=UDim2.fromScale(0.5,0.5); Size=UDim2.new(1,-2,1,-2); ZIndex=7; Parent=Ring })
+        Library:Create('UICorner', { CornerRadius=UDim.new(1,0); Parent=Track })
+        Library:AddToRegistry(Track, { BackgroundColor3='MainColor' })
+
+        local Handle = Library:Create('Frame', { AnchorPoint=Vector2.new(0.5,0.5); BackgroundColor3=Library.AccentColor; Size=UDim2.fromOffset(6,6); ZIndex=9; Parent=Track })
+        Library:Create('UICorner', { CornerRadius=UDim.new(1,0); Parent=Handle })
+        Library:AddToRegistry(Handle, { BackgroundColor3='AccentColor' })
+
+        local function Round(v)
+            if Dial.Rounding == 0 then return math.floor(v + 0.5) end
+            return tonumber(string.format('%.'..Dial.Rounding..'f', v))
+        end
+
+        function Dial:Display()
+            local suf = Dial.Info.Suffix or '°'
+            Label.Text = Library:ApplyCase(Dial.Info.Text or "", "Sliders")..': '..Dial.Value..suf
+            local angleDeg = Library:MapValue(Dial.Value, Dial.Min, Dial.Max, 0, 360)
+            local rad = math.rad(angleDeg)
+            Handle.Position = UDim2.new(0.5, math.sin(rad) * radius, 0.5, -math.cos(rad) * radius)
+        end
+
+        function Dial:OnChanged(fn) Dial.Changed = fn; fn(Dial.Value) end
+        function Dial:SetValue(n)
+            n = math.clamp(tonumber(n) or Dial.Min, Dial.Min, Dial.Max)
+            Dial.Value = n; Dial:Display()
+            Library:SafeCallback(Dial.Callback, n)
+            Library:SafeCallback(Dial.Changed,  n)
+        end
+
+        local function ValueFromPoint(px, py)
+            local ap, as = Track.AbsolutePosition, Track.AbsoluteSize
+            local cx, cy = ap.X + as.X / 2, ap.Y + as.Y / 2
+            local raw = math.deg(math.atan2(px - cx, -(py - cy)))
+            if raw < 0 then raw = raw + 360 end
+            return Round(Library:MapValue(raw, 0, 360, Dial.Min, Dial.Max))
+        end
+
+        HandleDrag(Ring, function(x, y)
+            local nv = ValueFromPoint(x, y)
+            if nv ~= Dial.Value then
+                Dial.Value = nv; Dial:Display()
+                Library:SafeCallback(Dial.Callback, nv)
+                Library:SafeCallback(Dial.Changed,  nv)
+            end
+        end, function() Library:AttemptSave() end)
+
+        Dial:Display()
+        Dial.Outer = DOuter
+        table.insert(Library.SliderRegistry, Dial)
+
+        Groupbox:AddBlank(Info.BlankSize or 6); Groupbox:Resize()
+        Options[Idx] = Dial
+        return Dial
+    end
+
     function Funcs:AddDropdown(Idx, Info)
         Library:BuildTick()
         if Info.SpecialType == 'Player' then Info.Values = GetPlayersString(); Info.AllowNull = true
