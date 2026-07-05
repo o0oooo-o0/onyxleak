@@ -2287,11 +2287,6 @@ do
             TargetX = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize))
             StartLerp()
         end
-        function Slider:SetLabel(text, suffix)
-            Slider.Info.Text = text
-            if suffix ~= nil then Slider.Info.Suffix = suffix end
-            Slider:Display()
-        end
         function Slider:UpdateColors()
             Fill.BackgroundColor3  = Library.AccentColor
             Fill.BorderColor3      = Library.AccentColorDark
