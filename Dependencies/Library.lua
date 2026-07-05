@@ -1261,15 +1261,17 @@ do
         RgbInputInner.InputBegan:Connect(function(Input) if Library:IsPointerInput(Input) then markInner() end end)
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            -- capture the input's own position now — GetMouseLocation() inside the deferred
+            -- callback below isn't guaranteed to be in the same coordinate space as GuiObject
+            -- AbsolutePosition (ScreenGui.IgnoreGuiInset can shift it), which was closing the
+            -- picker on clicks near the bottom edge (the transparency bar).
+            local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
                     ColorPickerInfo.suppressClose = false
                     return
                 end
-                -- ponytail: suppressClose depends on the inner element's own InputBegan firing
-                -- before this deferred check — not guaranteed. A direct bounds check can't race.
-                local loc = Services.UserInputService:GetMouseLocation()
-                if Library:IsPositionOverFrame(loc.X, loc.Y, PickerFrameOuter) then return end
+                if Library:IsPositionOverFrame(px, py, PickerFrameOuter) then return end
                 ColorPickerInfo:Hide()
             end)
         end)
@@ -1617,15 +1619,17 @@ do
 
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            -- capture the input's own position now — GetMouseLocation() inside the deferred
+            -- callback below isn't guaranteed to be in the same coordinate space as GuiObject
+            -- AbsolutePosition (ScreenGui.IgnoreGuiInset can shift it), which was closing the
+            -- picker on clicks near the bottom edge (the transparency bar).
+            local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if GradColorPickerInfo.suppressClose then
                     GradColorPickerInfo.suppressClose = false
                     return
                 end
-                -- ponytail: suppressClose depends on the inner element's own InputBegan firing
-                -- before this deferred check — not guaranteed. A direct bounds check can't race.
-                local loc = Services.UserInputService:GetMouseLocation()
-                if Library:IsPositionOverFrame(loc.X, loc.Y, PickerFrameOuter) then return end
+                if Library:IsPositionOverFrame(px, py, PickerFrameOuter) then return end
                 GradColorPickerInfo:Hide()
             end)
         end)
