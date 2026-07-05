@@ -1266,6 +1266,10 @@ do
                     ColorPickerInfo.suppressClose = false
                     return
                 end
+                -- ponytail: suppressClose depends on the inner element's own InputBegan firing
+                -- before this deferred check — not guaranteed. A direct bounds check can't race.
+                local loc = Services.UserInputService:GetMouseLocation()
+                if Library:IsPositionOverFrame(loc.X, loc.Y, PickerFrameOuter) then return end
                 ColorPickerInfo:Hide()
             end)
         end)
@@ -1288,6 +1292,10 @@ do
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
+            -- ponytail: a swatch positioned behind another open picker's panel still gets this
+            -- InputBegan even though it's visually covered (Roblox doesn't occlude input by
+            -- ZIndex here) — skip opening if the click is actually landing on another open frame.
+            if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
             if PickerFrameOuter.Visible then ColorPickerInfo:Hide() else ColorPickerInfo:Show() end
         end)
 
@@ -1614,6 +1622,10 @@ do
                     GradColorPickerInfo.suppressClose = false
                     return
                 end
+                -- ponytail: suppressClose depends on the inner element's own InputBegan firing
+                -- before this deferred check — not guaranteed. A direct bounds check can't race.
+                local loc = Services.UserInputService:GetMouseLocation()
+                if Library:IsPositionOverFrame(loc.X, loc.Y, PickerFrameOuter) then return end
                 GradColorPickerInfo:Hide()
             end)
         end)
@@ -1621,6 +1633,9 @@ do
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
+            -- ponytail: same fix as the plain color picker's Swatch above — don't open through
+            -- another picker's panel that's currently covering this swatch.
+            if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
             if PickerFrameOuter.Visible then GradColorPickerInfo:Hide() else GradColorPickerInfo:Show() end
         end)
 
