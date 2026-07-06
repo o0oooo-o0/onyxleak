@@ -2874,17 +2874,29 @@ function Library:CreateWindow(...)
 
     local Backdrop
     if not IsTouch then
-        Backdrop = Library:Create('Frame', {
-            AnchorPoint             = Vector2.new(0.5, 0.5);
-            Position                = UDim2.fromScale(0.5, 0.5);
-            BackgroundColor3        = Color3.new(0, 0, 0);
-            BackgroundTransparency  = 0.9;
-            BorderSizePixel         = 0;
-            Size                    = UDim2.new(1, 200, 1, 200);
-            Visible                 = false;
-            ZIndex                  = 1;
-            Parent                  = ScreenGui;
-        })
+        local playerGui = Services.Players.LocalPlayer:WaitForChild("PlayerGui")
+        local old = playerGui:FindFirstChild("EliteZone_BlackFilter")
+        if old then old:Destroy() end
+
+        local backdropGui = Instance.new("ScreenGui")
+        backdropGui.Name             = "EliteZone_BlackFilter"
+        backdropGui.IgnoreGuiInset   = true
+        backdropGui.ResetOnSpawn     = false
+        backdropGui.DisplayOrder     = 2147483647
+        backdropGui.ZIndexBehavior   = Enum.ZIndexBehavior.Sibling
+        backdropGui.Parent          = playerGui
+
+        Backdrop = Instance.new("Frame")
+        Backdrop.Name                   = "Overlay"
+        Backdrop.Size                   = UDim2.fromScale(1, 1)
+        Backdrop.Position               = UDim2.fromScale(0, 0)
+        Backdrop.BackgroundColor3       = Color3.new(0, 0, 0)
+        Backdrop.BackgroundTransparency = 0.9
+        Backdrop.BorderSizePixel        = 0
+        Backdrop.ZIndex                 = 2147483647
+        Backdrop.Visible                = false
+        Backdrop.Parent                 = backdropGui
+
         Library.Backdrop = Backdrop
     end
 
