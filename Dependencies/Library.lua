@@ -434,9 +434,11 @@ function Library:CreateGhostOverlay(x, y, w, h)
     Border.Parent                 = Library.ScreenGui
 
     local Stroke = Instance.new("UIStroke")
-    Stroke.Thickness       = 2
+    Stroke.Thickness       = 1
     Stroke.Color           = Library.AccentColor
+    Stroke.Transparency    = 0
     Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    Stroke.LineJoinMode    = Enum.LineJoinMode.Miter
     Stroke.Parent          = Border
 
     local function Update(nx, ny, nw, nh)
