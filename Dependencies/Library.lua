@@ -3912,6 +3912,26 @@ function Library:CreateWindow(...)
             Parent  = Services.Lighting
         })
     end
+    Library.Blur = Blur
+    if Library.BackdropBlurOn == nil then Library.BackdropBlurOn = not IsTouch end
+    if Library.BackdropFrameOn == nil then Library.BackdropFrameOn = not IsTouch end
+
+    local BackdropGradient
+    function Library:SetBackdropGradientColors(colors)
+        if not Backdrop then return end
+        if not BackdropGradient then
+            BackdropGradient = Instance.new("UIGradient")
+            BackdropGradient.Parent = Backdrop
+        end
+        BackdropGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0,   colors[1]),
+            ColorSequenceKeypoint.new(0.5, colors[2]),
+            ColorSequenceKeypoint.new(1,   colors[3]),
+        })
+    end
+    function Library:SetBackdropTransparency(t)
+        if Backdrop then Backdrop.BackgroundTransparency = t end
+    end
 
     local OFFSCREEN_POS = UDim2.fromOffset(-99999, -99999)
     local tabsInitialized = false
@@ -3941,8 +3961,8 @@ function Library:CreateWindow(...)
         setInputSink(isVisible)
         for _, cb in ipairs(Library.VisibilityCallbacks) do pcall(cb, isVisible) end
 
-        if Blur then Blur.Enabled = isVisible end
-        if Backdrop then Backdrop.Visible = isVisible end
+        if Blur then Blur.Enabled = isVisible and Library.BackdropBlurOn end
+        if Backdrop then Backdrop.Visible = isVisible and Library.BackdropFrameOn end
         OuterScale.Scale = Library.UIScaleValue or 1
 
         do
