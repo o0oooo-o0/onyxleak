@@ -3916,21 +3916,11 @@ function Library:CreateWindow(...)
     if Library.BackdropBlurOn == nil then Library.BackdropBlurOn = not IsTouch end
     if Library.BackdropFrameOn == nil then Library.BackdropFrameOn = not IsTouch end
 
-    local BackdropGradient
-    function Library:SetBackdropGradientColors(colors)
-        if not Backdrop then return end
-        if not BackdropGradient then
-            BackdropGradient = Instance.new("UIGradient")
-            BackdropGradient.Parent = Backdrop
-        end
-        BackdropGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0,   colors[1]),
-            ColorSequenceKeypoint.new(0.5, colors[2]),
-            ColorSequenceKeypoint.new(1,   colors[3]),
-        })
+    function Library:SetBackdropColor(color)
+        if Backdrop then Backdrop.BackgroundColor3 = color end
     end
-    function Library:SetBackdropTransparency(t)
-        if Backdrop then Backdrop.BackgroundTransparency = t end
+    function Library:SetBackdropOpacity(opacity)
+        if Backdrop then Backdrop.BackgroundTransparency = 1 - opacity end
     end
 
     local OFFSCREEN_POS = UDim2.fromOffset(-99999, -99999)
