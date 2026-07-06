@@ -3922,6 +3922,9 @@ function Library:CreateWindow(...)
     function Library:SetBackdropOpacity(opacity)
         if Backdrop then Backdrop.BackgroundTransparency = 1 - opacity end
     end
+    function Library:SetBlurOpacity(opacity)
+        if Blur then Blur.Size = opacity * 40 end
+    end
 
     local OFFSCREEN_POS = UDim2.fromOffset(-99999, -99999)
     local tabsInitialized = false
