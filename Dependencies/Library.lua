@@ -2875,12 +2875,12 @@ function Library:CreateWindow(...)
     local Backdrop
     if not IsTouch then
         Backdrop = Library:Create('Frame', {
-            AnchorPoint             = Vector2.new(0, 0);
-            Position                = UDim2.fromScale(0, 0);
+            AnchorPoint             = Vector2.new(0.5, 0.5);
+            Position                = UDim2.fromScale(0.5, 0.5);
             BackgroundColor3        = Color3.new(0, 0, 0);
             BackgroundTransparency  = 0.9;
             BorderSizePixel         = 0;
-            Size                    = UDim2.fromScale(1, 1);
+            Size                    = UDim2.new(1, 200, 1, 200);
             Visible                 = false;
             ZIndex                  = 1;
             Parent                  = ScreenGui;
