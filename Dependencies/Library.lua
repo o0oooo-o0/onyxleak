@@ -2872,6 +2872,17 @@ function Library:CreateWindow(...)
     Library.MainWindow = Window
     local defaultPosition = Config.Position
 
+    local Backdrop = Library:Create('Frame', {
+        BackgroundColor3        = Color3.new(0, 0, 0);
+        BackgroundTransparency  = 0.9;
+        BorderSizePixel         = 0;
+        Size                    = UDim2.fromScale(1, 1);
+        Visible                 = false;
+        ZIndex                  = 0;
+        Parent                  = ScreenGui;
+    })
+    Library.Backdrop = Backdrop
+
     local Outer = Library:Create('Frame', {
         AnchorPoint             = Config.AnchorPoint;
         BackgroundTransparency  = 1;
@@ -3914,6 +3925,7 @@ function Library:CreateWindow(...)
         for _, cb in ipairs(Library.VisibilityCallbacks) do pcall(cb, isVisible) end
 
         if Blur then Blur.Enabled = isVisible end
+        Backdrop.Visible = isVisible
         OuterScale.Scale = Library.UIScaleValue or 1
 
         do
