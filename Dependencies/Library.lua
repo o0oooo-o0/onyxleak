@@ -427,6 +427,7 @@ function Library:CreateGhostOverlay(x, y, w, h)
     Fill.Color        = Library.AccentColor
     Fill.Position     = Vector2.new(x, y)
     Fill.Size         = Vector2.new(w, h)
+    Fill.ZIndex       = 2147483647
     Fill.Visible      = true
 
     local Border = Drawing.new("Square")
@@ -436,6 +437,7 @@ function Library:CreateGhostOverlay(x, y, w, h)
     Border.Color        = Library.AccentColor
     Border.Position     = Vector2.new(x, y)
     Border.Size         = Vector2.new(w, h)
+    Border.ZIndex       = 2147483647
     Border.Visible      = true
 
     local function Update(nx, ny, nw, nh)
