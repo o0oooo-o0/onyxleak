@@ -292,6 +292,17 @@ function Library:IsPositionOverFrame(px, py, Frame)
     return px >= ap.X and px <= ap.X + as.X and py >= ap.Y and py <= ap.Y + as.Y
 end
 
+-- ponytail: a picker's full-screen Blocker sits above its own swatch (Roblox doesn't occlude
+-- InputBegan by ZIndex), so a click that closes the picker via the swatch also reaches
+-- Blocker, which judged it "outside" and queued a competing Hide() — treat the swatch's own
+-- footprint as safe the same way the picker's own bounds are.
+function Library:IsPointerOverSwatchOrFrame(px, py, Swatch, Frame, buffer)
+    if Library:IsPositionOverFrame(px, py, Frame) then return true end
+    local ap, as = Swatch.AbsolutePosition, Swatch.AbsoluteSize
+    buffer = buffer or 0
+    return px >= ap.X - buffer and px <= ap.X + as.X + buffer and py >= ap.Y - buffer and py <= ap.Y + as.Y + buffer
+end
+
 function Library:IsMouseOverFrame(Frame)
     local px, py = Library:CursorPos()
     local ap, as = Frame.AbsolutePosition, Frame.AbsoluteSize
@@ -1205,7 +1216,6 @@ do
         end
 
         function ColorPickerInfo:Show()
-            warn('[CP DEBUG] Show() called', os.clock())
             for f in next, Library.OpenedFrames do if f.Name == 'Color' or f.Name == 'ColorBlocker' then f.Visible = false; Library.OpenedFrames[f] = nil end end
             UpdatePickerPos()
             Blocker.Visible = true
@@ -1215,7 +1225,6 @@ do
             Library.OpenedFrames[Blocker] = true
         end
         function ColorPickerInfo:Hide()
-            warn('[CP DEBUG] Hide() called', os.clock())
             Blocker.Visible = false
             PickerFrameOuter.Visible = false
             Library.OpenedFrames[PickerFrameOuter] = nil
@@ -1270,16 +1279,18 @@ do
         RgbInputInner.InputBegan:Connect(function(Input) if Library:IsPointerInput(Input) then markInner() end end)
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            warn('[CP DEBUG] Blocker InputBegan', os.clock())
+            -- ponytail: exclude the swatch's own footprint (plus its DispH strip), matching
+            -- the global handler below — without this, Blocker (full-screen, on top of the
+            -- swatch) saw the closing click as "outside" and queued its own Hide() that raced
+            -- Swatch's toggle, producing the position "flash" instead of a clean close.
+            if Library:IsPointerOverSwatchOrFrame(Input.Position.X, Input.Position.Y, Swatch, PickerFrameOuter, DispH) then return end
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
-                    warn('[CP DEBUG] Blocker deferred: suppressClose skip')
                     ColorPickerInfo.suppressClose = false
                     return
                 end
-                if Library:IsPositionOverFrame(px, py, PickerFrameOuter) then warn('[CP DEBUG] Blocker deferred: over frame skip'); return end
-                warn('[CP DEBUG] Blocker deferred -> Hide()', os.clock())
+                if Library:IsPositionOverFrame(px, py, PickerFrameOuter) then return end
                 ColorPickerInfo:Hide()
             end)
         end)
@@ -1299,31 +1310,23 @@ do
             ColorPickerInfo:Display()
         end)
 
-        local lastSwatchToggle = 0
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
-            local now = os.clock()
-            warn('[CP DEBUG] Swatch InputBegan', Input.UserInputType.Name, now, 'Visible=', PickerFrameOuter.Visible)
-            if now - lastSwatchToggle < 0.1 then warn('[CP DEBUG] debounced'); return end
-            lastSwatchToggle = now
             if PickerFrameOuter.Visible then ColorPickerInfo:Hide() else ColorPickerInfo:Show() end
         end)
 
         Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            warn('[CP DEBUG] Global InputBegan', os.clock())
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
-                    warn('[CP DEBUG] Global deferred: suppressClose skip')
                     ColorPickerInfo.suppressClose = false
                     return
                 end
                 local ap, as = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize
                 if px < ap.X or px > ap.X+as.X or py < ap.Y-DispH-2 or py > ap.Y+as.Y then
-                    warn('[CP DEBUG] Global deferred -> Hide()', os.clock())
                     ColorPickerInfo:Hide()
                 end
             end)
@@ -1632,6 +1635,9 @@ do
 
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            -- ponytail: same fix as the plain color picker's Blocker above — exclude the
+            -- swatch's own footprint so Blocker doesn't race the swatch's own toggle-close.
+            if Library:IsPointerOverSwatchOrFrame(Input.Position.X, Input.Position.Y, Swatch, PickerFrameOuter, swH) then return end
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if GradColorPickerInfo.suppressClose then
@@ -1643,14 +1649,10 @@ do
             end)
         end)
 
-        local lastSwatchToggle = 0
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
-            local now = os.clock()
-            if now - lastSwatchToggle < 0.1 then return end
-            lastSwatchToggle = now
             if PickerFrameOuter.Visible then GradColorPickerInfo:Hide() else GradColorPickerInfo:Show() end
         end)
 
