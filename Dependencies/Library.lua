@@ -1205,6 +1205,7 @@ do
         end
 
         function ColorPickerInfo:Show()
+            warn('[CP DEBUG] Show() called', os.clock())
             for f in next, Library.OpenedFrames do if f.Name == 'Color' or f.Name == 'ColorBlocker' then f.Visible = false; Library.OpenedFrames[f] = nil end end
             UpdatePickerPos()
             Blocker.Visible = true
@@ -1214,6 +1215,7 @@ do
             Library.OpenedFrames[Blocker] = true
         end
         function ColorPickerInfo:Hide()
+            warn('[CP DEBUG] Hide() called', os.clock())
             Blocker.Visible = false
             PickerFrameOuter.Visible = false
             Library.OpenedFrames[PickerFrameOuter] = nil
@@ -1268,13 +1270,16 @@ do
         RgbInputInner.InputBegan:Connect(function(Input) if Library:IsPointerInput(Input) then markInner() end end)
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            warn('[CP DEBUG] Blocker InputBegan', os.clock())
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
+                    warn('[CP DEBUG] Blocker deferred: suppressClose skip')
                     ColorPickerInfo.suppressClose = false
                     return
                 end
-                if Library:IsPositionOverFrame(px, py, PickerFrameOuter) then return end
+                if Library:IsPositionOverFrame(px, py, PickerFrameOuter) then warn('[CP DEBUG] Blocker deferred: over frame skip'); return end
+                warn('[CP DEBUG] Blocker deferred -> Hide()', os.clock())
                 ColorPickerInfo:Hide()
             end)
         end)
@@ -1300,21 +1305,25 @@ do
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
             local now = os.clock()
-            if now - lastSwatchToggle < 0.1 then return end
+            warn('[CP DEBUG] Swatch InputBegan', Input.UserInputType.Name, now, 'Visible=', PickerFrameOuter.Visible)
+            if now - lastSwatchToggle < 0.1 then warn('[CP DEBUG] debounced'); return end
             lastSwatchToggle = now
             if PickerFrameOuter.Visible then ColorPickerInfo:Hide() else ColorPickerInfo:Show() end
         end)
 
         Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
+            warn('[CP DEBUG] Global InputBegan', os.clock())
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
+                    warn('[CP DEBUG] Global deferred: suppressClose skip')
                     ColorPickerInfo.suppressClose = false
                     return
                 end
                 local ap, as = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize
                 if px < ap.X or px > ap.X+as.X or py < ap.Y-DispH-2 or py > ap.Y+as.Y then
+                    warn('[CP DEBUG] Global deferred -> Hide()', os.clock())
                     ColorPickerInfo:Hide()
                 end
             end)
