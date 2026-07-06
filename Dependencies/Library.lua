@@ -170,7 +170,7 @@ function Library:ApplyCase(text, category)
         return s:upper()
     elseif mode == "Lowercase" then
         return s:lower()
-    else -- Capitalized: title case each word
+    else
         return (s:gsub("(%a)([%w]*)", function(a, b) return a:upper() .. b end))
     end
 end
@@ -333,9 +333,6 @@ end
 
 Library.AccentColorDark = Library:GetDarkerColor(Library.AccentColor)
 
--- ponytail: each entry remembers its own array index, so removal is a swap-with-last (O(1))
--- instead of scanning the whole list to find it first; order doesn't matter here, these
--- lists only get iterated for recoloring.
 local function SwapRemoveIndexed(list, data, indexField)
     local i = data[indexField]
     if not i then return end
@@ -417,8 +414,6 @@ Library:GiveSignal(ScreenGui.DescendantRemoving:Connect(function(inst)
     if Library.RegistryMap[inst] then Library:RemoveFromRegistry(inst) end
 end))
 
--- ponytail: shared by MakeDraggable and BindResizeHandleGhost below — both draw a
--- fill+border Drawing.new("Square") pair as a live preview while the user drags/resizes.
 function Library:CreateGhostOverlay(x, y, w, h)
     local Fill = Drawing.new("Square")
     Fill.Filled       = true
@@ -429,8 +424,6 @@ function Library:CreateGhostOverlay(x, y, w, h)
     Fill.Size         = Vector2.new(w, h)
     Fill.Visible      = true
 
-    -- ponytail: real Frame, not Drawing — ScreenGui is parented to CoreGui, and Drawings
-    -- render below CoreGui on this executor so no ZIndex could put the border on top.
     local Border = Instance.new("Frame")
     Border.BackgroundTransparency = 1
     Border.BorderSizePixel        = 1
@@ -1267,10 +1260,6 @@ do
         RgbInputInner.InputBegan:Connect(function(Input) if Library:IsPointerInput(Input) then markInner() end end)
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            -- capture the input's own position now — GetMouseLocation() inside the deferred
-            -- callback below isn't guaranteed to be in the same coordinate space as GuiObject
-            -- AbsolutePosition (ScreenGui.IgnoreGuiInset can shift it), which was closing the
-            -- picker on clicks near the bottom edge (the transparency bar).
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
@@ -1301,13 +1290,7 @@ do
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
-            -- ponytail: a swatch positioned behind another open picker's panel still gets this
-            -- InputBegan even though it's visually covered (Roblox doesn't occlude input by
-            -- ZIndex here) — skip opening if the click is actually landing on another open frame.
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
-            -- ponytail: a single physical click can dispatch InputBegan on this Swatch twice
-            -- (Blocker overlapping it triggers its own re-entrant checks) — closing then
-            -- immediately reopening the picker, seen as a "teleport" flicker. Debounce.
             local now = os.clock()
             if now - lastSwatchToggle < 0.1 then return end
             lastSwatchToggle = now
@@ -1316,10 +1299,6 @@ do
 
         Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            -- ponytail: this ran synchronously and raced markInner() (set by TransparencyInner/
-            -- SatValMap/etc.'s own InputBegan on the same click, order not guaranteed across
-            -- separate signals) — closing the picker mid-drag. Deferring, and capturing the
-            -- input's own position now, matches the fix already applied to Blocker above.
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if ColorPickerInfo.suppressClose then
@@ -1636,10 +1615,6 @@ do
 
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            -- capture the input's own position now — GetMouseLocation() inside the deferred
-            -- callback below isn't guaranteed to be in the same coordinate space as GuiObject
-            -- AbsolutePosition (ScreenGui.IgnoreGuiInset can shift it), which was closing the
-            -- picker on clicks near the bottom edge (the transparency bar).
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
                 if GradColorPickerInfo.suppressClose then
@@ -1655,11 +1630,7 @@ do
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
-            -- ponytail: same fix as the plain color picker's Swatch above — don't open through
-            -- another picker's panel that's currently covering this swatch.
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
-            -- ponytail: same debounce as the plain color picker's Swatch above — a duplicate
-            -- InputBegan dispatch on the same click was closing then instantly reopening.
             local now = os.clock()
             if now - lastSwatchToggle < 0.1 then return end
             lastSwatchToggle = now
@@ -2793,7 +2764,6 @@ do
             Parent         = Row;
         })
 
-        -- cycle box: shows current value, click to cycle
         local Outer = Library:Create('Frame', {
             BorderColor3    = Color3.new(0,0,0);
             Position        = UDim2.new(0.48, 2, 0, 1);
