@@ -4369,9 +4369,9 @@ function Library:CreatePrompt(config)
             if config.Mode == "Export" then
                 if setclipboard then
                     setclipboard(textBox.Text)
-                    Library:Notify("Copied to clipboard!", 2)
+                    Library:Notify("Copied to clipboard!.", 2)
                 else
-                    Library:Notify("Executor does not support setclipboard!", 3)
+                    Library:Notify("Executor does not support setclipboard!.", 3)
                 end
             else
                 if config.Callback then
@@ -4726,7 +4726,7 @@ ThemeManager.BuiltInThemes = {
 				Mode      = 'Import',
 				Callback  = function(text, name)
 					if name:gsub(' ', '') == '' then
-						return self.Library:Notify('Name cannot be empty', 2)
+						return self.Library:Notify('Name cannot be empty.', 2)
 					end
 					local ok = pcall(Services.HttpService.JSONDecode, Services.HttpService, text)
 					if not ok then return self.Library:Notify('Invalid Theme.', 2) end
