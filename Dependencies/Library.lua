@@ -1303,17 +1303,21 @@ do
 
         Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            if ColorPickerInfo.suppressClose then
-                ColorPickerInfo.suppressClose = false
-                return
-            end
-            local loc = Services.UserInputService:GetMouseLocation()
-            local px = loc.X
-            local py = loc.Y
-            local ap, as = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize
-            if px < ap.X or px > ap.X+as.X or py < ap.Y-DispH-2 or py > ap.Y+as.Y then
-                ColorPickerInfo:Hide()
-            end
+            -- ponytail: this ran synchronously and raced markInner() (set by TransparencyInner/
+            -- SatValMap/etc.'s own InputBegan on the same click, order not guaranteed across
+            -- separate signals) — closing the picker mid-drag. Deferring, and capturing the
+            -- input's own position now, matches the fix already applied to Blocker above.
+            local px, py = Input.Position.X, Input.Position.Y
+            task.defer(function()
+                if ColorPickerInfo.suppressClose then
+                    ColorPickerInfo.suppressClose = false
+                    return
+                end
+                local ap, as = PickerFrameOuter.AbsolutePosition, PickerFrameOuter.AbsoluteSize
+                if px < ap.X or px > ap.X+as.X or py < ap.Y-DispH-2 or py > ap.Y+as.Y then
+                    ColorPickerInfo:Hide()
+                end
+            end)
         end))
 
         ColorPickerInfo:Display()
