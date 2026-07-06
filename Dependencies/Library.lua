@@ -1292,6 +1292,7 @@ do
             ColorPickerInfo:Display()
         end)
 
+        local lastSwatchToggle = 0
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
@@ -1299,6 +1300,12 @@ do
             -- InputBegan even though it's visually covered (Roblox doesn't occlude input by
             -- ZIndex here) — skip opening if the click is actually landing on another open frame.
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
+            -- ponytail: a single physical click can dispatch InputBegan on this Swatch twice
+            -- (Blocker overlapping it triggers its own re-entrant checks) — closing then
+            -- immediately reopening the picker, seen as a "teleport" flicker. Debounce.
+            local now = os.clock()
+            if now - lastSwatchToggle < 0.1 then return end
+            lastSwatchToggle = now
             if PickerFrameOuter.Visible then ColorPickerInfo:Hide() else ColorPickerInfo:Show() end
         end)
 
@@ -1639,12 +1646,18 @@ do
             end)
         end)
 
+        local lastSwatchToggle = 0
         Swatch.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then return end
             -- ponytail: same fix as the plain color picker's Swatch above — don't open through
             -- another picker's panel that's currently covering this swatch.
             if not PickerFrameOuter.Visible and Library:MouseIsOverOpenedFrame() then return end
+            -- ponytail: same debounce as the plain color picker's Swatch above — a duplicate
+            -- InputBegan dispatch on the same click was closing then instantly reopening.
+            local now = os.clock()
+            if now - lastSwatchToggle < 0.1 then return end
+            lastSwatchToggle = now
             if PickerFrameOuter.Visible then GradColorPickerInfo:Hide() else GradColorPickerInfo:Show() end
         end)
 
