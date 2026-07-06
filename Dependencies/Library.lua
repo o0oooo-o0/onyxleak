@@ -424,25 +424,33 @@ function Library:CreateGhostOverlay(x, y, w, h)
     Fill.Size         = Vector2.new(w, h)
     Fill.Visible      = true
 
-    local Border = Drawing.new("Square")
-    Border.Filled       = false
-    Border.Thickness    = 1
-    Border.Transparency = 1
-    Border.Color        = Library.AccentColor
-    Border.Position     = Vector2.new(x, y)
-    Border.Size         = Vector2.new(w, h)
-    Border.ZIndex       = 2147483647
-    Border.Visible      = true
+    local Border = Instance.new("Frame")
+    Border.Name                   = "GhostBorder"
+    Border.Active                 = false
+    Border.BackgroundTransparency = 1
+    Border.Position               = UDim2.fromOffset(x, y)
+    Border.Size                   = UDim2.fromOffset(w, h)
+    Border.ZIndex                 = 2147483647
+    Border.Parent                 = Library.ScreenGui
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Thickness       = 2
+    Stroke.Color           = Library.AccentColor
+    Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    Stroke.Parent          = Border
 
     local function Update(nx, ny, nw, nh)
-        Fill.Color, Border.Color       = Library.AccentColor, Library.AccentColor
-        Fill.Position, Border.Position = Vector2.new(nx, ny), Vector2.new(nx, ny)
-        Fill.Size, Border.Size         = Vector2.new(nw, nh), Vector2.new(nw, nh)
+        Fill.Color     = Library.AccentColor
+        Fill.Position   = Vector2.new(nx, ny)
+        Fill.Size       = Vector2.new(nw, nh)
+        Stroke.Color    = Library.AccentColor
+        Border.Position = UDim2.fromOffset(nx, ny)
+        Border.Size     = UDim2.fromOffset(nw, nh)
     end
 
     local function Remove()
         Fill:Remove()
-        Border:Remove()
+        Border:Destroy()
     end
 
     return Update, Remove
