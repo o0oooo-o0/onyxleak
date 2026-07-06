@@ -12,6 +12,7 @@ local Drawing = (typeof(Drawing) == 'table' and Drawing) or DrawingLib
 local ScreenGui  = Instance.new('ScreenGui')
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 ScreenGui.IgnoreGuiInset = true
+ScreenGui.DisplayOrder = 2147483647
 ScreenGui.Name = ""
 ScreenGui.Parent = Services.CoreGui
 
