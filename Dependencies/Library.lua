@@ -4707,14 +4707,12 @@ end
 			gb:AddLabel('Accent color'):AddColorPicker('AccentColor', { Default = self.Library.AccentColor })
 			gb:AddLabel('Outline color'):AddColorPicker('OutlineColor', { Default = self.Library.OutlineColor })
 			gb:AddLabel('Font color'):AddColorPicker('FontColor', { Default = self.Library.FontColor })
-			gb:AddDivider()
 		end
 
 		gb:AddDropdown('ThemeManager_Font', { Text = 'Font', Values = Library.FontSystem.AllNames(), Default = 'code' })
 		if self.Library and self.Library.IsMobile then
 			gb:AddSlider('ThemeManager_IconSize', { Text = 'Icon Size', Default = self.Library.IconSize or 20, Min = 12, Max = 32, Rounding = 0 })
 		end
-		gb:AddDivider()
 
 		gb:AddDropdown('ThemeManager_BuiltInThemeList', {
 			Text     = 'Pre-Made Themes',
@@ -4732,14 +4730,12 @@ end
 			end
 		end)
 
-		gb:AddDivider()
 		gb:AddInput('ThemeManager_CustomThemeName', { Text = 'Custom Theme Name' })
 		gb:AddDropdown('ThemeManager_CustomThemeList', {
 			Text     = 'Custom Themes',
 			Values   = self:ReloadCustomThemes(),
 			Default  = 1,
 		})
-		gb:AddDivider()
 		gb:AddButton('Save', function()
 			local n = Options.ThemeManager_CustomThemeName.Value
 			self:SaveCustomTheme(n)
@@ -4843,7 +4839,6 @@ end
 
 		self:BuildThemeSections(settingsGroupbox, false)
 
-		settingsGroupbox:AddDivider()
 		ThemeManager.AutoloadLabel2 = settingsGroupbox:AddLabel('Autoload: ' .. self:ReadAutoloadName(), true)
 
 		self:RegisterSharedCallbacks(settingsGroupbox)
@@ -5313,7 +5308,6 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
 
     section:AddInput('SaveManager_ConfigName', { Text = 'Config Name' })
     section:AddDropdown('SaveManager_ConfigList', { Text = 'Configs', Values = self:RefreshConfigList(), AllowNull = true })
-    section:AddDivider()
 
     section:AddButton('Save Config', function()
         local name = Options.SaveManager_ConfigName.Value
@@ -5365,7 +5359,6 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
         if SaveManager.AutoloadLabel then SaveManager.AutoloadLabel:SetText('Autoload: ' .. name) end
     end)
 
-    section:AddDivider()
 
     section:AddButton('Export Config', function()
         local ok, encoded = self:GetConfigJSON()
