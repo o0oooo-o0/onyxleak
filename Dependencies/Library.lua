@@ -3376,13 +3376,11 @@ function Library:CreateWindow(...)
 
         local tabFontSz = (13)
         local tbW = Library:GetTextBounds(tabDisplayName, Library.Font, tabFontSz) + (18)
-        local TBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; Size=UDim2.new(0,tbW,1,0); ZIndex=1; Parent=TabArea })
+        local TBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=2; Size=UDim2.new(0,tbW,1,0); ZIndex=1; Parent=TabArea })
         Library:AddToRegistry(TBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
         local TBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=tabFontSz; Text=tabDisplayName; PreserveCase=true; ZIndex=3; Parent=TBtn })
         Library:TrackLabel(TBtnLabel, tabOrigName, "Tabs")
         local TInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=TBtn })
-        Library:RemoveFromRegistry(TBtnLabel)
-        TBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
         Tab.Button = TBtn
         Tab.NaturalW = tbW
         Window.__tabSeq = (Window.__tabSeq or 0) + 1
@@ -3446,7 +3444,6 @@ function Library:CreateWindow(...)
         function Tab:ShowTab()
             for _, t in next, Window.Tabs do t:HideTab() end
             TUnder.Visible = true; TFrame.Visible = true
-            TBtnLabel.TextColor3 = Color3.new(1,1,1)
             TBtn.BackgroundColor3 = Library.MainColor
             if Library.RegistryMap[TBtn] then Library.RegistryMap[TBtn].Properties.BackgroundColor3 = 'MainColor' end
             TInline.Visible = true
@@ -3454,7 +3451,6 @@ function Library:CreateWindow(...)
         function Tab:HideTab()
             for _, dd in next, Library.DropdownRegistry do dd:CloseDropdown() end
             TUnder.Visible = false; TFrame.Visible = false
-            TBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
             TBtn.BackgroundColor3 = Library.BackgroundColor
             if Library.RegistryMap[TBtn] then Library.RegistryMap[TBtn].Properties.BackgroundColor3 = 'BackgroundColor' end
             TInline.Visible = false
@@ -3732,12 +3728,10 @@ function Library:CreateWindow(...)
 
                 local stFontSz = (13)
                 local stW = Library:GetTextBounds(subDisplayName, Library.Font, stFontSz) + (18)
-                local STBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=1; Size=UDim2.new(0,stW,1,0); ZIndex=4; Parent=SubArea })
+                local STBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=2; Size=UDim2.new(0,stW,1,0); ZIndex=4; Parent=SubArea })
                 Library:AddToRegistry(STBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
                 local STBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=stFontSz; Text=subDisplayName; PreserveCase=true; ZIndex=5; Parent=STBtn })
                 Library:TrackLabel(STBtnLabel, subOrigName, "SubTabs")
-                Library:RemoveFromRegistry(STBtnLabel)
-                STBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
                 local STInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=STBtn })
                 local STUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); Visible=false; ZIndex=5; Parent=STBtn })
                 Library:AddToRegistry(STUnder, { BackgroundColor3='AccentColor' })
@@ -3752,7 +3746,6 @@ function Library:CreateWindow(...)
                     for _, t in next, SubTabSystem.Tabs do t:HideTab() end
                     STUnder.Visible = true
                     STInline.Visible = true
-                    STBtnLabel.TextColor3 = Color3.new(1,1,1)
                     STBtn.BackgroundColor3 = Library.MainColor
                     if Library.RegistryMap[STBtn] then Library.RegistryMap[STBtn].Properties.BackgroundColor3 = 'MainColor' end
                     STLeft.Visible  = true
@@ -3762,7 +3755,6 @@ function Library:CreateWindow(...)
                     for _, dd in next, Library.DropdownRegistry do dd:CloseDropdown() end
                     STUnder.Visible = false
                     STInline.Visible = false
-                    STBtnLabel.TextColor3 = Color3.fromRGB(110,110,110)
                     STBtn.BackgroundColor3 = Library.BackgroundColor
                     if Library.RegistryMap[STBtn] then Library.RegistryMap[STBtn].Properties.BackgroundColor3 = 'BackgroundColor' end
                     STLeft.Visible  = false
