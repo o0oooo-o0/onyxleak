@@ -1984,7 +1984,7 @@ do
                     TextSize                = (13); TextStrokeTransparency=0; TextXAlignment=Enum.TextXAlignment.Left;
                     PlaceholderColor3       = Color3.fromRGB(150,150,150); ZIndex=7; Parent=Clip;
                 })
-                Library:AddToRegistry(Box, { TextColor3='FontColor' })
+                Library:AddToRegistry(Box, { TextColor3='FontColor', Font='Font' })
                 return Box
             end
 
@@ -2168,7 +2168,7 @@ do
             Text                    = Info.Default or ''; TextColor3=Library.FontColor; TextSize=(14); TextStrokeTransparency=0;
             TextXAlignment          = Enum.TextXAlignment.Left; ZIndex=7; Parent=Clip;
         })
-        Library:AddToRegistry(Box, { TextColor3='FontColor' })
+        Library:AddToRegistry(Box, { TextColor3='FontColor', Font='Font' })
         if type(Info.Placeholder) == 'string' and Info.Placeholder ~= '' then
             Box.PlaceholderText = Library:ApplyCase(Info.Placeholder, "Inputs")
             Library:TrackLabel(Box, Info.Placeholder, "Inputs", "PlaceholderText")
