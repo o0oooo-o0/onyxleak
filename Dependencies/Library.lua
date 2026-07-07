@@ -3389,6 +3389,9 @@ function Library:CreateWindow(...)
         Library:AddToRegistry(TBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
         local TBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=tabFontSz; Text=tabDisplayName; PreserveCase=true; ZIndex=3; Parent=TBtn })
         Library:TrackLabel(TBtnLabel, tabOrigName, "Tabs")
+        Library:RemoveFromRegistry(TBtnLabel)
+        Library:AddToRegistry(TBtnLabel, { TextColor3 = function() return Tab.Active and Library.FontColor or Color3.fromRGB(120, 120, 120) end })
+        TBtnLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
         local TInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=TBtn })
         Tab.Button = TBtn
         Tab.NaturalW = tbW
@@ -3456,6 +3459,8 @@ function Library:CreateWindow(...)
             TBtn.BackgroundColor3 = Library.MainColor
             if Library.RegistryMap[TBtn] then Library.RegistryMap[TBtn].Properties.BackgroundColor3 = 'MainColor' end
             TInline.Visible = true
+            Tab.Active = true
+            TBtnLabel.TextColor3 = Library.FontColor
         end
         function Tab:HideTab()
             for _, dd in next, Library.DropdownRegistry do dd:CloseDropdown() end
@@ -3463,6 +3468,8 @@ function Library:CreateWindow(...)
             TBtn.BackgroundColor3 = Library.BackgroundColor
             if Library.RegistryMap[TBtn] then Library.RegistryMap[TBtn].Properties.BackgroundColor3 = 'BackgroundColor' end
             TInline.Visible = false
+            Tab.Active = false
+            TBtnLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
         end
         function Tab:SetLayoutOrder(p) TBtn.LayoutOrder = p; TabLayout:ApplyLayout() end
 
@@ -3522,6 +3529,9 @@ function Library:CreateWindow(...)
                 })
                 local ButtonLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=Library:ApplyCase(TabName or "", "Groupboxes"); ZIndex=7; Parent=Button })
                 Library:TrackLabel(ButtonLabel, TabName or "", "Groupboxes")
+                Library:RemoveFromRegistry(ButtonLabel)
+                Library:AddToRegistry(ButtonLabel, { TextColor3 = function() return TBTab.selected and Library.FontColor or Color3.fromRGB(120, 120, 120) end })
+                ButtonLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
                 local UpperLine = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Visible=false; Parent=Button })
                 Library:AddToRegistry(UpperLine, { BackgroundColor3='AccentColor' })
 
@@ -3537,6 +3547,7 @@ function Library:CreateWindow(...)
                     Button.BackgroundColor3 = Library.BackgroundColor
                     Button.BorderSizePixel = 0
                     UpperLine.Visible = true
+                    ButtonLabel.TextColor3 = Library.FontColor
                     TBTab:Resize()
                 end
                 function TBTab:Hide()
@@ -3546,6 +3557,7 @@ function Library:CreateWindow(...)
                     Button.BorderSizePixel = 1
                     Button.BorderColor3 = Library.OutlineColor
                     UpperLine.Visible = false
+                    ButtonLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
                 end
                 function TBTab:Resize()
                     local n = 0
@@ -3612,7 +3624,10 @@ function Library:CreateWindow(...)
                     BackgroundColor3  = function() return TBTab.selected and Library.BackgroundColor or Library.MainColor end;
                     BorderColor3      = function() return Library.OutlineColor end;
                 })
-                Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=TabName; ZIndex=7; Parent=Button })
+                local ButtonLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=TabName; ZIndex=7; Parent=Button })
+                Library:RemoveFromRegistry(ButtonLabel)
+                Library:AddToRegistry(ButtonLabel, { TextColor3 = function() return TBTab.selected and Library.FontColor or Color3.fromRGB(120, 120, 120) end })
+                ButtonLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
                 local UpperLine = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Visible=false; Parent=Button })
                 Library:AddToRegistry(UpperLine, { BackgroundColor3='AccentColor' })
 
@@ -3628,6 +3643,7 @@ function Library:CreateWindow(...)
                     Button.BackgroundColor3 = Library.BackgroundColor
                     Button.BorderSizePixel = 0
                     UpperLine.Visible = true
+                    ButtonLabel.TextColor3 = Library.FontColor
                     TBTab:Resize()
                 end
                 function TBTab:Hide()
@@ -3637,6 +3653,7 @@ function Library:CreateWindow(...)
                     Button.BorderSizePixel = 1
                     Button.BorderColor3 = Library.OutlineColor
                     UpperLine.Visible = false
+                    ButtonLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
                 end
                 function TBTab:Resize()
                     local n = 0
@@ -3741,6 +3758,9 @@ function Library:CreateWindow(...)
                 Library:AddToRegistry(STBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
                 local STBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=stFontSz; Text=subDisplayName; PreserveCase=true; ZIndex=5; Parent=STBtn })
                 Library:TrackLabel(STBtnLabel, subOrigName, "SubTabs")
+                Library:RemoveFromRegistry(STBtnLabel)
+                Library:AddToRegistry(STBtnLabel, { TextColor3 = function() return ST.Active and Library.FontColor or Color3.fromRGB(120, 120, 120) end })
+                STBtnLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
                 local STInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=STBtn })
                 local STUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); Visible=false; ZIndex=5; Parent=STBtn })
                 Library:AddToRegistry(STUnder, { BackgroundColor3='AccentColor' })
@@ -3759,6 +3779,8 @@ function Library:CreateWindow(...)
                     if Library.RegistryMap[STBtn] then Library.RegistryMap[STBtn].Properties.BackgroundColor3 = 'MainColor' end
                     STLeft.Visible  = true
                     STRight.Visible = true
+                    ST.Active = true
+                    STBtnLabel.TextColor3 = Library.FontColor
                 end
                 function ST:HideTab()
                     for _, dd in next, Library.DropdownRegistry do dd:CloseDropdown() end
@@ -3768,6 +3790,8 @@ function Library:CreateWindow(...)
                     if Library.RegistryMap[STBtn] then Library.RegistryMap[STBtn].Properties.BackgroundColor3 = 'BackgroundColor' end
                     STLeft.Visible  = false
                     STRight.Visible = false
+                    ST.Active = false
+                    STBtnLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
                 end
 
                 function ST:AddGroupbox(Info3)
@@ -3822,6 +3846,9 @@ function Library:CreateWindow(...)
                         })
                         local _tb2Lbl = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=Library:ApplyCase(TN or "", "Groupboxes"); ZIndex=7; Parent=Button2 })
                         Library:TrackLabel(_tb2Lbl, TN or "", "Groupboxes")
+                        Library:RemoveFromRegistry(_tb2Lbl)
+                        Library:AddToRegistry(_tb2Lbl, { TextColor3 = function() return TBTab2.selected and Library.FontColor or Color3.fromRGB(120, 120, 120) end })
+                        _tb2Lbl.TextColor3 = Color3.fromRGB(120, 120, 120)
                         local UpperLine2 = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); ZIndex=8; Visible=false; Parent=Button2 })
                         Library:AddToRegistry(UpperLine2, { BackgroundColor3='AccentColor' })
                         local ContentFrame2 = Library:Create('Frame', { BackgroundTransparency=1; Position=UDim2.new(0,(4),0,(20)); Size=UDim2.new(1,-(8),0,0); ZIndex=1; Visible=false; Parent=SliderBarInner })
@@ -3834,9 +3861,10 @@ function Library:CreateWindow(...)
                             Button2.BackgroundColor3 = Library.BackgroundColor
                             Button2.BorderSizePixel = 0
                             UpperLine2.Visible = true
+                            _tb2Lbl.TextColor3 = Library.FontColor
                             TBTab2:Resize()
                         end
-                        function TBTab2:Hide() TBTab2.selected=false; ContentFrame2.Visible=false; Button2.BackgroundColor3=Library.MainColor; Button2.BorderSizePixel=1; Button2.BorderColor3=Library.OutlineColor; UpperLine2.Visible=false end
+                        function TBTab2:Hide() TBTab2.selected=false; ContentFrame2.Visible=false; Button2.BackgroundColor3=Library.MainColor; Button2.BorderSizePixel=1; Button2.BorderColor3=Library.OutlineColor; UpperLine2.Visible=false; _tb2Lbl.TextColor3=Color3.fromRGB(120,120,120) end
                         function TBTab2:Resize()
                             local n=0; for _ in next,Tabbox2.Tabs do n=n+1 end
                             for _, ch in ipairs(TabBtns2:GetChildren()) do if not ch:IsA('UIListLayout') then ch.Size=UDim2.new(1/n,0,1,0) end end
