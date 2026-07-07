@@ -297,10 +297,6 @@ function Library:IsPositionOverFrame(px, py, Frame)
     return px >= ap.X and px <= ap.X + as.X and py >= ap.Y and py <= ap.Y + as.Y
 end
 
--- ponytail: a picker's full-screen Blocker sits above its own swatch (Roblox doesn't occlude
--- InputBegan by ZIndex), so a click that closes the picker via the swatch also reaches
--- Blocker, which judged it "outside" and queued a competing Hide() — treat the swatch's own
--- footprint as safe the same way the picker's own bounds are.
 function Library:IsPointerOverSwatchOrFrame(px, py, Swatch, Frame, buffer)
     if Library:IsPositionOverFrame(px, py, Frame) then return true end
     local ap, as = Swatch.AbsolutePosition, Swatch.AbsoluteSize
@@ -1285,10 +1281,6 @@ do
         RgbInputInner.InputBegan:Connect(function(Input) if Library:IsPointerInput(Input) then markInner() end end)
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            -- ponytail: exclude the swatch's own footprint (plus its DispH strip), matching
-            -- the global handler below — without this, Blocker (full-screen, on top of the
-            -- swatch) saw the closing click as "outside" and queued its own Hide() that raced
-            -- Swatch's toggle, producing the position "flash" instead of a clean close.
             if Library:IsPointerOverSwatchOrFrame(Input.Position.X, Input.Position.Y, Swatch, PickerFrameOuter, DispH) then return end
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
@@ -1641,8 +1633,6 @@ do
 
         Blocker.InputBegan:Connect(function(Input)
             if not Library:IsPointerInput(Input) then return end
-            -- ponytail: same fix as the plain color picker's Blocker above — exclude the
-            -- swatch's own footprint so Blocker doesn't race the swatch's own toggle-close.
             if Library:IsPointerOverSwatchOrFrame(Input.Position.X, Input.Position.Y, Swatch, PickerFrameOuter, swH) then return end
             local px, py = Input.Position.X, Input.Position.Y
             task.defer(function()
