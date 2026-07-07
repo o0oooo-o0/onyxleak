@@ -3378,7 +3378,6 @@ function Library:CreateWindow(...)
         local tbW = Library:GetTextBounds(tabDisplayName, Library.Font, tabFontSz) + (18)
         local TBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=2; Size=UDim2.new(0,tbW,1,0); ZIndex=1; Parent=TabArea })
         Library:AddToRegistry(TBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
-        Library:Create('UICorner', { CornerRadius=UDim.new(0,4); Parent=TBtn })
         local TBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=tabFontSz; Text=tabDisplayName; PreserveCase=true; ZIndex=3; Parent=TBtn })
         Library:TrackLabel(TBtnLabel, tabOrigName, "Tabs")
         local TInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=TBtn })
@@ -3409,20 +3408,8 @@ function Library:CreateWindow(...)
                 TabLayout.Padding  = UDim.new(0, padding)
             end
         end)
-        local TUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,1,-2); Size=UDim2.new(1,0,0,2); Visible=false; ZIndex=3; Parent=TBtn })
+        local TUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); Visible=false; ZIndex=3; Parent=TBtn })
         Library:AddToRegistry(TUnder, { BackgroundColor3='AccentColor' })
-        Library:Create('UICorner', { CornerRadius=UDim.new(1,0); Parent=TUnder })
-
-        TBtn.InputBegan:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseMovement and not TUnder.Visible then
-                Services.TweenService:Create(TBtn, TweenInfo.new(0.12), { BackgroundColor3 = Library.OutlineColor }):Play()
-            end
-        end)
-        TBtn.InputEnded:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseMovement and not TUnder.Visible then
-                Services.TweenService:Create(TBtn, TweenInfo.new(0.12), { BackgroundColor3 = Library.BackgroundColor }):Play()
-            end
-        end)
 
         local TFrame = Library:Create('Frame', { Name='TabFrame'; BackgroundTransparency=1; Size=UDim2.new(1,0,1,0); Visible=false; ZIndex=2; Parent=TabContainer })
         Tab.TabFrame = TFrame
@@ -3743,24 +3730,11 @@ function Library:CreateWindow(...)
                 local stW = Library:GetTextBounds(subDisplayName, Library.Font, stFontSz) + (18)
                 local STBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=2; Size=UDim2.new(0,stW,1,0); ZIndex=4; Parent=SubArea })
                 Library:AddToRegistry(STBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
-                Library:Create('UICorner', { CornerRadius=UDim.new(0,4); Parent=STBtn })
                 local STBtnLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,-1); TextSize=stFontSz; Text=subDisplayName; PreserveCase=true; ZIndex=5; Parent=STBtn })
                 Library:TrackLabel(STBtnLabel, subOrigName, "SubTabs")
                 local STInline = Library:Create('Frame', { BackgroundTransparency=1; BorderColor3=Color3.new(0,0,0); BorderSizePixel=1; Size=UDim2.new(1,-2,1,-2); Position=UDim2.new(0,1,0,1); Visible=false; ZIndex=6; Parent=STBtn })
-                local STUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,1,-2); Size=UDim2.new(1,0,0,2); Visible=false; ZIndex=5; Parent=STBtn })
+                local STUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,0,0,0); Size=UDim2.new(1,0,0,1); Visible=false; ZIndex=5; Parent=STBtn })
                 Library:AddToRegistry(STUnder, { BackgroundColor3='AccentColor' })
-                Library:Create('UICorner', { CornerRadius=UDim.new(1,0); Parent=STUnder })
-
-                STBtn.InputBegan:Connect(function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseMovement and not STUnder.Visible then
-                        Services.TweenService:Create(STBtn, TweenInfo.new(0.12), { BackgroundColor3 = Library.OutlineColor }):Play()
-                    end
-                end)
-                STBtn.InputEnded:Connect(function(Input)
-                    if Input.UserInputType == Enum.UserInputType.MouseMovement and not STUnder.Visible then
-                        Services.TweenService:Create(STBtn, TweenInfo.new(0.12), { BackgroundColor3 = Library.BackgroundColor }):Play()
-                    end
-                end)
 
                 local STLeft  = MakeSubSide(0,   (7))
                 local STRight = MakeSubSide(0.5, (7))
