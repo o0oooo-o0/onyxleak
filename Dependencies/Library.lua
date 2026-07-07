@@ -168,9 +168,7 @@ Library.TextRegistry = {}
 function Library:ApplyCase(text, category)
     local s = tostring(text or "")
     local mode = (Library.CaseSettings and Library.CaseSettings[category]) or "Capitalized"
-    if mode == "None" then
-        return s
-    elseif mode == "Uppercase" then
+    if mode == "Uppercase" then
         return s:upper()
     elseif mode == "Lowercase" then
         return s:lower()
@@ -2773,7 +2771,7 @@ do
     function Funcs:AddCaseRow(Idx, Info)
         Library:BuildTick()
         local Groupbox = self
-        local modes = { "Capitalized", "Lowercase", "Uppercase", "None" }
+        local modes = { "Capitalized", "Lowercase", "Uppercase" }
         local Option = { Value = Info.Default or "Capitalized"; Type = 'CaseRow'; Callback = Info.Callback or function() end }
 
         local rowH = 16
