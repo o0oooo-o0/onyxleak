@@ -2303,8 +2303,8 @@ do
         local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); TextScaled=true; Text=''; ZIndex=9; Parent=SInner })
         Library:Create('UITextSizeConstraint', { MaxTextSize=11; Parent=DropdownLabel })
         Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4); PaddingRight = UDim.new(0, 4); Parent = DropdownLabel })
-        -- ponytail: SOuter's border is fully covered by SInner (same size, drawn on top), so
-        -- highlighting SOuter was invisible; SInner's border is the one actually on screen.
+        
+        
         Library:OnHighlight(SOuter, SInner, { BorderColor3='AccentColor' }, { BorderColor3='OutlineColor' })
         if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, SOuter) end
 
@@ -4462,8 +4462,8 @@ ThemeManager.BuiltInThemes = {
     ['Obsidian']     = { 32, Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"0a0a0a","AccentColor":"00ff88","BackgroundColor":"050505","OutlineColor":"1a1a1a"}') },
 }
 do
-	-- ponytail: built-in style defaults live here instead of per-theme JSON strings so the whole
-	-- BuiltInThemes table doesn't need 32 near-duplicate caseSettings blocks written by hand.
+	
+	
 	local CapsCase, LowerCase = {}, {}
 	for _, k in ipairs({"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons",
 		"CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs","CaseTooltip"}) do
