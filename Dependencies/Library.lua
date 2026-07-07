@@ -2293,7 +2293,8 @@ do
         Library:AddToRegistry(Fill, { BackgroundColor3='AccentColor'; BorderColor3='AccentColorDark' })
         local HideBR = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(1,0,0,0); Size=UDim2.new(0,1,1,0); ZIndex=8; Parent=Fill })
         Library:AddToRegistry(HideBR, { BackgroundColor3='AccentColor' })
-        local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=''; ZIndex=9; Parent=SInner })
+        local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); TextScaled=true; Text=''; ZIndex=9; Parent=SInner })
+        Library:Create('UITextSizeConstraint', { MaxTextSize=11; Parent=DropdownLabel })
         Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4); PaddingRight = UDim.new(0, 4); Parent = DropdownLabel })
         Library:OnHighlight(SOuter, SOuter, { BorderColor3='AccentColor' }, { BorderColor3='Black' })
         if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, SOuter) end
