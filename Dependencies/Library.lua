@@ -42,6 +42,7 @@ local Library = {
     ActiveDropdownList      = nil;
     DropdownRegistry        = {};
     SliderRegistry          = {};
+    KeybindRegistry         = {};
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -159,6 +160,7 @@ Library.CaseSettings = {
     DropdownItems = "Capitalized",
     Labels        = "Capitalized",
     Inputs        = "Capitalized",
+    Keybinds      = "Capitalized",
     Tooltip       = "Lowercase",
 }
 Library.TextRegistry = {}
@@ -166,7 +168,9 @@ Library.TextRegistry = {}
 function Library:ApplyCase(text, category)
     local s = tostring(text or "")
     local mode = (Library.CaseSettings and Library.CaseSettings[category]) or "Capitalized"
-    if mode == "Uppercase" then
+    if mode == "None" then
+        return s
+    elseif mode == "Uppercase" then
         return s:upper()
     elseif mode == "Lowercase" then
         return s:lower()
@@ -175,15 +179,15 @@ function Library:ApplyCase(text, category)
     end
 end
 
-function Library:TrackLabel(lbl, originalText, category)
+function Library:TrackLabel(lbl, originalText, category, prop)
     if not lbl then return end
-    Library.TextRegistry[#Library.TextRegistry + 1] = { lbl = lbl, text = originalText, cat = category }
+    Library.TextRegistry[#Library.TextRegistry + 1] = { lbl = lbl, text = originalText, cat = category, prop = prop or "Text" }
 end
 
 function Library:RefreshTextRegistry()
     for _, e in ipairs(Library.TextRegistry) do
         if e.lbl and e.lbl.Parent then
-            e.lbl.Text = Library:ApplyCase(e.text, e.cat)
+            e.lbl[e.prop] = Library:ApplyCase(e.text, e.cat)
         end
     end
     for _, dd in ipairs(Library.DropdownRegistry or {}) do
@@ -198,6 +202,9 @@ function Library:RefreshTextRegistry()
     end
     for _, s in ipairs(Library.SliderRegistry or {}) do
         if s.Display then pcall(s.Display, s) end
+    end
+    for _, k in ipairs(Library.KeybindRegistry or {}) do
+        if k.Update then pcall(k.Update, k) end
     end
 end
 
@@ -409,6 +416,7 @@ function Library:Unload()
     end
     Library.DropdownRegistry = {}
     Library.SliderRegistry = {}
+    Library.KeybindRegistry = {}
     if Library.OnUnload then Library.OnUnload() end
     if not IsTouch then
         local ezBlur = Services.Lighting:FindFirstChild("EliteZone_Blur")
@@ -1720,6 +1728,7 @@ do
         UpdateModePos()
 
         local HudBindLabel = Library:CreateLabel({ TextXAlignment = Enum.TextXAlignment.Left; Size = UDim2.new(1,0,0,(18)); TextSize = (12); Visible = false; ZIndex = 110; Parent = Library.KeybindContainer }, true)
+        table.insert(Library.KeybindRegistry, KeybindInfo)
 
         local ModeButtonList = {}
         for _, mode in ipairs(Modes) do
@@ -1753,7 +1762,7 @@ do
                 showInList = state
             end
 
-            HudBindLabel.Text    = string.format('[%s] %s', fmtKey(KeybindInfo.Value), Info.Text or '')
+            HudBindLabel.Text    = string.format('[%s] %s', fmtKey(KeybindInfo.Value), Library:ApplyCase(Info.Text or '', "Keybinds"))
             HudBindLabel.Visible = showInList
             HudBindLabel.TextColor3 = state and Library.AccentColor or Library.FontColor
             Library.RegistryMap[HudBindLabel].Properties.TextColor3 = state and 'AccentColor' or 'FontColor'
@@ -2165,7 +2174,8 @@ do
         })
         Library:AddToRegistry(Box, { TextColor3='FontColor' })
         if type(Info.Placeholder) == 'string' and Info.Placeholder ~= '' then
-            Library:SetTRProperty(Box, 'PlaceholderText', Info.Placeholder)
+            Box.PlaceholderText = Library:ApplyCase(Info.Placeholder, "Inputs")
+            Library:TrackLabel(Box, Info.Placeholder, "Inputs", "PlaceholderText")
         end
 
         function Textbox:SetValue(t)
@@ -2763,7 +2773,7 @@ do
     function Funcs:AddCaseRow(Idx, Info)
         Library:BuildTick()
         local Groupbox = self
-        local modes = { "Capitalized", "Lowercase", "Uppercase" }
+        local modes = { "Capitalized", "Lowercase", "Uppercase", "None" }
         local Option = { Value = Info.Default or "Capitalized"; Type = 'CaseRow'; Callback = Info.Callback or function() end }
 
         local rowH = 16
