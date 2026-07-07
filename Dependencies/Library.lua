@@ -4547,7 +4547,7 @@ ThemeManager.BuiltInThemes = {
 
 		if isBuiltIn then
 			if Options.ThemeManager_Font then
-				Options.ThemeManager_Font:SetValue('code')
+				Options.ThemeManager_Font:SetValue(theme == 'Gruvbox' and 'arcade' or 'code')
 				Options.ThemeManager_Font:Display()
 			end
 		else
