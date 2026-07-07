@@ -4438,6 +4438,24 @@ ThemeManager.BuiltInThemes = {
     ['Vampire']      = { 31, Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1a0000","AccentColor":"e60000","BackgroundColor":"0d0000","OutlineColor":"330000"}') },
     ['Obsidian']     = { 32, Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"0a0a0a","AccentColor":"00ff88","BackgroundColor":"050505","OutlineColor":"1a1a1a"}') },
 }
+do
+	-- ponytail: built-in style defaults live here instead of per-theme JSON strings so the whole
+	-- BuiltInThemes table doesn't need 32 near-duplicate caseSettings blocks written by hand.
+	local CapsCase, LowerCase = {}, {}
+	for _, k in ipairs({"CaseTabs","CaseSubTabs","CaseGroupboxes","CaseToggles","CaseButtons",
+		"CaseSliders","CaseDropdowns","CaseDDItems","CaseLabels","CaseInputs","CaseTooltip"}) do
+		CapsCase[k]  = "Capitalized"
+		LowerCase[k] = "Lowercase"
+	end
+	for name, entry in next, ThemeManager.BuiltInThemes do
+		local colors = entry[2]
+		if name == 'UE' then
+			colors.caseSettings, colors.backgroundOpacity = LowerCase, 30
+		else
+			colors.caseSettings, colors.backgroundOpacity = CapsCase, 10
+		end
+	end
+end
 	local function getFontName(font)
 		for name, enum in next, ThemeManager.FontMap do
 			if enum == font then
@@ -4482,6 +4500,11 @@ ThemeManager.BuiltInThemes = {
 
 		if type(data.caseSettings) == 'table' then
 			out.caseSettings = data.caseSettings
+		end
+
+		local backgroundOpacity = data.backgroundOpacity or data.BackgroundOpacity
+		if type(backgroundOpacity) == 'number' then
+			out.backgroundOpacity = backgroundOpacity
 		end
 
 		if type(data.mainWindowSize) == 'table' then
@@ -4569,6 +4592,10 @@ ThemeManager.BuiltInThemes = {
 			for _, k in ipairs(caseKeys) do
 				if Options[k] then Options[k]:SetValue(data.caseSettings[k] or "Capitalized") end
 			end
+		end
+
+		if data.backgroundOpacity and Options.BackgroundOpacity then
+			Options.BackgroundOpacity:SetValue(data.backgroundOpacity)
 		end
 
 		self.ApplyingTheme = nil
@@ -4829,6 +4856,7 @@ ThemeManager.BuiltInThemes = {
 		for _, k in ipairs(caseKeys) do
 			if Options[k] then theme.caseSettings[k] = Options[k].Value end
 		end
+		theme.backgroundOpacity = tonumber(Options.BackgroundOpacity and Options.BackgroundOpacity.Value) or 10
 
 		local ok, encoded = pcall(Services.HttpService.JSONEncode, Services.HttpService, theme)
         if not ok then warn('[Elite Zone] Failed to encode data.') return false end
@@ -5082,6 +5110,7 @@ function SaveManager.IgnoreThemeSettings(self)
         'SaveManager_ConfigList', 'SaveManager_ConfigName',
         'CaseTabs', 'CaseSubTabs', 'CaseGroupboxes', 'CaseToggles', 'CaseButtons',
         'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
+        'BackgroundOpacity',
     }
 end
 
