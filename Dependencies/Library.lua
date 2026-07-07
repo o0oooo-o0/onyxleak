@@ -597,12 +597,12 @@ function Library:AddToolTip(InfoStr, HoverInstance)
     local TooltipScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = tip })
     table.insert(Library.ThemeScales, TooltipScale)
     local TooltipLabel = Library:Create('TextLabel', {
-        AutomaticSize           = Enum.AutomaticSize.XY;
+        AutomaticSize           = Enum.AutomaticSize.Y;
         BackgroundTransparency  = 1;
         Font                    = Library.Font;
-        Size                    = UDim2.fromOffset(0, 0);
+        Size                    = UDim2.fromOffset(200, 0);
         TextColor3              = Library.FontColor;
-        TextSize                = (13);
+        TextScaled              = true;
         TextWrapped             = false;
         TextXAlignment          = Enum.TextXAlignment.Left;
         ZIndex                  = 101;
@@ -2292,7 +2292,7 @@ do
         Library:AddToRegistry(Fill, { BackgroundColor3='AccentColor'; BorderColor3='AccentColorDark' })
         local HideBR = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(1,0,0,0); Size=UDim2.new(0,1,1,0); ZIndex=8; Parent=Fill })
         Library:AddToRegistry(HideBR, { BackgroundColor3='AccentColor' })
-        local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=''; ZIndex=9; Parent=SInner })
+        local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); TextScaled=true; Text=''; ZIndex=9; Parent=SInner })
         Library:OnHighlight(SOuter, SOuter, { BorderColor3='AccentColor' }, { BorderColor3='Black' })
         if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, SOuter) end
 
