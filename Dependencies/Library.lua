@@ -4452,11 +4452,8 @@ do
 	for name, entry in next, ThemeManager.BuiltInThemes do
 		local colors = entry[2]
 		colors.backgroundBlur, colors.blurOpacity, colors.backgroundFrame = true, 75, true
-		if name == 'UE' then
-			colors.caseSettings, colors.backgroundOpacity = LowerCase, 30
-		else
-			colors.caseSettings, colors.backgroundOpacity = CapsCase, 10
-		end
+		colors.backgroundOpacity = 74
+		colors.caseSettings = (name == 'UE') and LowerCase or CapsCase
 	end
 end
 	local function getFontName(font)
