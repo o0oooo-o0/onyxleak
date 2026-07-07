@@ -2069,7 +2069,12 @@ do
         return DropdownList
     end
 
-    function Funcs:AddDivider() end
+    function Funcs:AddDivider()
+        self:AddBlank(4)
+        local Line = Library:Create('Frame', { BackgroundColor3 = Library.OutlineColor; BorderSizePixel = 0; Size = UDim2.new(1, 0, 0, 1); ZIndex = 1; Parent = self.Container })
+        Library:AddToRegistry(Line, { BackgroundColor3 = 'OutlineColor' })
+        self:AddBlank(4)
+    end
 
     function Funcs:AddButton(...)
         Library:BuildTick()
