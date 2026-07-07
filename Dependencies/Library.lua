@@ -2070,10 +2070,12 @@ do
     end
 
     function Funcs:AddDivider()
-        self:AddBlank(4)
-        local Line = Library:Create('Frame', { BackgroundColor3 = Library.OutlineColor; BorderSizePixel = 0; Size = UDim2.new(1, 0, 0, 1); ZIndex = 1; Parent = self.Container })
-        Library:AddToRegistry(Line, { BackgroundColor3 = 'OutlineColor' })
-        self:AddBlank(4)
+        self:AddBlank(2)
+        local DividerOuter = Library:Create('Frame', { BackgroundColor3 = Color3.new(0,0,0); BorderColor3 = Color3.new(0,0,0); Size = UDim2.new(1,-4,0,5); ZIndex = 5; Parent = self.Container })
+        local DividerInner = Library:Create('Frame', { BackgroundColor3 = Library.MainColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex = 6; Parent = DividerOuter })
+        Library:AddToRegistry(DividerOuter, { BorderColor3 = 'Black' })
+        Library:AddToRegistry(DividerInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
+        self:AddBlank(9)
     end
 
     function Funcs:AddButton(...)
