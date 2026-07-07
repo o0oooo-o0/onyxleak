@@ -4832,6 +4832,8 @@ end
 		normalTab:AddLabel('outline'):AddColorPicker('OutlineColor', { Title = 'outline', Default = self.Library.OutlineColor })
 		normalTab:AddLabel('font color'):AddColorPicker('FontColor', { Title = 'font color', Default = self.Library.FontColor })
 
+		normalTab:AddDivider()
+
 		self:BuildThemeSections(settingsGroupbox, false)
 
 		settingsGroupbox:AddDivider()
