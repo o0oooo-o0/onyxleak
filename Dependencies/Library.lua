@@ -4449,6 +4449,7 @@ do
 	end
 	for name, entry in next, ThemeManager.BuiltInThemes do
 		local colors = entry[2]
+		colors.backgroundBlur, colors.blurOpacity, colors.backgroundFrame = true, 75, true
 		if name == 'UE' then
 			colors.caseSettings, colors.backgroundOpacity = LowerCase, 30
 		else
@@ -4505,6 +4506,21 @@ end
 		local backgroundOpacity = data.backgroundOpacity or data.BackgroundOpacity
 		if type(backgroundOpacity) == 'number' then
 			out.backgroundOpacity = backgroundOpacity
+		end
+
+		local blurOpacity = data.blurOpacity or data.BlurOpacity
+		if type(blurOpacity) == 'number' then
+			out.blurOpacity = blurOpacity
+		end
+
+		local backgroundBlur = data.backgroundBlur or data.BackgroundBlur
+		if type(backgroundBlur) == 'boolean' then
+			out.backgroundBlur = backgroundBlur
+		end
+
+		local backgroundFrame = data.backgroundFrame or data.BackgroundFrame
+		if type(backgroundFrame) == 'boolean' then
+			out.backgroundFrame = backgroundFrame
 		end
 
 		if type(data.mainWindowSize) == 'table' then
@@ -4596,6 +4612,15 @@ end
 
 		if data.backgroundOpacity and Options.BackgroundOpacity then
 			Options.BackgroundOpacity:SetValue(data.backgroundOpacity)
+		end
+		if data.blurOpacity and Options.BlurOpacity then
+			Options.BlurOpacity:SetValue(data.blurOpacity)
+		end
+		if data.backgroundBlur ~= nil and Toggles.BackgroundBlur then
+			Toggles.BackgroundBlur:SetValue(data.backgroundBlur)
+		end
+		if data.backgroundFrame ~= nil and Toggles.BackgroundFrame then
+			Toggles.BackgroundFrame:SetValue(data.backgroundFrame)
 		end
 
 		self.ApplyingTheme = nil
@@ -4857,6 +4882,9 @@ end
 			if Options[k] then theme.caseSettings[k] = Options[k].Value end
 		end
 		theme.backgroundOpacity = tonumber(Options.BackgroundOpacity and Options.BackgroundOpacity.Value) or 10
+		theme.blurOpacity       = tonumber(Options.BlurOpacity and Options.BlurOpacity.Value) or 75
+		theme.backgroundBlur    = Toggles.BackgroundBlur and Toggles.BackgroundBlur.Value
+		theme.backgroundFrame   = Toggles.BackgroundFrame and Toggles.BackgroundFrame.Value
 
 		local ok, encoded = pcall(Services.HttpService.JSONEncode, Services.HttpService, theme)
         if not ok then warn('[Elite Zone] Failed to encode data.') return false end
@@ -5110,7 +5138,7 @@ function SaveManager.IgnoreThemeSettings(self)
         'SaveManager_ConfigList', 'SaveManager_ConfigName',
         'CaseTabs', 'CaseSubTabs', 'CaseGroupboxes', 'CaseToggles', 'CaseButtons',
         'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
-        'BackgroundOpacity',
+        'BackgroundOpacity', 'BlurOpacity', 'BackgroundBlur', 'BackgroundFrame',
     }
 end
 
