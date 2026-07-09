@@ -1181,6 +1181,7 @@ do
         local hueSKP  = {}
         for i = 0, 1, 0.1 do table.insert(hueSKP, ColorSequenceKeypoint.new(math.min(i,1), Color3.fromHSV(i,1,1))) end
         Library:Create('UIGradient', { Color = ColorSequence.new(hueSKP); Rotation = 90; Parent = HueInner })
+        local HueCursor = Library:Create('Frame', { BackgroundColor3 = Color3.new(1,1,1); BorderColor3 = Color3.new(0,0,0); AnchorPoint = Vector2.new(0,0.5); Size = UDim2.new(1,0,0,1); ZIndex = 19; Parent = HueInner })
 
         local HexInputOuter = Library:Create('Frame', { BorderColor3 = Color3.new(0,0,0); Position = UDim2.new(0, (4), 0, (228)); Size = UDim2.new(0.5, -(6), 0, (20)); ZIndex = 18; Parent = PickerFrameInner })
         local HexInputInner = Library:Create('Frame', { BackgroundColor3 = Library.MainColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex = 18; Parent = HexInputOuter })
@@ -1212,6 +1213,7 @@ do
             Swatch.BorderColor3 = Library:GetDarkerColor(ColorPickerInfo.Value)
             if TransparencyInner then TransparencyInner.BackgroundColor3 = ColorPickerInfo.Value end
             CursorOuter.Position = UDim2.new(ColorPickerInfo.Sat, 0, 1 - ColorPickerInfo.Vib, 0)
+            HueCursor.Position = UDim2.new(0, 0, ColorPickerInfo.Hue, 0)
             HexInputBox.Text = '#'..ColorPickerInfo.Value:ToHex()
             RgbInputBox.Text = math.floor(ColorPickerInfo.Value.R*255)..','..math.floor(ColorPickerInfo.Value.G*255)..','..math.floor(ColorPickerInfo.Value.B*255)
             Library:SafeCallback(ColorPickerInfo.Callback, ColorPickerInfo.Value)
@@ -1465,6 +1467,7 @@ do
         local hueSKP  = {}
         for i = 0, 1, 0.1 do table.insert(hueSKP, ColorSequenceKeypoint.new(math.min(i,1), Color3.fromHSV(i,1,1))) end
         Library:Create('UIGradient', { Color=ColorSequence.new(hueSKP); Rotation=90; Parent=HueInner })
+        local HueCursor = Library:Create('Frame', { BackgroundColor3=Color3.new(1,1,1); BorderColor3=Color3.new(0,0,0); AnchorPoint=Vector2.new(0,0.5); Size=UDim2.new(1,0,0,1); ZIndex=19; Parent=HueInner })
 
         local HexInputOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Position=UDim2.new(0,(4),0,inputsY); Size=UDim2.new(0.5,-(6),0,(20)); ZIndex=18; Parent=PickerFrameInner })
         local HexInputInner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=18; Parent=HexInputOuter })
@@ -1521,6 +1524,7 @@ do
             GradColorPickerInfo.Values[GradColorPickerInfo.ActiveStop] = col
             SatValMap.BackgroundColor3 = Color3.fromHSV(GradColorPickerInfo.Hue, 1, 1)
             CursorOuter.Position = UDim2.new(GradColorPickerInfo.Sat, 0, 1 - GradColorPickerInfo.Vib, 0)
+            HueCursor.Position = UDim2.new(0, 0, GradColorPickerInfo.Hue, 0)
             HexInputBox.Text = '#'..col:ToHex()
             RgbInputBox.Text = math.floor(col.R*255)..','..math.floor(col.G*255)..','..math.floor(col.B*255)
             if TransparencyInner then TransparencyInner.BackgroundColor3 = col end
