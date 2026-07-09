@@ -4535,12 +4535,14 @@ end
 			out.blurOpacity = blurOpacity
 		end
 
-		local backgroundBlur = data.backgroundBlur or data.BackgroundBlur
+		local backgroundBlur = data.backgroundBlur
+		if backgroundBlur == nil then backgroundBlur = data.BackgroundBlur end
 		if type(backgroundBlur) == 'boolean' then
 			out.backgroundBlur = backgroundBlur
 		end
 
-		local backgroundFrame = data.backgroundFrame or data.BackgroundFrame
+		local backgroundFrame = data.backgroundFrame
+		if backgroundFrame == nil then backgroundFrame = data.BackgroundFrame end
 		if type(backgroundFrame) == 'boolean' then
 			out.backgroundFrame = backgroundFrame
 		end
