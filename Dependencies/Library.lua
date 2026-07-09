@@ -2932,26 +2932,14 @@ function Library:CreateWindow(...)
 
     local Outer = Library:Create('Frame', {
         AnchorPoint             = Config.AnchorPoint;
-        BackgroundTransparency  = 1;
-        BorderColor3            = Library.OutlineColor;
-        BorderMode              = Enum.BorderMode.Inset;
-        BorderSizePixel         = 1;
+        BackgroundColor3        = Color3.new(0,0,0);
+        BorderSizePixel         = 0;
         Position                = Config.Position;
         Size                    = UDim2.fromOffset(WinW, WinH);
         Visible                 = false;
         ZIndex                  = 1;
         Parent                  = ScreenGui;
     })
-    Library:AddToRegistry(Outer, { BorderColor3 = 'OutlineColor' })
-
-    local OuterStroke = Library:Create('UIStroke', {
-        Color               = Library.OutlineColor;
-        Thickness           = 1;
-        ApplyStrokeMode     = Enum.ApplyStrokeMode.Border;
-        LineJoinMode        = Enum.LineJoinMode.Miter;
-        Parent              = Outer;
-    })
-    Library:AddToRegistry(OuterStroke, { Color = 'OutlineColor' })
 
     Library:MakeDraggable(Outer, (25))
 
@@ -2963,13 +2951,14 @@ function Library:CreateWindow(...)
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3  = Library.MainColor;
-        BorderSizePixel   = 0;
+        BorderColor3      = Library.AccentColor;
+        BorderMode        = Enum.BorderMode.Inset;
         Position          = UDim2.new(0,1,0,1);
         Size              = UDim2.new(1,-2,1,-2);
         ZIndex            = 1;
         Parent            = Outer;
     })
-    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor' })
+    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'AccentColor' })
 
     local GameNameLabel = Library:CreateLabel({
         Position                = UDim2.new(1, -(7), 0, 0);
