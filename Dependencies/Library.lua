@@ -2944,15 +2944,6 @@ function Library:CreateWindow(...)
     })
     Library:AddToRegistry(Outer, { BorderColor3 = 'OutlineColor' })
 
-    local OuterStroke = Library:Create('UIStroke', {
-        Color               = Library.OutlineColor;
-        Thickness           = 1;
-        ApplyStrokeMode     = Enum.ApplyStrokeMode.Border;
-        LineJoinMode        = Enum.LineJoinMode.Miter;
-        Parent              = Outer;
-    })
-    Library:AddToRegistry(OuterStroke, { Color = 'OutlineColor' })
-
     Library:MakeDraggable(Outer, (25))
 
     local OuterScale = Library:Create('UIScale', {
