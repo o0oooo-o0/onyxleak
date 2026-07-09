@@ -2932,7 +2932,7 @@ function Library:CreateWindow(...)
 
     local Outer = Library:Create('Frame', {
         AnchorPoint             = Config.AnchorPoint;
-        BackgroundColor3        = Color3.new(0,0,0);
+        BackgroundTransparency  = 1;
         BorderSizePixel         = 0;
         Position                = Config.Position;
         Size                    = UDim2.fromOffset(WinW, WinH);
@@ -2953,8 +2953,7 @@ function Library:CreateWindow(...)
         BackgroundColor3  = Library.MainColor;
         BorderColor3      = Library.OutlineColor;
         BorderMode        = Enum.BorderMode.Inset;
-        Position          = UDim2.new(0,1,0,1);
-        Size              = UDim2.new(1,-2,1,-2);
+        Size              = UDim2.new(1,0,1,0);
         ZIndex            = 1;
         Parent            = Outer;
     })
