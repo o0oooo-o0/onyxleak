@@ -2951,14 +2951,14 @@ function Library:CreateWindow(...)
 
     local Inner = Library:Create('Frame', {
         BackgroundColor3  = Library.MainColor;
-        BorderColor3      = Library.AccentColor;
+        BorderColor3      = Library.OutlineColor;
         BorderMode        = Enum.BorderMode.Inset;
         Position          = UDim2.new(0,1,0,1);
         Size              = UDim2.new(1,-2,1,-2);
         ZIndex            = 1;
         Parent            = Outer;
     })
-    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'AccentColor' })
+    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
 
     local GameNameLabel = Library:CreateLabel({
         Position                = UDim2.new(1, -(7), 0, 0);
