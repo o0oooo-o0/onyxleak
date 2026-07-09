@@ -1197,12 +1197,13 @@ do
         Library:AddToRegistry(RgbInputInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
         Library:AddToRegistry(RgbInputBox,   { TextColor3 = 'FontColor' })
 
-        local TransparencyInner
+        local TransparencyInner, TransparencyCursor
         if Info.Transparency then
             local TransparencyOuter = Library:Create('Frame', { BorderColor3 = Color3.new(0,0,0); Position = UDim2.fromOffset((4), (251)); Size = UDim2.new(1, -(8), 0, (14)); ZIndex = 19; Parent = PickerFrameInner })
             TransparencyInner = Library:Create('Frame', { BackgroundColor3 = ColorPickerInfo.Value; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex = 19; Parent = TransparencyOuter })
             Library:AddToRegistry(TransparencyInner, { BorderColor3 = 'OutlineColor' })
             Library:Create('ImageLabel', { BackgroundTransparency=1; Size=UDim2.new(1,0,1,0); Image='rbxassetid://12978095818'; ZIndex=20; Parent=TransparencyInner })
+            TransparencyCursor = Library:Create('Frame', { BackgroundColor3 = Color3.new(1,1,1); BorderColor3 = Color3.new(0,0,0); AnchorPoint = Vector2.new(0.5,0); Size = UDim2.new(0,1,1,0); ZIndex = 21; Parent = TransparencyInner })
         end
 
         function ColorPickerInfo:Display()
@@ -1211,7 +1212,10 @@ do
             Swatch.BackgroundColor3 = ColorPickerInfo.Value
             Swatch.BackgroundTransparency = ColorPickerInfo.Transparency
             Swatch.BorderColor3 = Library:GetDarkerColor(ColorPickerInfo.Value)
-            if TransparencyInner then TransparencyInner.BackgroundColor3 = ColorPickerInfo.Value end
+            if TransparencyInner then
+                TransparencyInner.BackgroundColor3 = ColorPickerInfo.Value
+                TransparencyCursor.Position = UDim2.new(1 - ColorPickerInfo.Transparency, 0, 0, 0)
+            end
             CursorOuter.Position = UDim2.new(ColorPickerInfo.Sat, 0, 1 - ColorPickerInfo.Vib, 0)
             HueCursor.Position = UDim2.new(0, 0, ColorPickerInfo.Hue, 0)
             HexInputBox.Text = '#'..ColorPickerInfo.Value:ToHex()
@@ -1483,12 +1487,13 @@ do
         Library:AddToRegistry(RgbInputInner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
         Library:AddToRegistry(RgbInputBox,   { TextColor3='FontColor' })
 
-        local TransparencyInner
+        local TransparencyInner, TransparencyCursor
         if Info.Transparency ~= nil then
             local TransparencyOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Position=UDim2.new(0,(4),0,transY); Size=UDim2.new(1,-(8),0,(14)); ZIndex=19; Parent=PickerFrameInner })
             TransparencyInner = Library:Create('Frame', { BackgroundColor3=GradColorPickerInfo.Values[1]; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=19; Parent=TransparencyOuter })
             Library:AddToRegistry(TransparencyInner, { BorderColor3='OutlineColor' })
             Library:Create('ImageLabel', { BackgroundTransparency=1; Size=UDim2.new(1,0,1,0); Image='rbxassetid://12978095818'; ZIndex=20; Parent=TransparencyInner })
+            TransparencyCursor = Library:Create('Frame', { BackgroundColor3=Color3.new(1,1,1); BorderColor3=Color3.new(0,0,0); AnchorPoint=Vector2.new(0.5,0); Size=UDim2.new(0,1,1,0); ZIndex=21; Parent=TransparencyInner })
         end
 
         local function RefreshStopSwatches()
@@ -1527,7 +1532,10 @@ do
             HueCursor.Position = UDim2.new(0, 0, GradColorPickerInfo.Hue, 0)
             HexInputBox.Text = '#'..col:ToHex()
             RgbInputBox.Text = math.floor(col.R*255)..','..math.floor(col.G*255)..','..math.floor(col.B*255)
-            if TransparencyInner then TransparencyInner.BackgroundColor3 = col end
+            if TransparencyInner then
+                TransparencyInner.BackgroundColor3 = col
+                TransparencyCursor.Position = UDim2.new(1 - GradColorPickerInfo.Transparencies[GradColorPickerInfo.ActiveStop], 0, 0, 0)
+            end
             RefreshStopSwatches()
             RefreshSwatch()
             Library:SafeCallback(GradColorPickerInfo.Callback, GradColorPickerInfo.Values, GradColorPickerInfo.Transparencies)
