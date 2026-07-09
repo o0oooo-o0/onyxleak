@@ -2921,13 +2921,15 @@ function Library:CreateWindow(...)
     local Outer = Library:Create('Frame', {
         AnchorPoint             = Config.AnchorPoint;
         BackgroundTransparency  = 1;
-        BorderSizePixel         = 0;
+        BorderColor3            = Library.OutlineColor;
+        BorderSizePixel         = 1;
         Position                = Config.Position;
         Size                    = UDim2.fromOffset(WinW, WinH);
         Visible                 = false;
         ZIndex                  = 1;
         Parent                  = ScreenGui;
     })
+    Library:AddToRegistry(Outer, { BorderColor3 = 'OutlineColor' })
     Library:MakeDraggable(Outer, (25))
 
     local OuterScale = Library:Create('UIScale', {
