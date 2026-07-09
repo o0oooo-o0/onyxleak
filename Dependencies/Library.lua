@@ -3055,8 +3055,8 @@ function Library:CreateWindow(...)
     local ModalScrollOuter = Library:Create('Frame', {
         BackgroundColor3  = Library.BackgroundColor;
         BorderColor3      = Library.OutlineColor;
-        Position          = UDim2.new(0,0,0,(25));
-        Size              = UDim2.new(1,0,1,-(25));
+        Position          = UDim2.new(0,(8),0,(25));
+        Size              = UDim2.new(1,-(16),1,-(33));
         ZIndex            = 1;
         Parent            = Inner;
     })
