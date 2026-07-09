@@ -2931,6 +2931,19 @@ function Library:CreateWindow(...)
         Parent                  = ScreenGui;
     })
     Library:AddToRegistry(Outer, { BorderColor3 = 'OutlineColor' })
+
+    local OuterRing = Library:Create('Frame', {
+        BackgroundTransparency  = 1;
+        BorderColor3            = Library.OutlineColor;
+        BorderMode              = Enum.BorderMode.Outline;
+        BorderSizePixel         = 1;
+        Position                = UDim2.fromOffset(-4, -4);
+        Size                    = UDim2.new(1, 8, 1, 8);
+        ZIndex                  = 0;
+        Parent                  = Outer;
+    })
+    Library:AddToRegistry(OuterRing, { BorderColor3 = 'OutlineColor' })
+
     Library:MakeDraggable(Outer, (25))
 
     local OuterScale = Library:Create('UIScale', {
