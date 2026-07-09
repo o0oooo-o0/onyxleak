@@ -2922,6 +2922,7 @@ function Library:CreateWindow(...)
         AnchorPoint             = Config.AnchorPoint;
         BackgroundTransparency  = 1;
         BorderColor3            = Library.OutlineColor;
+        BorderMode              = Enum.BorderMode.Inset;
         BorderSizePixel         = 1;
         Position                = Config.Position;
         Size                    = UDim2.fromOffset(WinW, WinH);
