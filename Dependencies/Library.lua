@@ -4314,12 +4314,12 @@ function Library:CreatePrompt(config)
             BorderColor3      = Library.OutlineColor,
             TextColor3        = Library.FontColor,
             TextSize          = (14),
-            Font              = Enum.Font.Code,
+            Font              = Library.Font,
             Text              = "Confirm",
             ZIndex            = 2002,
             Parent            = inner,
         })
-        Library:AddToRegistry(confirmBtn, {BackgroundColor3="RiskColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
+        Library:AddToRegistry(confirmBtn, {BackgroundColor3="RiskColor", BorderColor3="OutlineColor", TextColor3="FontColor", Font="Font"})
 
         local cancelBtn = Library:Create("TextButton", {
             Position          = UDim2.new(0.5, (5), 1, -(30)),
@@ -4328,12 +4328,12 @@ function Library:CreatePrompt(config)
             BorderColor3      = Library.OutlineColor,
             TextColor3        = Library.FontColor,
             TextSize          = (14),
-            Font              = Enum.Font.Code,
+            Font              = Library.Font,
             Text              = "Cancel",
             ZIndex            = 2002,
             Parent            = inner,
         })
-        Library:AddToRegistry(cancelBtn, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
+        Library:AddToRegistry(cancelBtn, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor", Font="Font"})
 
         confirmBtn.MouseButton1Click:Connect(function()
             if config.Callback then config.Callback() end
@@ -4350,7 +4350,7 @@ function Library:CreatePrompt(config)
             BorderColor3      = Library.OutlineColor,
             TextColor3        = Library.FontColor,
             TextSize          = (14),
-            Font              = Enum.Font.Code,
+            Font              = Library.Font,
             TextXAlignment    = Enum.TextXAlignment.Left,
             TextYAlignment    = Enum.TextYAlignment.Top,
             ClearTextOnFocus  = false,
@@ -4360,7 +4360,7 @@ function Library:CreatePrompt(config)
             ZIndex            = 2002,
             Parent            = inner,
         })
-        Library:AddToRegistry(textBox, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
+        Library:AddToRegistry(textBox, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor", Font="Font"})
 
         local nameInput
         if config.Mode == "Import" then
@@ -4373,11 +4373,11 @@ function Library:CreatePrompt(config)
                 PlaceholderText   = "Enter Name...",
                 Text              = "",
                 TextSize          = (14),
-                Font              = Enum.Font.Code,
+                Font              = Library.Font,
                 ZIndex            = 2002,
                 Parent            = inner,
             })
-            Library:AddToRegistry(nameInput, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
+            Library:AddToRegistry(nameInput, {BackgroundColor3="MainColor", BorderColor3="OutlineColor", TextColor3="FontColor", Font="Font"})
         end
 
         local actionBtn = Library:Create("TextButton", {
@@ -4387,12 +4387,12 @@ function Library:CreatePrompt(config)
             BorderColor3      = Library.OutlineColor,
             TextColor3        = Library.FontColor,
             TextSize          = (14),
-            Font              = Enum.Font.Code,
+            Font              = Library.Font,
             Text              = config.Mode == "Export" and "Copy to Clipboard" or "Import & Save",
             ZIndex            = 2002,
             Parent            = inner,
         })
-        Library:AddToRegistry(actionBtn, {BackgroundColor3="AccentColor", BorderColor3="OutlineColor", TextColor3="FontColor"})
+        Library:AddToRegistry(actionBtn, {BackgroundColor3="AccentColor", BorderColor3="OutlineColor", TextColor3="FontColor", Font="Font"})
 
         actionBtn.MouseButton1Click:Connect(function()
             if config.Mode == "Export" then
