@@ -4,14 +4,7 @@ local SetScriptableCache = {};
 
 local TextService = cloneref(game:GetService("TextService"));
 
-local Drawing = {
-    Fonts = {
-        UI = 0,
-        System = 1,
-        Plex = 2,
-        Monospace = 3
-    }
-};
+local Drawing = {};
 
 local Renv = getrenv();
 local Genv = getgenv();
@@ -306,10 +299,10 @@ do
 
     do
         local EnumToFont = {
-            [Drawing.Fonts.UI] = Font.new("rbxasset://fonts/families/Arial.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-            [Drawing.Fonts.System] = Font.new("rbxasset://fonts/families/HighwayGothic.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-            [Drawing.Fonts.Plex] = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-            [Drawing.Fonts.Monospace] = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+            [0] = Font.new("rbxasset://fonts/families/Arial.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+            [1] = Font.new("rbxasset://fonts/families/HighwayGothic.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+            [2] = Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+            [3] = Font.new("rbxasset://fonts/families/Ubuntu.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
         };
 
         local Text = {};
@@ -1080,7 +1073,6 @@ do
 end
 
 setreadonly(Drawing, true);
-setreadonly(Drawing.Fonts, true);
 
 Genv.Drawing = Drawing;
 Genv.Cleardrawcache = Drawing.clear;
