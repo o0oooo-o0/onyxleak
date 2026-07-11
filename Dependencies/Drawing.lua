@@ -374,7 +374,11 @@ do
         function Text:__newindex(k, v)
             if self.__OBJECT_EXISTS == true then
                 local Props = self.Properties;
-                if k == "TextBounds" or Props[k] == nil or Props[k] == v or typeof(Props[k]) ~= typeof(v) then
+                if k == "Font" then
+                    if (typeof(v) ~= "number" and typeof(v) ~= "Font") or Props.Font == v then
+                        return;
+                    end
+                elseif k == "TextBounds" or Props[k] == nil or Props[k] == v or typeof(Props[k]) ~= typeof(v) then
                     return;
                 end
                 Props[k] = v;
@@ -383,7 +387,7 @@ do
                 elseif k == "Color" then
                     self.Frame.TextColor3 = v;
                 elseif k == "Font" then
-                    self.Frame.FontFace = EnumToFont[v];
+                    self.Frame.FontFace = typeof(v) == "Font" and v or EnumToFont[v];
                     self:UpdateTextBounds();
                 elseif k == "Outline" then
                     self.Frame.Stroke.Enabled = v;
@@ -427,7 +431,7 @@ do
             Props.TextBounds = GetTextBoundsAsync(TextService, create("GetTextBoundsParams", {
                 Text = Props.Text,
                 Size = Props.Size,
-                Font = EnumToFont[Props.Font],
+                Font = typeof(Props.Font) == "Font" and Props.Font or EnumToFont[Props.Font],
                 Width = huge
             }));
         end
