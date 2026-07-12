@@ -3456,7 +3456,7 @@ function Library:CreateWindow(...)
                 BackgroundTransparency  = 1;
                 BorderSizePixel         = 0;
                 Position                = UDim2.new(xScale, xOffset, 0, (7));
-                Size                    = UDim2.new(0.5, -(14), 1, -(7));
+                Size                    = UDim2.new(0.5, -(8), 1, -(7));
                 CanvasSize              = UDim2.new(0,0,0,0);
                 BottomImage             = '';
                 TopImage                = '';
@@ -3475,8 +3475,8 @@ function Library:CreateWindow(...)
             return sf
         end
         local LeftSide, RightSide
-        LeftSide  = MakeSide(TFrame, 0,   (7))
-        RightSide = MakeSide(TFrame, 0.5, (7))
+        LeftSide  = MakeSide(TFrame, 0,   (4))
+        RightSide = MakeSide(TFrame, 0.5, (4))
 
         function Tab:ShowTab()
             for _, t in next, Window.Tabs do t:HideTab() end
@@ -3738,7 +3738,7 @@ function Library:CreateWindow(...)
                     BackgroundTransparency  = 1;
                     BorderSizePixel         = 0;
                     Position                = UDim2.new(xScale, xOffset, 0, (30));
-                    Size                    = UDim2.new(0.5, -(14), 1, -(30));
+                    Size                    = UDim2.new(0.5, -(8), 1, -(30));
                     CanvasSize              = UDim2.new(0,0,0,0);
                     BottomImage             = '';
                     TopImage                = '';
@@ -3780,8 +3780,8 @@ function Library:CreateWindow(...)
                 local STUnder = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,-2,0,0); Size=UDim2.new(1,4,0,1); Visible=false; ZIndex=5; Parent=STBtn })
                 Library:AddToRegistry(STUnder, { BackgroundColor3='AccentColor' })
 
-                local STLeft  = MakeSubSide(0,   (7))
-                local STRight = MakeSubSide(0.5, (7))
+                local STLeft  = MakeSubSide(0,   (4))
+                local STRight = MakeSubSide(0.5, (4))
 
                 ST.LeftContainer = STLeft
                 ST.RightContainer = STRight
