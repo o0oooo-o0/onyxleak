@@ -2387,35 +2387,33 @@ do
         assert(Info.Max ~= nil,     'AddSlider: Missing max.')
         assert(Info.Rounding ~= nil,'AddSlider: Missing rounding.')
         local Groupbox = self
-        local Row = {}
-        local GapPx = 6
+        local Slider = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info)
+        local First = Slider
+        local Count = 1
 
-        local function Reflow()
-            local n = #Row
-            for i, S in ipairs(Row) do
-                local i0 = i - 1
-                S.Outer.Size     = UDim2.new(1/n, -((n-1)*GapPx/n), 0, (13))
-                S.Outer.Position = UDim2.new(i0/n, i0*GapPx/n, 0, 0)
+        -- each chained slider nests INSIDE the previous one's box (not as a sibling under
+        -- Container) specifically to escape Container's UIListLayout, which would otherwise
+        -- force-reposition siblings and ignore our manual Position/Size. Only the first
+        -- slider's width needs to change (to 1/Count) when the row grows - every subsequent
+        -- piece is sized at scale=1 relative to its (now correctly-sized) parent, so it
+        -- automatically ends up the same absolute width without needing its own resize.
+        local function Chain(PrevSlider)
+            function PrevSlider:AddSlider(Idx2, Info2)
+                assert(Info2.Default ~= nil, 'AddSlider: Missing default.')
+                assert(Info2.Text,           'AddSlider: Missing text.')
+                assert(Info2.Min ~= nil,     'AddSlider: Missing min.')
+                assert(Info2.Max ~= nil,     'AddSlider: Missing max.')
+                assert(Info2.Rounding ~= nil,'AddSlider: Missing rounding.')
+                Count = Count + 1
+                First.Outer.Size = UDim2.new(1/Count, -(3), 0, (13))
+                local Sub = BuildSliderPiece(PrevSlider.Outer, UDim2.new(1,-(2),1,0), Info2)
+                Sub.Outer.Position = UDim2.new(1, (3), 0, 0)
+                Chain(Sub)
+                Options[Idx2] = Sub
+                return Sub
             end
         end
-
-        local function AddToRow(Idx2, Info2)
-            assert(Info2.Default ~= nil, 'AddSlider: Missing default.')
-            assert(Info2.Text,           'AddSlider: Missing text.')
-            assert(Info2.Min ~= nil,     'AddSlider: Missing min.')
-            assert(Info2.Max ~= nil,     'AddSlider: Missing max.')
-            assert(Info2.Rounding ~= nil,'AddSlider: Missing rounding.')
-            local Sub = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info2)
-            Row[#Row + 1] = Sub
-            Reflow()
-            function Sub:AddSlider(...) return AddToRow(...) end
-            Options[Idx2] = Sub
-            return Sub
-        end
-
-        local Slider = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info)
-        Row[1] = Slider
-        function Slider:AddSlider(...) return AddToRow(...) end
+        Chain(Slider)
 
         Groupbox:AddBlank(Info.BlankSize or 6); Groupbox:Resize()
         Options[Idx] = Slider
