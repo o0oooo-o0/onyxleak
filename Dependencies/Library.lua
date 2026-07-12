@@ -2387,21 +2387,35 @@ do
         assert(Info.Max ~= nil,     'AddSlider: Missing max.')
         assert(Info.Rounding ~= nil,'AddSlider: Missing rounding.')
         local Groupbox = self
-        local Slider = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info)
+        local Row = {}
+        local GapPx = 6
 
-        function Slider:AddSlider(Idx2, Info2)
+        local function Reflow()
+            local n = #Row
+            for i, S in ipairs(Row) do
+                local i0 = i - 1
+                S.Outer.Size     = UDim2.new(1/n, -((n-1)*GapPx/n), 0, (13))
+                S.Outer.Position = UDim2.new(i0/n, i0*GapPx/n, 0, 0)
+            end
+        end
+
+        local function AddToRow(Idx2, Info2)
             assert(Info2.Default ~= nil, 'AddSlider: Missing default.')
             assert(Info2.Text,           'AddSlider: Missing text.')
             assert(Info2.Min ~= nil,     'AddSlider: Missing min.')
             assert(Info2.Max ~= nil,     'AddSlider: Missing max.')
             assert(Info2.Rounding ~= nil,'AddSlider: Missing rounding.')
-            self.Outer.Size = UDim2.new(0.5, -(3), 0, (13))
-            local Sub = BuildSliderPiece(self.Outer, UDim2.new(1,-(2),1,0), Info2)
-            Sub.Outer.Position = UDim2.new(1, (3), 0, 0)
-            function Sub:AddSlider(...) return Slider.AddSlider(Sub, ...) end
+            local Sub = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info2)
+            Row[#Row + 1] = Sub
+            Reflow()
+            function Sub:AddSlider(...) return AddToRow(...) end
             Options[Idx2] = Sub
             return Sub
         end
+
+        local Slider = BuildSliderPiece(Groupbox.Container, UDim2.new(1,-(4),0,(13)), Info)
+        Row[1] = Slider
+        function Slider:AddSlider(...) return AddToRow(...) end
 
         Groupbox:AddBlank(Info.BlankSize or 6); Groupbox:Resize()
         Options[Idx] = Slider
