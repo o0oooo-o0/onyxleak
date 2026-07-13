@@ -3500,6 +3500,47 @@ function Library:CreateWindow(...)
         LeftSide  = MakeSide(TFrame, 0,   (4))
         RightSide = MakeSide(TFrame, 0.5, (4))
 
+        local TFull = Library:Create('ScrollingFrame', {
+            BackgroundTransparency  = 1;
+            BorderSizePixel         = 0;
+            Position                = UDim2.new(0, (4), 0, (7));
+            Size                    = UDim2.new(1, -(8), 1, -(7));
+            CanvasSize              = UDim2.new(0,0,0,0);
+            BottomImage             = '';
+            TopImage                = '';
+            ScrollBarThickness      = 2;
+            ScrollBarImageColor3    = Library.AccentColor;
+            ScrollingDirection      = Enum.ScrollingDirection.Y;
+            ElasticBehavior         = Enum.ElasticBehavior.Never;
+            ZIndex                  = 2;
+            Visible                 = false;
+            Parent                  = TFrame;
+        })
+        Library:AddToRegistry(TFull, { ScrollBarImageColor3='AccentColor' })
+        local TFullLayout = Library:Create('UIListLayout', { Padding=UDim.new(0,(8)); FillDirection=Enum.FillDirection.Vertical; SortOrder=Enum.SortOrder.LayoutOrder; Parent=TFull })
+        TFullLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+            TFull.CanvasSize = UDim2.fromOffset(0, TFullLayout.AbsoluteContentSize.Y + (8))
+        end)
+        local TabFullMode = false
+
+        function Tab:AddCustom(InstanceOrInfo)
+            Library:BuildTick()
+            local Info = typeof(InstanceOrInfo) == 'table' and InstanceOrInfo or { Instance = InstanceOrInfo }
+            local CustomInstance = Info.Instance
+            assert(typeof(CustomInstance) == 'Instance' and CustomInstance:IsA('GuiObject'), 'AddCustom: `Instance` must be a GuiObject.')
+            if not TabFullMode then
+                TabFullMode = true
+                LeftSide.Visible  = false
+                RightSide.Visible = false
+                TFull.Visible = true
+            end
+            CustomInstance.Parent = TFull
+            if Info.FillWidth ~= false then
+                CustomInstance.Size = UDim2.new(1, -(4), CustomInstance.Size.Y.Scale, CustomInstance.Size.Y.Offset)
+            end
+            return CustomInstance
+        end
+
         function Tab:ShowTab()
             for _, t in next, Window.Tabs do t:HideTab() end
             TUnder.Visible = true; TFrame.Visible = true
