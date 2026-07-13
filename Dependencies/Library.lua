@@ -2903,6 +2903,13 @@ do
     BaseGroupbox.__index = Funcs
 end
 
+function Library:CreateHeadlessGroupbox(Container)
+    local Groupbox = { Container = Container }
+    function Groupbox:Resize() end
+    setmetatable(Groupbox, BaseGroupbox)
+    return Groupbox
+end
+
 function Library:CreateWindow(...)
     local args   = { ... }
     local Config = type(args[1]) == 'table' and args[1] or { Title=args[1]; AutoShow=args[2] }
