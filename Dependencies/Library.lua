@@ -3801,14 +3801,42 @@ function Library:CreateWindow(...)
                 ST.LeftContainer = STLeft
                 ST.RightContainer = STRight
 
+                local STFull = Library:Create('ScrollingFrame', {
+                    BackgroundTransparency  = 1;
+                    BorderSizePixel         = 0;
+                    Position                = UDim2.new(0, (4), 0, (30));
+                    Size                    = UDim2.new(1, -(8), 1, -(30));
+                    CanvasSize              = UDim2.new(0,0,0,0);
+                    BottomImage             = '';
+                    TopImage                = '';
+                    ScrollBarThickness      = 2;
+                    ScrollBarImageColor3    = Library.AccentColor;
+                    ScrollingDirection      = Enum.ScrollingDirection.Y;
+                    ElasticBehavior         = Enum.ElasticBehavior.Never;
+                    ZIndex                  = 2;
+                    Visible                 = false;
+                    Parent                  = TFrame;
+                })
+                Library:AddToRegistry(STFull, { ScrollBarImageColor3='AccentColor' })
+                local STFullLayout = Library:Create('UIListLayout', { Padding=UDim.new(0,(8)); FillDirection=Enum.FillDirection.Vertical; SortOrder=Enum.SortOrder.LayoutOrder; Parent=STFull })
+                STFullLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+                    STFull.CanvasSize = UDim2.fromOffset(0, STFullLayout.AbsoluteContentSize.Y + (8))
+                end)
+                ST.FullContainer = STFull
+                ST.FullMode = false
+
                 function ST:ShowTab()
                     for _, t in next, SubTabSystem.Tabs do t:HideTab() end
                     STUnder.Visible = true
                     STInline.Visible = true
                     STBtn.BackgroundColor3 = Library.MainColor
                     if Library.RegistryMap[STBtn] then Library.RegistryMap[STBtn].Properties.BackgroundColor3 = 'MainColor' end
-                    STLeft.Visible  = true
-                    STRight.Visible = true
+                    if ST.FullMode then
+                        STFull.Visible = true
+                    else
+                        STLeft.Visible  = true
+                        STRight.Visible = true
+                    end
                     ST.Active = true
                     STBtnLabel.TextColor3 = Library.FontColor
                 end
@@ -3820,8 +3848,27 @@ function Library:CreateWindow(...)
                     if Library.RegistryMap[STBtn] then Library.RegistryMap[STBtn].Properties.BackgroundColor3 = 'BackgroundColor' end
                     STLeft.Visible  = false
                     STRight.Visible = false
+                    STFull.Visible  = false
                     ST.Active = false
                     STBtnLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
+                end
+
+                function ST:AddCustom(InstanceOrInfo)
+                    Library:BuildTick()
+                    local Info = typeof(InstanceOrInfo) == 'table' and InstanceOrInfo or { Instance = InstanceOrInfo }
+                    local CustomInstance = Info.Instance
+                    assert(typeof(CustomInstance) == 'Instance' and CustomInstance:IsA('GuiObject'), 'AddCustom: `Instance` must be a GuiObject.')
+                    if not ST.FullMode then
+                        ST.FullMode = true
+                        STLeft.Visible  = false
+                        STRight.Visible = false
+                        if ST.Active then STFull.Visible = true end
+                    end
+                    CustomInstance.Parent = STFull
+                    if Info.FillWidth ~= false then
+                        CustomInstance.Size = UDim2.new(1, -(4), CustomInstance.Size.Y.Scale, CustomInstance.Size.Y.Offset)
+                    end
+                    return CustomInstance
                 end
 
                 function ST:AddGroupbox(Info3)
