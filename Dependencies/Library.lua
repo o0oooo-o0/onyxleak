@@ -2090,6 +2090,21 @@ do
         self:AddBlank(9)
     end
 
+    function Funcs:AddCustom(InstanceOrInfo)
+        Library:BuildTick()
+        local Groupbox = self
+        local Info = typeof(InstanceOrInfo) == 'table' and InstanceOrInfo or { Instance = InstanceOrInfo }
+        local CustomInstance = Info.Instance
+        assert(typeof(CustomInstance) == 'Instance' and CustomInstance:IsA('GuiObject'), 'AddCustom: `Instance` must be a GuiObject.')
+        CustomInstance.Parent = Groupbox.Container
+        if Info.FillWidth ~= false then
+            CustomInstance.Size = UDim2.new(1, -(4), CustomInstance.Size.Y.Scale, CustomInstance.Size.Y.Offset)
+        end
+        Library:GiveSignal(CustomInstance:GetPropertyChangedSignal('AbsoluteSize'):Connect(function() Groupbox:Resize() end))
+        Groupbox:Resize()
+        return CustomInstance
+    end
+
     function Funcs:AddButton(...)
         Library:BuildTick()
         local Button = {}
