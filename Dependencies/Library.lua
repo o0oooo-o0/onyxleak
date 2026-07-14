@@ -3842,12 +3842,13 @@ function Library:CreateWindow(...)
         function Tab:AddLeftTitledTabbox(n)  return Tab:AddTitledTabbox({ Name=n; Side=1 }) end
         function Tab:AddRightTitledTabbox(n) return Tab:AddTitledTabbox({ Name=n; Side=2 }) end
 
-        function Tab:AddSubTabs()
+        local function BuildSubTabSystem(TFrame, YOffset)
             local SubTabSystem = { Tabs={} }
 
             local SubArea = Library:Create('ScrollingFrame', {
                 BackgroundTransparency  = 1;
                 BorderSizePixel         = 0;
+                Position                = UDim2.new(0,0,0,YOffset);
                 Size                    = UDim2.new(1,0,0,(28));
                 CanvasSize              = UDim2.new(0,0,0,0);
                 ScrollBarThickness      = 0;
@@ -3874,8 +3875,8 @@ function Library:CreateWindow(...)
                 local sf = Library:Create('ScrollingFrame', {
                     BackgroundTransparency  = 1;
                     BorderSizePixel         = 0;
-                    Position                = UDim2.new(xScale, xOffset, 0, (30));
-                    Size                    = UDim2.new(0.5, -(8), 1, -(30));
+                    Position                = UDim2.new(xScale, xOffset, 0, (YOffset+30));
+                    Size                    = UDim2.new(0.5, -(8), 1, -(YOffset+30));
                     CanvasSize              = UDim2.new(0,0,0,0);
                     BottomImage             = '';
                     TopImage                = '';
@@ -3894,9 +3895,6 @@ function Library:CreateWindow(...)
                 end)
                 return sf
             end
-
-            LeftSide.Visible  = false
-            RightSide.Visible = false
 
             function SubTabSystem:GetTab(SubName)
                 return SubTabSystem.Tabs[tostring(SubName or "")]
@@ -3932,8 +3930,8 @@ function Library:CreateWindow(...)
                 local STFull = Library:Create('ScrollingFrame', {
                     BackgroundTransparency  = 1;
                     BorderSizePixel         = 0;
-                    Position                = UDim2.new(0, (4), 0, (30));
-                    Size                    = UDim2.new(1, -(8), 1, -(30));
+                    Position                = UDim2.new(0, (4), 0, (YOffset+30));
+                    Size                    = UDim2.new(1, -(8), 1, -(YOffset+30));
                     CanvasSize              = UDim2.new(0,0,0,0);
                     BottomImage             = '';
                     TopImage                = '';
@@ -4088,6 +4086,31 @@ function Library:CreateWindow(...)
                 function ST:AddLeftTabbox(n)  return ST:AddTabbox({ Name=n; Side=1 }) end
                 function ST:AddRightTabbox(n) return ST:AddTabbox({ Name=n; Side=2 }) end
 
+                function ST:AddSubTabs()
+                    if ST._nestedSubTabs then return ST._nestedSubTabs end
+                    if not ST.FullMode then
+                        ST.FullMode = true
+                        STLeft.Visible  = false
+                        STRight.Visible = false
+                        if ST.Active then STFull.Visible = true end
+                    end
+                    local Nested = BuildSubTabSystem(TFrame, YOffset + 30)
+                    local OldShowTab, OldHideTab = ST.ShowTab, ST.HideTab
+                    function ST:ShowTab()
+                        OldShowTab(ST)
+                        Nested.SubArea.Visible = true
+                        for _, t in next, Nested.Tabs do if t.Active then t:ShowTab() end end
+                    end
+                    function ST:HideTab()
+                        OldHideTab(ST)
+                        Nested.SubArea.Visible = false
+                        for _, t in next, Nested.Tabs do t:HideTab() end
+                    end
+                    if ST.Active then Nested.SubArea.Visible = true end
+                    ST._nestedSubTabs = Nested
+                    return Nested
+                end
+
                 STBtn.InputBegan:Connect(function(Input)
                     if Library:IsPointerInput(Input) and not Library:MouseIsOverOpenedFrame() then ST:ShowTab() end
                 end)
@@ -4101,8 +4124,15 @@ function Library:CreateWindow(...)
             end
 
             SubTabSystem.SubArea = SubArea
-            Tab.SubTabSystem = SubTabSystem
             return SubTabSystem
+        end
+
+        function Tab:AddSubTabs()
+            if Tab.SubTabSystem then return Tab.SubTabSystem end
+            LeftSide.Visible  = false
+            RightSide.Visible = false
+            Tab.SubTabSystem = BuildSubTabSystem(TFrame, 0)
+            return Tab.SubTabSystem
         end
 
         TBtn.InputBegan:Connect(function(Input)
