@@ -4095,6 +4095,18 @@ function Library:CreateWindow(...)
                         if ST.Active then STFull.Visible = true end
                     end
                     local Nested = BuildSubTabSystem(TFrame, YOffset + 30)
+                    Nested.SubArea.Visible = ST.Active
+
+                    -- Nested:AddTab auto-shows the first page it creates (same rule the
+                    -- top-level system uses); that must not leak into view before this
+                    -- outer page is ever actually selected.
+                    local OldNestedAddTab = Nested.AddTab
+                    function Nested:AddTab(SubName)
+                        local Page = OldNestedAddTab(Nested, SubName)
+                        if not ST.Active then Page:HideTab() end
+                        return Page
+                    end
+
                     local OldShowTab, OldHideTab = ST.ShowTab, ST.HideTab
                     function ST:ShowTab()
                         OldShowTab(ST)
@@ -4106,7 +4118,6 @@ function Library:CreateWindow(...)
                         Nested.SubArea.Visible = false
                         for _, t in next, Nested.Tabs do t:HideTab() end
                     end
-                    if ST.Active then Nested.SubArea.Visible = true end
                     ST._nestedSubTabs = Nested
                     return Nested
                 end
