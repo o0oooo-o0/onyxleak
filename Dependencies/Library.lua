@@ -4668,7 +4668,7 @@ end
 
 -- Shared autoload store for both ThemeManager and SaveManager: one JSON file instead of
 -- two separate plain-text ones, `{ theme = <name>|"none", config = <name>|"none" }`.
-local AUTOLOAD_FILE = 'Elite Zone/Rivals/AutoLoad.json'
+local AUTOLOAD_FILE = 'Elite Zone/Cache/AutoLoad.json'
 
 local function ReadAutoloadFile()
 	if isfile and isfile(AUTOLOAD_FILE) then
@@ -4680,6 +4680,7 @@ end
 
 local function WriteAutoloadField(field, value)
 	if not writefile then return end
+	if makefolder and isfolder and not isfolder('Elite Zone/Cache') then makefolder('Elite Zone/Cache') end
 	local data = ReadAutoloadFile()
 	data[field] = value
 	writefile(AUTOLOAD_FILE, Services.HttpService:JSONEncode(data))
