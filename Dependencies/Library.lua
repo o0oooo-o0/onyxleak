@@ -206,12 +206,6 @@ function Library:RefreshTextRegistry()
     end
 end
 
--- Renames a live element's label (Toggle, Slider, Dropdown, ...) after creation, e.g.
--- Library:SetText(Options.RBVoidTime, "bait"). Sliders re-render their label from
--- Element.Info.Text on every Display() call, so those are updated in place and redrawn.
--- Everything else's label is a plain Instance tracked in Library.TextRegistry (for the
--- case-style refresh) - update the registry entry too so a later case-style change doesn't
--- revert the rename. Returns true if a label was found and updated, false otherwise.
 function Library:SetText(Element, NewText)
     if not Element or NewText == nil then return false end
     NewText = tostring(NewText)
@@ -237,15 +231,6 @@ function Library:SetText(Element, NewText)
     return ok
 end
 
--- Destroys a live Toggle/Slider/Dropdown/Input/Button element and deregisters it from
--- Toggles/Options and every render registry (TextRegistry/SliderRegistry/DropdownRegistry/
--- KeybindRegistry) so nothing keeps trying to redraw a destroyed Instance. Pass the element
--- itself (e.g. Options.RBShootAttempts), not its flag name - that's what api:remove_element
--- does the lookup for. Chained sub-sliders (slider:AddSlider(...)) share their parent's row
--- layout math (1/Count width), so removing one of a chained group individually is not
--- supported - only the whole row destroys cleanly. Floating popups a removed element may
--- have opened (color picker, key picker) are not tracked here and are left as hidden,
--- harmless orphans in ScreenGui. Returns true if the element was found and destroyed.
 function Library:RemoveElement(Element)
     if not Element then return false end
 
@@ -2478,12 +2463,6 @@ do
         local First = Slider
         local Count = 1
 
-        -- each chained slider nests INSIDE the previous one's box (not as a sibling under
-        -- Container) specifically to escape Container's UIListLayout, which would otherwise
-        -- force-reposition siblings and ignore our manual Position/Size. Only the first
-        -- slider's width needs to change (to 1/Count) when the row grows - every subsequent
-        -- piece is sized at scale=1 relative to its (now correctly-sized) parent, so it
-        -- automatically ends up the same absolute width without needing its own resize.
         local function Chain(PrevSlider)
             function PrevSlider:AddSlider(Idx2, Info2)
                 assert(Info2.Default ~= nil, 'AddSlider: Missing default.')
@@ -4097,11 +4076,6 @@ function Library:CreateWindow(...)
                     local Nested = BuildSubTabSystem(TFrame, YOffset + 30)
                     Nested.SubArea.Visible = ST.Active
 
-                    -- Nested:AddTab auto-shows the first page it creates (same rule the
-                    -- top-level system uses); that must not leak into view before this
-                    -- outer page is ever actually selected. HideTab() also clears .Active,
-                    -- so restore it afterward - it still needs to be "the selected one" for
-                    -- when this outer page is shown for the first time.
                     local OldNestedAddTab = Nested.AddTab
                     function Nested:AddTab(SubName)
                         local WasFirst = next(Nested.Tabs) == nil
@@ -4672,9 +4646,6 @@ function Library:CreatePrompt(config)
     end
 end
 
--- Shared autoload store for both ThemeManager and SaveManager: one JSON file instead of
--- two separate plain-text ones, keyed per game so more games can be added later without
--- clashing: `{ Rivals = { theme = <name>|"none", config = <name>|"none" }, ... }`.
 local AUTOLOAD_FILE = 'Elite Zone/Cache/AutoLoad.json'
 local AUTOLOAD_GAME = 'Rivals'
 
