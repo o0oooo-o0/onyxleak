@@ -4080,9 +4080,14 @@ function Library:CreateWindow(...)
                     function Nested:AddTab(SubName)
                         local WasFirst = next(Nested.Tabs) == nil
                         local Page = OldNestedAddTab(Nested, SubName)
-                        if not ST.Active and WasFirst then
-                            Page:HideTab()
-                            Page.Active = true
+                        local OldPageShowTab = Page.ShowTab
+                        function Page:ShowTab()
+                            OldPageShowTab(Page)
+                            Nested.CurrentTab = Page
+                        end
+                        if WasFirst then
+                            Nested.CurrentTab = Page
+                            if not ST.Active then Page:HideTab() end
                         end
                         return Page
                     end
@@ -4091,7 +4096,7 @@ function Library:CreateWindow(...)
                     function ST:ShowTab()
                         OldShowTab(ST)
                         Nested.SubArea.Visible = true
-                        for _, t in next, Nested.Tabs do if t.Active then t:ShowTab() end end
+                        if Nested.CurrentTab then Nested.CurrentTab:ShowTab() end
                     end
                     function ST:HideTab()
                         OldHideTab(ST)
