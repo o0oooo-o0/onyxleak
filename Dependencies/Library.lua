@@ -4666,6 +4666,25 @@ function Library:CreatePrompt(config)
     end
 end
 
+-- Shared autoload store for both ThemeManager and SaveManager: one JSON file instead of
+-- two separate plain-text ones, `{ theme = <name>|"none", config = <name>|"none" }`.
+local AUTOLOAD_FILE = 'Elite Zone/Rivals/AutoLoad.json'
+
+local function ReadAutoloadFile()
+	if isfile and isfile(AUTOLOAD_FILE) then
+		local ok, data = pcall(function() return Services.HttpService:JSONDecode(readfile(AUTOLOAD_FILE)) end)
+		if ok and type(data) == 'table' then return data end
+	end
+	return { theme = 'none', config = 'none' }
+end
+
+local function WriteAutoloadField(field, value)
+	if not writefile then return end
+	local data = ReadAutoloadFile()
+	data[field] = value
+	writefile(AUTOLOAD_FILE, Services.HttpService:JSONEncode(data))
+end
+
 local ThemeManager = {} do
 	ThemeManager.Folder = 'Elite Zone/Rivals'
 
@@ -4743,7 +4762,7 @@ end
 	end
 
 	function ThemeManager:GetAutoloadFile()
-		return self.Folder .. '/Themes/autoload.txt'
+		return AUTOLOAD_FILE
 	end
 
 	function ThemeManager:NormalizeThemeData(data)
@@ -4963,8 +4982,7 @@ end
 		local name = (type(theme) == 'string' and theme ~= '') and theme or self.CurrentThemeName or 'Default'
 		self.CurrentThemeName = name
 		self.CurrentThemeCustom = not self.BuiltInThemes[name]
-		if not writefile then return end
-		writefile(self:GetAutoloadFile(), name)
+		WriteAutoloadField('theme', name)
 	end
 
 	function ThemeManager:BuildThemeSections(gb, includeColorPickers)
@@ -5072,11 +5090,8 @@ end
 	end
 
 	function ThemeManager:ReadAutoloadName()
-		local file = self.Folder .. '/Themes/autoload.txt'
-		if isfile and isfile(file) then
-			local name = readfile(file):match('^%s*(.-)%s*$')
-			if type(name) == 'string' and name ~= '' then return name end
-		end
+		local name = ReadAutoloadFile().theme
+		if type(name) == 'string' and name ~= '' and name ~= 'none' then return name end
 		return 'Default'
 	end
 
@@ -5555,15 +5570,24 @@ function SaveManager.RefreshConfigList(self)
 end
 
 function SaveManager.LoadAutoloadConfig(self)
-    local autoloadFile = 'Elite Zone/Rivals/Settings/autoload.txt'
-    if isfile(autoloadFile) then
-        local name = readfile(autoloadFile)
+    local name = ReadAutoloadFile().config
+    if type(name) == 'string' and name ~= '' and name ~= 'none' then
         local ok, err = self:Load(name)
         if not ok then
             if self.Library then warn('[Elite Zone] Autoload failed: ' .. err) end
             return
         end
     end
+end
+
+function SaveManager.GetAutoloadName(self)
+    local name = ReadAutoloadFile().config
+    if type(name) == 'string' and name ~= '' and name ~= 'none' then return name end
+    return nil
+end
+
+function SaveManager.SetAutoloadName(self, name)
+    WriteAutoloadField('config', name)
 end
 
 function SaveManager.BuildConfigSection(self, tabOrGroupbox)
@@ -5627,7 +5651,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
     end):AddButton('Set as autoload', function()
         local name = Options.SaveManager_ConfigList.Value
         if not name then return self.Library:Notify('No config selected.', 2) end
-        writefile('Elite Zone/Rivals/Settings/autoload.txt', name)
+        WriteAutoloadField('config', name)
         if SaveManager.AutoloadLabel then SaveManager.AutoloadLabel:SetText('Autoload: ' .. name) end
     end)
 
@@ -5661,8 +5685,9 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
     end)
 
     local autoName = '__autosave'
-    if isfile and isfile'Elite Zone/Rivals/Settings/autoload.txt' then
-        autoName = readfile'Elite Zone/Rivals/Settings/autoload.txt'
+    local savedConfig = ReadAutoloadFile().config
+    if type(savedConfig) == 'string' and savedConfig ~= '' and savedConfig ~= 'none' then
+        autoName = savedConfig
     end
     SaveManager.AutoloadLabel = section:AddLabel('Autoload: ' .. autoName, true)
 
