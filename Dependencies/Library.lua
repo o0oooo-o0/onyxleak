@@ -4099,11 +4099,17 @@ function Library:CreateWindow(...)
 
                     -- Nested:AddTab auto-shows the first page it creates (same rule the
                     -- top-level system uses); that must not leak into view before this
-                    -- outer page is ever actually selected.
+                    -- outer page is ever actually selected. HideTab() also clears .Active,
+                    -- so restore it afterward - it still needs to be "the selected one" for
+                    -- when this outer page is shown for the first time.
                     local OldNestedAddTab = Nested.AddTab
                     function Nested:AddTab(SubName)
+                        local WasFirst = next(Nested.Tabs) == nil
                         local Page = OldNestedAddTab(Nested, SubName)
-                        if not ST.Active then Page:HideTab() end
+                        if not ST.Active and WasFirst then
+                            Page:HideTab()
+                            Page.Active = true
+                        end
                         return Page
                     end
 
@@ -4667,23 +4673,34 @@ function Library:CreatePrompt(config)
 end
 
 -- Shared autoload store for both ThemeManager and SaveManager: one JSON file instead of
--- two separate plain-text ones, `{ theme = <name>|"none", config = <name>|"none" }`.
+-- two separate plain-text ones, keyed per game so more games can be added later without
+-- clashing: `{ Rivals = { theme = <name>|"none", config = <name>|"none" }, ... }`.
 local AUTOLOAD_FILE = 'Elite Zone/Cache/AutoLoad.json'
+local AUTOLOAD_GAME = 'Rivals'
 
-local function ReadAutoloadFile()
+local function ReadAutoloadRoot()
 	if isfile and isfile(AUTOLOAD_FILE) then
 		local ok, data = pcall(function() return Services.HttpService:JSONDecode(readfile(AUTOLOAD_FILE)) end)
 		if ok and type(data) == 'table' then return data end
 	end
-	return { theme = 'none', config = 'none' }
+	return {}
+end
+
+local function ReadAutoloadFile()
+	local game = ReadAutoloadRoot()[AUTOLOAD_GAME]
+	if type(game) ~= 'table' then game = { theme = 'none', config = 'none' } end
+	return game
 end
 
 local function WriteAutoloadField(field, value)
 	if not writefile then return end
 	if makefolder and isfolder and not isfolder('Elite Zone/Cache') then makefolder('Elite Zone/Cache') end
-	local data = ReadAutoloadFile()
-	data[field] = value
-	writefile(AUTOLOAD_FILE, Services.HttpService:JSONEncode(data))
+	local root = ReadAutoloadRoot()
+	local game = root[AUTOLOAD_GAME]
+	if type(game) ~= 'table' then game = { theme = 'none', config = 'none' } end
+	game[field] = value
+	root[AUTOLOAD_GAME] = game
+	writefile(AUTOLOAD_FILE, Services.HttpService:JSONEncode(root))
 end
 
 local ThemeManager = {} do
