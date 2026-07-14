@@ -206,6 +206,75 @@ function Library:RefreshTextRegistry()
     end
 end
 
+-- Renames a live element's label (Toggle, Slider, Dropdown, ...) after creation, e.g.
+-- Library:SetText(Options.RBVoidTime, "bait"). Sliders re-render their label from
+-- Element.Info.Text on every Display() call, so those are updated in place and redrawn.
+-- Everything else's label is a plain Instance tracked in Library.TextRegistry (for the
+-- case-style refresh) - update the registry entry too so a later case-style change doesn't
+-- revert the rename. Returns true if a label was found and updated, false otherwise.
+function Library:SetText(Element, NewText)
+    if not Element or NewText == nil then return false end
+    NewText = tostring(NewText)
+
+    if Element.Info and Element.Info.Text ~= nil and Element.Display then
+        Element.Info.Text = NewText
+        pcall(Element.Display, Element)
+        return true
+    end
+
+    local Label = Element.TextLabel or Element.TitleLabel
+    if not Label then return false end
+
+    for _, entry in ipairs(Library.TextRegistry) do
+        if entry.lbl == Label then
+            entry.text = NewText
+            entry.lbl[entry.prop] = Library:ApplyCase(NewText, entry.cat)
+            return true
+        end
+    end
+
+    local ok = pcall(function() Label.Text = NewText end)
+    return ok
+end
+
+-- Destroys a live Toggle/Slider/Dropdown/Input/Button element and deregisters it from
+-- Toggles/Options and every render registry (TextRegistry/SliderRegistry/DropdownRegistry/
+-- KeybindRegistry) so nothing keeps trying to redraw a destroyed Instance. Pass the element
+-- itself (e.g. Options.RBShootAttempts), not its flag name - that's what api:remove_element
+-- does the lookup for. Chained sub-sliders (slider:AddSlider(...)) share their parent's row
+-- layout math (1/Count width), so removing one of a chained group individually is not
+-- supported - only the whole row destroys cleanly. Floating popups a removed element may
+-- have opened (color picker, key picker) are not tracked here and are left as hidden,
+-- harmless orphans in ScreenGui. Returns true if the element was found and destroyed.
+function Library:RemoveElement(Element)
+    if not Element then return false end
+
+    for _, part in ipairs(Element.DestroyParts or {}) do
+        if part then pcall(function() part:Destroy() end) end
+    end
+    if Element.Outer then pcall(function() Element.Outer:Destroy() end) end
+
+    for idx, el in pairs(Toggles) do if el == Element then Toggles[idx] = nil end end
+    for idx, el in pairs(Options) do if el == Element then Options[idx] = nil end end
+
+    local function Pull(list)
+        if not list then return end
+        for i = #list, 1, -1 do if list[i] == Element then table.remove(list, i) end end
+    end
+    Pull(Library.SliderRegistry)
+    Pull(Library.DropdownRegistry)
+    Pull(Library.KeybindRegistry)
+
+    for i = #Library.TextRegistry, 1, -1 do
+        local entry = Library.TextRegistry[i]
+        if entry.lbl == Element.TextLabel or entry.lbl == Element.TitleLabel then
+            table.remove(Library.TextRegistry, i)
+        end
+    end
+
+    return true
+end
+
 function Library:SafeCallback(f, ...)
     if not f then return end
     if not Library.NotifyOnError then return f(...) end
@@ -2235,6 +2304,8 @@ do
 
         function Textbox:OnChanged(fn) Textbox.Changed = fn; fn(Textbox.Value) end
         Groupbox:AddBlank(5); Groupbox:Resize()
+        Textbox.TitleLabel = _inputLbl
+        Textbox.DestroyParts = { _inputLbl, Outer }
         Options[Idx] = Textbox
         return Textbox
     end
@@ -2307,6 +2378,7 @@ do
         Toggle:Display()
         Groupbox:AddBlank(Info.BlankSize or 7); Groupbox:Resize()
         Toggle.TextLabel = TLabel; Toggle.Container = Groupbox.Container
+        Toggle.DestroyParts = { TOuter, TLabel, HitRegion }
         setmetatable(Toggle, BaseAddons)
         Toggles[Idx] = Toggle
         Library:UpdateDependencyBoxes()
@@ -2450,6 +2522,7 @@ do
         if not Info.Compact then
             local _ddLbl = Library:CreateLabel({ PreserveCase = true; Size=UDim2.new(1,0,0,(10)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Dropdowns"); TextXAlignment=Enum.TextXAlignment.Left; TextYAlignment=Enum.TextYAlignment.Bottom; ZIndex=5; Parent=Groupbox.Container })
             Library:TrackLabel(_ddLbl, Info.Text or "", "Dropdowns")
+            DropdownData.TitleLabel = _ddLbl
             Groupbox:AddBlank(3)
         end
         for _, el in ipairs(Groupbox.Container:GetChildren()) do
@@ -2669,6 +2742,7 @@ do
         if #defaults > 0 then DropdownData:SetValues() end
         DropdownData:Display()
         Groupbox:AddBlank(Info.BlankSize or 5); Groupbox:Resize()
+        DropdownData.DestroyParts = { DropdownData.TitleLabel, DropdownOuter, Blocker, ListOuter }
         Options[Idx] = DropdownData
         return DropdownData
     end
@@ -3824,8 +3898,14 @@ function Library:CreateWindow(...)
             LeftSide.Visible  = false
             RightSide.Visible = false
 
+            function SubTabSystem:GetTab(SubName)
+                return SubTabSystem.Tabs[tostring(SubName or "")]
+            end
+
             function SubTabSystem:AddTab(SubName)
                 Library:BuildTick()
+                local Existing = SubTabSystem.Tabs[tostring(SubName or "")]
+                if Existing then return Existing end
                 local ST = { Groupboxes={}; Tabboxes={} }
                 local subOrigName    = tostring(SubName or "")
                 local subDisplayName = Library:ApplyCase(subOrigName, "SubTabs")
