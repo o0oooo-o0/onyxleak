@@ -753,6 +753,41 @@ local function HandleDrag(Frame, onMove, onEnd, IgnoreOpenedFrames)
     end)
 end
 
+Library.NotifyConfig = {
+    ClipDescendants  = false;
+    MaxHeight        = (200);
+    PosX             = 50;
+    PosY             = 60;
+    Transparency     = 25;
+    Alignment        = "Center";
+    BarSide          = "Bottom";
+    SortOrder        = "Time";
+}
+Library.NotifyCounter = 0
+
+function Library:ConfigureNotifications(Cfg)
+    local C = Library.NotifyConfig
+    for k, v in next, Cfg do C[k] = v end
+
+    local AnchorX = C.Alignment == "Left" and 0 or (C.Alignment == "Right" and 1 or 0.5)
+    local AnchorY = C.BarSide == "Top" and 0 or 1
+    local VAlign  = C.BarSide == "Top" and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
+    local HAlign  = C.Alignment == "Left" and Enum.HorizontalAlignment.Left or (C.Alignment == "Right" and Enum.HorizontalAlignment.Right or Enum.HorizontalAlignment.Center)
+
+    Library.NotificationArea.AnchorPoint        = Vector2.new(AnchorX, AnchorY)
+    Library.NotificationArea.Position           = UDim2.new(C.PosX / 100, 0, C.PosY / 100, 0)
+    Library.NotificationArea.ClipsDescendants   = C.ClipDescendants
+    Library.NotificationArea.Size               = C.ClipDescendants
+        and UDim2.new(0, (320), 0, C.MaxHeight)
+        or  UDim2.new(0, (320), 1, -(50))
+
+    local Layout = Library.NotificationArea:FindFirstChildOfClass('UIListLayout')
+    if Layout then
+        Layout.VerticalAlignment    = VAlign
+        Layout.HorizontalAlignment  = HAlign
+    end
+end
+
 do
     Library.NotificationArea = Library:Create('Frame', {
         BackgroundTransparency  = 1;
@@ -1050,41 +1085,6 @@ function Library:SetWatermark(Text)
     Library.Watermark.Size = UDim2.fromOffset(textWidth + (15), (20))
     Library.WatermarkText.Text = Text
     Library:SetWatermarkVisibility(true)
-end
-
-Library.NotifyConfig = {
-    ClipDescendants  = false;
-    MaxHeight        = (200);
-    PosX             = 50;
-    PosY             = 60;
-    Transparency     = 25;
-    Alignment        = "Center";
-    BarSide          = "Bottom";
-    SortOrder        = "Time";
-}
-Library.NotifyCounter = 0
-
-function Library:ConfigureNotifications(Cfg)
-    local C = Library.NotifyConfig
-    for k, v in next, Cfg do C[k] = v end
-
-    local AnchorX = C.Alignment == "Left" and 0 or (C.Alignment == "Right" and 1 or 0.5)
-    local AnchorY = C.BarSide == "Top" and 0 or 1
-    local VAlign  = C.BarSide == "Top" and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
-    local HAlign  = C.Alignment == "Left" and Enum.HorizontalAlignment.Left or (C.Alignment == "Right" and Enum.HorizontalAlignment.Right or Enum.HorizontalAlignment.Center)
-
-    Library.NotificationArea.AnchorPoint        = Vector2.new(AnchorX, AnchorY)
-    Library.NotificationArea.Position           = UDim2.new(C.PosX / 100, 0, C.PosY / 100, 0)
-    Library.NotificationArea.ClipsDescendants   = C.ClipDescendants
-    Library.NotificationArea.Size               = C.ClipDescendants
-        and UDim2.new(0, (320), 0, C.MaxHeight)
-        or  UDim2.new(0, (320), 1, -(50))
-
-    local Layout = Library.NotificationArea:FindFirstChildOfClass('UIListLayout')
-    if Layout then
-        Layout.VerticalAlignment    = VAlign
-        Layout.HorizontalAlignment  = HAlign
-    end
 end
 
 function Library:Notify(Text, Time)
