@@ -767,23 +767,7 @@ do
         SortOrder      = Enum.SortOrder.LayoutOrder;
         Parent         = Library.NotificationArea;
     })
-
-    Library.KillNotificationArea = Library:Create('Frame', {
-        BackgroundTransparency  = 1;
-        AnchorPoint             = Vector2.new(0.5, 1);
-        Position                = UDim2.new(0.5, 0, 0.98, 0);
-        Size                    = UDim2.new(0, (420), 0, (180));
-        ZIndex                  = 100;
-        Parent                  = ScreenGui;
-    })
-    Library:Create('UIListLayout', {
-        Padding              = UDim.new(0, (4));
-        FillDirection        = Enum.FillDirection.Vertical;
-        HorizontalAlignment  = Enum.HorizontalAlignment.Center;
-        VerticalAlignment    = Enum.VerticalAlignment.Bottom;
-        SortOrder            = Enum.SortOrder.LayoutOrder;
-        Parent               = Library.KillNotificationArea;
-    })
+    Library:ConfigureNotifications({})
 
     local WindowMoverOuter = Library:Create('Frame', {
         BorderColor3  = Color3.new(0,0,0);
@@ -1068,20 +1052,58 @@ function Library:SetWatermark(Text)
     Library:SetWatermarkVisibility(true)
 end
 
+Library.NotifyConfig = {
+    ClipDescendants  = false;
+    MaxHeight        = (200);
+    PosX             = 50;
+    PosY             = 60;
+    Transparency     = 25;
+    Alignment        = "Center";
+    BarSide          = "Bottom";
+    SortOrder        = "Time";
+}
+Library.NotifyCounter = 0
+
+function Library:ConfigureNotifications(Cfg)
+    local C = Library.NotifyConfig
+    for k, v in next, Cfg do C[k] = v end
+
+    local AnchorX = C.Alignment == "Left" and 0 or (C.Alignment == "Right" and 1 or 0.5)
+    local AnchorY = C.BarSide == "Top" and 0 or 1
+    local VAlign  = C.BarSide == "Top" and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
+    local HAlign  = C.Alignment == "Left" and Enum.HorizontalAlignment.Left or (C.Alignment == "Right" and Enum.HorizontalAlignment.Right or Enum.HorizontalAlignment.Center)
+
+    Library.NotificationArea.AnchorPoint        = Vector2.new(AnchorX, AnchorY)
+    Library.NotificationArea.Position           = UDim2.new(C.PosX / 100, 0, C.PosY / 100, 0)
+    Library.NotificationArea.ClipsDescendants   = C.ClipDescendants
+    Library.NotificationArea.Size               = C.ClipDescendants
+        and UDim2.new(0, (320), 0, C.MaxHeight)
+        or  UDim2.new(0, (320), 1, -(50))
+
+    local Layout = Library.NotificationArea:FindFirstChildOfClass('UIListLayout')
+    if Layout then
+        Layout.VerticalAlignment    = VAlign
+        Layout.HorizontalAlignment  = HAlign
+    end
+end
+
 function Library:Notify(Text, Time)
     if not Text or Text == "" then return end
     Text = '[Elite Zone] ' .. Text
     local xw = Library:GetTextBounds(Text, Library.Font, (14)) or 200
     local H   = (22)
+    Library.NotifyCounter = Library.NotifyCounter + 1
     local Outer = Library:Create('Frame', {
         BorderColor3      = Color3.new(0,0,0);
         Size              = UDim2.fromOffset(0, H);
         ClipsDescendants  = true;
+        LayoutOrder       = Library.NotifyConfig.SortOrder == "Text Length" and #Text or Library.NotifyCounter;
         ZIndex            = 100;
         Parent            = Library.NotificationArea;
     })
     local Inner = Library:Create('Frame', {
         BackgroundColor3  = Library.MainColor;
+        BackgroundTransparency = (Library.NotifyConfig.Transparency or 0) / 100;
         BorderColor3      = Library.OutlineColor;
         BorderMode        = Enum.BorderMode.Inset;
         Size              = UDim2.new(1,0,1,0);
@@ -1095,39 +1117,6 @@ function Library:Notify(Text, Time)
     Library:CreateLabel({ PreserveCase = true; Position = UDim2.new(0, (8), 0, 0); Size = UDim2.new(1, -(8), 1, 0); Text = Text; TextXAlignment = Enum.TextXAlignment.Left; TextSize = (13); ZIndex = 103; Parent = GradientFrame })
     Library:Create('Frame', { BackgroundColor3 = Library.AccentColor; BorderSizePixel = 0; Position = UDim2.new(0,-1,0,-1); Size = UDim2.new(0, (3), 1, 2); ZIndex = 104; Parent = Outer })
     Library:AddToRegistry(Outer:GetChildren()[#Outer:GetChildren()], { BackgroundColor3 = 'AccentColor' }, true)
-    pcall(Outer.TweenSize, Outer, UDim2.fromOffset(xw + (16), H), 'Out', 'Quad', 0.35, true)
-    task.spawn(function()
-        task.wait(Time or 5)
-        pcall(Outer.TweenSize, Outer, UDim2.fromOffset(0, H), 'Out', 'Quad', 0.35, true)
-        task.wait(0.4)
-        Outer:Destroy()
-    end)
-end
-
-function Library:KillNotify(Text, Time)
-    if not Text or Text == "" then return end
-    local xw = Library:GetTextBounds(Text, Library.Font, (14)) or 200
-    local H   = (22)
-    local Outer = Library:Create('Frame', {
-        BorderColor3      = Color3.new(0,0,0);
-        Size              = UDim2.fromOffset(0, H);
-        ClipsDescendants  = true;
-        ZIndex            = 100;
-        Parent            = Library.KillNotificationArea or Library.NotificationArea;
-    })
-    local Inner = Library:Create('Frame', {
-        BackgroundColor3  = Library.MainColor;
-        BorderColor3      = Library.OutlineColor;
-        BorderMode        = Enum.BorderMode.Inset;
-        Size              = UDim2.new(1,0,1,0);
-        ZIndex            = 101;
-        Parent            = Outer;
-    })
-    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' }, true)
-    local GradientFrame = Library:Create('Frame', { BackgroundColor3 = Color3.new(1,1,1); BorderSizePixel = 0; Position = UDim2.new(0,1,0,1); Size = UDim2.new(1,-2,1,-2); ZIndex = 102; Parent = Inner })
-    Library:Create('UIGradient', { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)), ColorSequenceKeypoint.new(1, Library.MainColor) }); Rotation = -90; Parent = GradientFrame })
-    Library:CreateLabel({ PreserveCase = true; Position = UDim2.new(0, (8), 0, 0); Size = UDim2.new(1, -(8), 1, 0); Text = Text; TextXAlignment = Enum.TextXAlignment.Left; TextSize = (13); ZIndex = 103; Parent = GradientFrame })
-    Library:Create('Frame', { BackgroundColor3 = Color3.fromRGB(220, 50, 50); BorderSizePixel = 0; Position = UDim2.new(0,-1,0,-1); Size = UDim2.new(0, (3), 1, 2); ZIndex = 104; Parent = Outer })
     pcall(Outer.TweenSize, Outer, UDim2.fromOffset(xw + (16), H), 'Out', 'Quad', 0.35, true)
     task.spawn(function()
         task.wait(Time or 5)
