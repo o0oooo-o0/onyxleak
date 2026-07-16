@@ -1089,9 +1089,9 @@ end
 
 function Library:Notify(Text, Time)
     if not Text or Text == "" then return end
-    Text = '[Elite Zone] ' .. Text
     local xw = Library:GetTextBounds(Text, Library.Font, (14)) or 200
     local H   = (22)
+    local NotifyTransparency = (Library.NotifyConfig.Transparency or 0) / 100
     Library.NotifyCounter = Library.NotifyCounter + 1
     local Outer = Library:Create('Frame', {
         BorderColor3      = Color3.new(0,0,0);
@@ -1103,7 +1103,7 @@ function Library:Notify(Text, Time)
     })
     local Inner = Library:Create('Frame', {
         BackgroundColor3  = Library.MainColor;
-        BackgroundTransparency = (Library.NotifyConfig.Transparency or 0) / 100;
+        BackgroundTransparency = NotifyTransparency;
         BorderColor3      = Library.OutlineColor;
         BorderMode        = Enum.BorderMode.Inset;
         Size              = UDim2.new(1,0,1,0);
@@ -1111,11 +1111,19 @@ function Library:Notify(Text, Time)
         Parent            = Outer;
     })
     Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' }, true)
-    local GradientFrame = Library:Create('Frame', { BackgroundColor3 = Color3.new(1,1,1); BorderSizePixel = 0; Position = UDim2.new(0,1,0,1); Size = UDim2.new(1,-2,1,-2); ZIndex = 102; Parent = Inner })
+    local GradientFrame = Library:Create('Frame', { BackgroundColor3 = Color3.new(1,1,1); BackgroundTransparency = NotifyTransparency; BorderSizePixel = 0; Position = UDim2.new(0,1,0,1); Size = UDim2.new(1,-2,1,-2); ZIndex = 102; Parent = Inner })
     local G  = Library:Create('UIGradient', { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)), ColorSequenceKeypoint.new(1, Library.MainColor) }); Rotation = -90; Parent = GradientFrame })
     Library:AddToRegistry(G, { Color = function() return ColorSequence.new({ ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)), ColorSequenceKeypoint.new(1, Library.MainColor) }) end })
     Library:CreateLabel({ PreserveCase = true; Position = UDim2.new(0, (8), 0, 0); Size = UDim2.new(1, -(8), 1, 0); Text = Text; TextXAlignment = Enum.TextXAlignment.Left; TextSize = (13); ZIndex = 103; Parent = GradientFrame })
-    Library:Create('Frame', { BackgroundColor3 = Library.AccentColor; BorderSizePixel = 0; Position = UDim2.new(0,-1,0,-1); Size = UDim2.new(0, (3), 1, 2); ZIndex = 104; Parent = Outer })
+    local BarOnTop = Library.NotifyConfig.BarSide == "Top"
+    Library:Create('Frame', {
+        BackgroundColor3  = Library.AccentColor;
+        BorderSizePixel   = 0;
+        Position          = BarOnTop and UDim2.new(0,-1,0,-1) or UDim2.new(0,-1,1,-2);
+        Size              = UDim2.new(1, 2, 0, (3));
+        ZIndex            = 104;
+        Parent            = Outer;
+    })
     Library:AddToRegistry(Outer:GetChildren()[#Outer:GetChildren()], { BackgroundColor3 = 'AccentColor' }, true)
     pcall(Outer.TweenSize, Outer, UDim2.fromOffset(xw + (16), H), 'Out', 'Quad', 0.35, true)
     task.spawn(function()
