@@ -1111,10 +1111,7 @@ function Library:Notify(Text, Time)
         Parent            = Outer;
     })
     Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' }, true)
-    local GradientFrame = Library:Create('Frame', { BackgroundColor3 = Color3.new(1,1,1); BackgroundTransparency = NotifyTransparency; BorderSizePixel = 0; Position = UDim2.new(0,1,0,1); Size = UDim2.new(1,-2,1,-2); ZIndex = 102; Parent = Inner })
-    local G  = Library:Create('UIGradient', { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)), ColorSequenceKeypoint.new(1, Library.MainColor) }); Rotation = -90; Parent = GradientFrame })
-    Library:AddToRegistry(G, { Color = function() return ColorSequence.new({ ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)), ColorSequenceKeypoint.new(1, Library.MainColor) }) end })
-    Library:CreateLabel({ PreserveCase = true; Position = UDim2.new(0, (8), 0, 0); Size = UDim2.new(1, -(8), 1, 0); Text = Text; TextXAlignment = Enum.TextXAlignment.Left; TextSize = (13); ZIndex = 103; Parent = GradientFrame })
+    Library:CreateLabel({ PreserveCase = true; Position = UDim2.new(0, (8), 0, 0); Size = UDim2.new(1, -(8), 1, 0); Text = Text; TextXAlignment = Enum.TextXAlignment.Left; TextSize = (13); ZIndex = 103; Parent = Inner })
     local BarOnTop = Library.NotifyConfig.BarSide == "Top"
     Library:Create('Frame', {
         BackgroundColor3  = Library.AccentColor;
