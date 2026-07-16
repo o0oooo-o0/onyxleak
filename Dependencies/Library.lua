@@ -4801,6 +4801,10 @@ end
 			out.caseSettings = data.caseSettings
 		end
 
+		if type(data.notifications) == 'table' then
+			out.notifications = data.notifications
+		end
+
 		local backgroundOpacity = data.backgroundOpacity or data.BackgroundOpacity
 		if type(backgroundOpacity) == 'number' then
 			out.backgroundOpacity = backgroundOpacity
@@ -4851,6 +4855,19 @@ end
 			if typeof(value) == 'Color3' then
 				state.colors[field] = value:ToHex()
 			end
+		end
+
+		if Options and Options.NotifyTransparency then
+			state.notifications = {
+				ClipDescendants = Toggles.NotifyClipDescendants and Toggles.NotifyClipDescendants.Value,
+				MaxHeight       = Options.NotifyMaxHeight and Options.NotifyMaxHeight.Value,
+				PosX            = Options.NotifyPosX and Options.NotifyPosX.Value,
+				PosY            = Options.NotifyPosY and Options.NotifyPosY.Value,
+				Transparency    = Options.NotifyTransparency and Options.NotifyTransparency.Value,
+				Alignment       = Options.NotifyAlignment and Options.NotifyAlignment.Value,
+				BarSide         = Options.NotifyBarSide and Options.NotifyBarSide.Value,
+				SortOrder       = Options.NotifySortOrder and Options.NotifySortOrder.Value,
+			}
 		end
 
 		return state
@@ -4921,6 +4938,18 @@ end
 		end
 		if data.backgroundFrame ~= nil and Toggles.BackgroundFrame then
 			Toggles.BackgroundFrame:SetValue(data.backgroundFrame)
+		end
+
+		if data.notifications then
+			local n = data.notifications
+			if n.ClipDescendants ~= nil and Toggles.NotifyClipDescendants then Toggles.NotifyClipDescendants:SetValue(n.ClipDescendants) end
+			if n.MaxHeight ~= nil    and Options.NotifyMaxHeight    then Options.NotifyMaxHeight:SetValue(n.MaxHeight) end
+			if n.PosX ~= nil         and Options.NotifyPosX         then Options.NotifyPosX:SetValue(n.PosX) end
+			if n.PosY ~= nil         and Options.NotifyPosY         then Options.NotifyPosY:SetValue(n.PosY) end
+			if n.Transparency ~= nil and Options.NotifyTransparency then Options.NotifyTransparency:SetValue(n.Transparency) end
+			if n.Alignment ~= nil    and Options.NotifyAlignment    then Options.NotifyAlignment:SetValue(n.Alignment) end
+			if n.BarSide ~= nil      and Options.NotifyBarSide      then Options.NotifyBarSide:SetValue(n.BarSide) end
+			if n.SortOrder ~= nil    and Options.NotifySortOrder    then Options.NotifySortOrder:SetValue(n.SortOrder) end
 		end
 
 		self.ApplyingTheme = nil
@@ -5178,6 +5207,19 @@ end
 		theme.blurOpacity       = tonumber(Options.BlurOpacity and Options.BlurOpacity.Value) or 75
 		theme.backgroundBlur    = Toggles.BackgroundBlur and Toggles.BackgroundBlur.Value
 		theme.backgroundFrame   = Toggles.BackgroundFrame and Toggles.BackgroundFrame.Value
+
+		if Options.NotifyTransparency then
+			theme.notifications = {
+				ClipDescendants = Toggles.NotifyClipDescendants and Toggles.NotifyClipDescendants.Value,
+				MaxHeight       = Options.NotifyMaxHeight and Options.NotifyMaxHeight.Value,
+				PosX            = Options.NotifyPosX and Options.NotifyPosX.Value,
+				PosY            = Options.NotifyPosY and Options.NotifyPosY.Value,
+				Transparency    = Options.NotifyTransparency and Options.NotifyTransparency.Value,
+				Alignment       = Options.NotifyAlignment and Options.NotifyAlignment.Value,
+				BarSide         = Options.NotifyBarSide and Options.NotifyBarSide.Value,
+				SortOrder       = Options.NotifySortOrder and Options.NotifySortOrder.Value,
+			}
+		end
 
 		local ok, encoded = pcall(Services.HttpService.JSONEncode, Services.HttpService, theme)
         if not ok then warn('[Elite Zone] Failed to encode data.') return false end
