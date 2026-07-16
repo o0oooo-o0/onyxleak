@@ -1094,23 +1094,30 @@ function Library:Notify(Text, Time)
     local NotifyTransparency = (Library.NotifyConfig.Transparency or 0) / 100
     Library.NotifyCounter = Library.NotifyCounter + 1
     local Outer = Library:Create('Frame', {
-        BorderColor3      = Color3.new(0,0,0);
-        Size              = UDim2.fromOffset(0, H);
-        ClipsDescendants  = true;
-        LayoutOrder       = Library.NotifyConfig.SortOrder == "Text Length" and #Text or Library.NotifyCounter;
-        ZIndex            = 100;
-        Parent            = Library.NotificationArea;
+        BackgroundTransparency  = 1;
+        BorderSizePixel         = 0;
+        Size                    = UDim2.fromOffset(0, H);
+        ClipsDescendants        = true;
+        LayoutOrder             = Library.NotifyConfig.SortOrder == "Text Length" and #Text or Library.NotifyCounter;
+        ZIndex                  = 100;
+        Parent                  = Library.NotificationArea;
     })
     local Inner = Library:Create('Frame', {
         BackgroundColor3  = Library.MainColor;
         BackgroundTransparency = NotifyTransparency;
-        BorderColor3      = Library.OutlineColor;
-        BorderMode        = Enum.BorderMode.Inset;
+        BorderSizePixel   = 0;
         Size              = UDim2.new(1,0,1,0);
         ZIndex            = 101;
         Parent            = Outer;
     })
-    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' }, true)
+    Library:AddToRegistry(Inner, { BackgroundColor3 = 'MainColor' })
+    local InnerStroke = Library:Create('UIStroke', {
+        Color       = Library.OutlineColor;
+        Transparency = NotifyTransparency;
+        Thickness   = 1;
+        Parent      = Inner;
+    })
+    Library:AddToRegistry(InnerStroke, { Color = 'OutlineColor' })
     local GradientFrame = Library:Create('Frame', { BackgroundColor3 = Library.MainColor; BackgroundTransparency = NotifyTransparency; BorderSizePixel = 0; Position = UDim2.new(0,1,0,1); Size = UDim2.new(1,-2,1,-2); ZIndex = 102; Parent = Inner })
     Library:AddToRegistry(GradientFrame, { BackgroundColor3 = 'MainColor' })
     local G  = Library:Create('UIGradient', { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Library:GetDarkerColor(Library.MainColor)), ColorSequenceKeypoint.new(1, Library.MainColor) }); Rotation = -90; Parent = GradientFrame })
