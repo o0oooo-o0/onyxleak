@@ -249,6 +249,7 @@ function Library:RemoveElement(Element)
     Pull(Library.SliderRegistry)
     Pull(Library.DropdownRegistry)
     Pull(Library.KeybindRegistry)
+    Pull(Library.DependencyBoxes)
 
     for i = #Library.TextRegistry, 1, -1 do
         local entry = Library.TextRegistry[i]
@@ -1928,7 +1929,7 @@ do
     local Funcs = {}
 
     function Funcs:AddBlank(sz)
-        Library:Create('Frame', { BackgroundTransparency=1; Size=UDim2.new(1,0,0,(sz)); ZIndex=1; Parent=self.Container })
+        return Library:Create('Frame', { BackgroundTransparency=1; Size=UDim2.new(1,0,0,(sz)); ZIndex=1; Parent=self.Container })
     end
 
     function Funcs:AddLabel(Text, DoesWrap)
@@ -2361,9 +2362,9 @@ do
             Library:AddToRegistry(TLabel, { TextColor3='RiskColor' })
         end
         Toggle:Display()
-        Groupbox:AddBlank(Info.BlankSize or 7); Groupbox:Resize()
+        local ToggleBlank = Groupbox:AddBlank(Info.BlankSize or 7); Groupbox:Resize()
         Toggle.TextLabel = TLabel; Toggle.Container = Groupbox.Container
-        Toggle.DestroyParts = { TOuter, TLabel, HitRegion }
+        Toggle.DestroyParts = { TOuter, TLabel, HitRegion, ToggleBlank }
         setmetatable(Toggle, BaseAddons)
         Toggles[Idx] = Toggle
         Library:UpdateDependencyBoxes()
@@ -2481,7 +2482,8 @@ do
         end
         Chain(Slider)
 
-        Groupbox:AddBlank(Info.BlankSize or 6); Groupbox:Resize()
+        local SliderBlank = Groupbox:AddBlank(Info.BlankSize or 6); Groupbox:Resize()
+        Slider.DestroyParts = { SliderBlank }
         Options[Idx] = Slider
         return Slider
     end
@@ -2497,12 +2499,13 @@ do
         local DropdownData = { Values=Info.Values; Value=Info.Multi and {}; Multi=Info.Multi; Type='Dropdown'; SpecialType=Info.SpecialType; Callback=Info.Callback or function() end }
         local Groupbox = self
         local RelOff = 0
+        local DropdownBlanks = {}
 
         if not Info.Compact then
             local _ddLbl = Library:CreateLabel({ PreserveCase = true; Size=UDim2.new(1,0,0,(10)); TextSize=(14); Text=Library:ApplyCase(Info.Text or "", "Dropdowns"); TextXAlignment=Enum.TextXAlignment.Left; TextYAlignment=Enum.TextYAlignment.Bottom; ZIndex=5; Parent=Groupbox.Container })
             Library:TrackLabel(_ddLbl, Info.Text or "", "Dropdowns")
             DropdownData.TitleLabel = _ddLbl
-            Groupbox:AddBlank(3)
+            table.insert(DropdownBlanks, Groupbox:AddBlank(3))
         end
         for _, el in ipairs(Groupbox.Container:GetChildren()) do
             if not el:IsA('UIListLayout') then RelOff = RelOff + el.Size.Y.Offset end
@@ -2720,8 +2723,8 @@ do
         end
         if #defaults > 0 then DropdownData:SetValues() end
         DropdownData:Display()
-        Groupbox:AddBlank(Info.BlankSize or 5); Groupbox:Resize()
-        DropdownData.DestroyParts = { DropdownData.TitleLabel, DropdownOuter, Blocker, ListOuter }
+        table.insert(DropdownBlanks, Groupbox:AddBlank(Info.BlankSize or 5)); Groupbox:Resize()
+        DropdownData.DestroyParts = { DropdownData.TitleLabel, DropdownOuter, Blocker, ListOuter, table.unpack(DropdownBlanks) }
         Options[Idx] = DropdownData
         return DropdownData
     end
@@ -2753,6 +2756,7 @@ do
             Depbox.Dependencies = deps; Depbox:Update()
         end
         Depbox.Container = Inner
+        Depbox.Outer      = Holder
         setmetatable(Depbox, BaseGroupbox)
         table.insert(Library.DependencyBoxes, Depbox)
         return Depbox
