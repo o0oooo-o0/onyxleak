@@ -4739,7 +4739,6 @@ ThemeManager.FontMap = {
     Fredoka      = Enum.Font.FredokaOne,
     Cartoon      = Enum.Font.Cartoon,
     ProggyClean  = 'custom',
-    Tahoma       = Enum.Font.Tahoma,
 }
 ThemeManager.BuiltInThemes = {
     ['Default']      = { 1,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"858586","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
