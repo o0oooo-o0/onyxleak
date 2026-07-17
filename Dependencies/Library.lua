@@ -3060,7 +3060,7 @@ function Library:CreateWindow(...)
         Library.Backdrop = Backdrop
 
         local EzLogoHolder = Instance.new("Frame")
-        EzLogoHolder.Name                   = "EzLogoHolder"
+        EzLogoHolder.Name                   = "Holder"
         EzLogoHolder.AnchorPoint            = Vector2.new(0.5, 0.5)
         EzLogoHolder.Position               = UDim2.fromScale(0.5, 0.5)
         EzLogoHolder.Size                   = UDim2.fromOffset(600, 600)
@@ -3089,7 +3089,7 @@ function Library:CreateWindow(...)
         end)
         if okLogo and logoObjs and logoObjs[1] then
             EzLogoModel = logoObjs[1]
-            EzLogoModel.Name = "EzLogoModel"
+            EzLogoModel.Name = "Model"
             if not EzLogoModel.PrimaryPart then
                 EzLogoModel.PrimaryPart = EzLogoModel:FindFirstChildWhichIsA("BasePart")
             end
