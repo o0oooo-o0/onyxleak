@@ -5608,6 +5608,7 @@ function SaveManager.IgnoreThemeSettings(self)
         'CaseTabs', 'CaseSubTabs', 'CaseGroupboxes', 'CaseToggles', 'CaseButtons',
         'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
         'BackgroundOpacity', 'BlurOpacity', 'BackgroundBlur', 'BackgroundFrame',
+        'EzLogo', 'EzLogoTransparency', 'EzLogoPosX', 'EzLogoPosY', 'EzLogoMaterial',
     }
 end
 
