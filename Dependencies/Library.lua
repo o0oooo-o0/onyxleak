@@ -13,8 +13,8 @@ local ScreenGui  = Instance.new('ScreenGui')
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.DisplayOrder = 2147483647
-ScreenGui.Name = ""
-ScreenGui.Parent = Services.CoreGui
+ScreenGui.Name = "ScreenGUI"
+ScreenGui.Parent = (gethui and gethui()) or Services.CoreGui
 
 local IsTouch  = (rawget(_G, "mobiledebug") == true) or (Services.UserInputService.TouchEnabled and not Services.UserInputService.MouseEnabled)
 
@@ -289,11 +289,7 @@ end
 function Library:SafeCallback(f, ...)
     if not f then return end
     if not Library.NotifyOnError then return f(...) end
-    local ok, err = pcall(f, ...)
-    if not ok then
-        local _, i = err:find(':%d+: ')
-        Library:Notify(i and err:sub(i+1) or err, 3)
-    end
+    pcall(f, ...)
 end
 
 function Library:AttemptSave()
@@ -493,7 +489,7 @@ function Library:Unload()
     Library.KeybindRegistry = {}
     if Library.OnUnload then Library.OnUnload() end
     if not IsTouch then
-        local ezBlur = Services.Lighting:FindFirstChild("EliteZone_Blur")
+        local ezBlur = Services.Lighting:FindFirstChild("Blur")
         if ezBlur then ezBlur:Destroy() end
     end
     ScreenGui:Destroy()
@@ -3026,17 +3022,30 @@ function Library:CreateWindow(...)
 
     local Backdrop
     if not IsTouch then
-        local playerGui = Services.Players.LocalPlayer:WaitForChild("PlayerGui")
-        local old = playerGui:FindFirstChild("EliteZone_BlackFilter")
-        if old then old:Destroy() end
+        local parent_gui
+        if gethui then
+            pcall(function() parent_gui = gethui() end)
+        end
+        if not parent_gui then
+            pcall(function() parent_gui = game:GetService("CoreGui") end)
+        end
+        if not parent_gui then
+            pcall(function() parent_gui = Services.Players.LocalPlayer:WaitForChild("PlayerGui") end)
+        end
+
+        for _, inst in ipairs(parent_gui:GetChildren()) do
+            if inst:IsA("ScreenGui") and inst.Name == "ScreenGUI" and inst:FindFirstChild("Overlay") then
+                inst:Destroy()
+            end
+        end
 
         local backdropGui = Instance.new("ScreenGui")
-        backdropGui.Name             = "EliteZone_BlackFilter"
+        backdropGui.Name             = "ScreenGUI"
         backdropGui.IgnoreGuiInset   = true
         backdropGui.ResetOnSpawn     = false
         backdropGui.DisplayOrder     = 2147483647
         backdropGui.ZIndexBehavior   = Enum.ZIndexBehavior.Sibling
-        backdropGui.Parent          = playerGui
+        backdropGui.Parent          = parent_gui
 
         Backdrop = Instance.new("Frame")
         Backdrop.Name                   = "Overlay"
@@ -4206,8 +4215,8 @@ function Library:CreateWindow(...)
 
     local Blur
     if not IsTouch then
-        Blur = Services.Lighting:FindFirstChild("EliteZone_Blur") or Library:Create('BlurEffect', {
-            Name    = "EliteZone_Blur",
+        Blur = Services.Lighting:FindFirstChild("Blur") or Library:Create('BlurEffect', {
+            Name    = "Blur",
             Size    = 30,
             Enabled = false,
             Parent  = Services.Lighting
@@ -4673,9 +4682,9 @@ function Library:CreatePrompt(config)
             if config.Mode == "Export" then
                 if setclipboard then
                     setclipboard(textBox.Text)
-                    Library:Notify("Copied to clipboard!.", 2)
+                    Library:Notify("Copied to clipboard.", 2)
                 else
-                    Library:Notify("Executor does not support setclipboard!.", 3)
+                    Library:Notify("Executor does not support setclipboard.", 3)
                 end
             else
                 if config.Callback then
@@ -4906,7 +4915,7 @@ end
 		local isBuiltIn = builtInTheme ~= nil and customThemeData == nil
 		local data = self:NormalizeThemeData(customThemeData or (builtInTheme and builtInTheme[2]))
 
-		if not data then return end
+		if not data then return false end
 
 		self.CurrentThemeName = theme
 		self.CurrentThemeCustom = not isBuiltIn
@@ -4981,6 +4990,7 @@ end
 
 		self.ApplyingTheme = nil
 		self:ThemeUpdate()
+		return true
 	end
 
 	function ThemeManager:ThemeUpdate()
@@ -5094,7 +5104,11 @@ end
 			Options.ThemeManager_CustomThemeList:SetValue(n)
 		end):AddButton('Load', function()
 			local val = Options.ThemeManager_CustomThemeList.Value
-			if val and val ~= '' then self:ApplyTheme(val) end
+			if val and val ~= '' then
+				if not self:ApplyTheme(val) then
+					self.Library:Notify('Failed to load theme.', 3)
+				end
+			end
 		end)
 		gb:AddButton('Overwrite', function()
 			local name = Options.ThemeManager_CustomThemeList.Value
@@ -5103,8 +5117,9 @@ end
 		end):AddButton('Delete', function()
 			local name = Options.ThemeManager_CustomThemeList.Value
 			if not name or name == '' then return self.Library:Notify('No theme selected.', 2) end
+			if not delfile or not isfile then return self.Library:Notify('Unsupported executor.', 2) end
 			local path = self.Folder .. '/Themes/' .. name .. '.json'
-			if not isfile(path) then return warn('[Elite Zone] Theme file not found.', 2) end
+			if not isfile(path) then return self.Library:Notify('Theme not found.', 2) end
 			delfile(path)
 			local list = self:ReloadCustomThemes()
 			Options.ThemeManager_CustomThemeList.Values = list
@@ -5135,6 +5150,7 @@ end
 					if name:gsub(' ', '') == '' then
 						return self.Library:Notify('Name cannot be empty.', 2)
 					end
+					if not writefile then return self.Library:Notify('Unsupported executor.', 2) end
 					local ok = pcall(Services.HttpService.JSONDecode, Services.HttpService, text)
 					if not ok then return self.Library:Notify('Invalid Theme.', 2) end
 					writefile(self.Folder .. '/Themes/' .. name .. '.json', text)
@@ -5249,7 +5265,7 @@ end
 		end
 
 		local ok, encoded = pcall(Services.HttpService.JSONEncode, Services.HttpService, theme)
-        if not ok then warn('[Elite Zone] Failed to encode data.') return false end
+        if not ok then return false end
         return true, encoded
 	end
 
@@ -5257,9 +5273,10 @@ end
 		if type(file) ~= 'string' or file:gsub(' ', '') == '' or file == '__default' then
 			return self.Library:Notify('Name cannot be empty.', 3)
 		end
+		if not writefile then return self.Library:Notify('Unsupported executor.', 2) end
 
 		local ok, encoded = self:GetThemeJSON()
-		if not ok then return warn('[Elite Zone] Failed to encode data.') end
+		if not ok then return self.Library:Notify('Failed to save theme.', 3) end
 
 		writefile(self.Folder .. '/Themes/' .. file .. '.json', encoded)
 	end
@@ -5555,12 +5572,12 @@ function SaveManager.GetConfigJSON(self)
     for _, h in ipairs(self.SaveHooks) do pcall(h, data) end
 
     local ok, encoded = pcall(Services.HttpService.JSONEncode, Services.HttpService, data)
-    if not ok then warn('[Elite Zone] Failed to encode data.') return false end
+    if not ok then return false end
     return true, encoded
 end
 
 function SaveManager.Save(self, name)
-    if not writefile then warn('[Elite Zone] Unsupported Executor.') return false end
+    if not writefile then self.Library:Notify('Unsupported executor.', 2) return false end
     if not name or name:gsub(' ', '') == '' then self.Library:Notify('Name cannot be empty.', 2) return false end
 
     local ok, encoded = self:GetConfigJSON()
@@ -5572,7 +5589,7 @@ end
 
 function SaveManager.LoadConfigJSON(self, jsonString)
     local ok, decoded = pcall(Services.HttpService.JSONDecode, Services.HttpService, jsonString)
-    if not ok then warn('[Elite Zone] Failed to decode data.') return false end
+    if not ok then return false end
 
     local toggles = {}
     for _, option in next, decoded.objects do
@@ -5618,11 +5635,11 @@ function SaveManager.LoadConfigJSON(self, jsonString)
 end
 
 function SaveManager.Load(self, name)
-    if not readfile then warn('[Elite Zone] Unsupported Executor.') return false end
+    if not readfile then self.Library:Notify('Unsupported executor.', 2) return false end
     if not name then self.Library:Notify('Name cannot be empty.', 2) return false end
 
     local file = 'Elite Zone/Rivals/Settings/' .. name .. '.json'
-    if not isfile(file) then warn('[Elite Zone] File not found.') return false end
+    if not isfile(file) then self.Library:Notify('Config not found.', 2) return false end
 
     return self:LoadConfigJSON(readfile(file))
 end
@@ -5681,7 +5698,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
         local name = Options.SaveManager_ConfigName.Value
         if name:gsub(' ', '') == '' then return self.Library:Notify('Name cannot be empty.', 2) end
         local ok, err = self:Save(name)
-        if not ok then return warn('[Elite Zone] Failed to save config.') end
+        if not ok then return self.Library:Notify('Failed to save config.', 3) end
         Options.SaveManager_ConfigList.Values = self:RefreshConfigList()
         Options.SaveManager_ConfigList:SetValues()
         Options.SaveManager_ConfigList:SetValue(nil)
@@ -5689,14 +5706,14 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
         local name = Options.SaveManager_ConfigList.Value
         if not name then return self.Library:Notify('No config selected.', 2) end
         local ok, err = self:Load(name)
-        if not ok then return warn('[Elite Zone] Failed to load config') end
+        if not ok then return self.Library:Notify('Failed to load config.', 3) end
     end)
 
     section:AddButton('Overwrite', function()
         local name = Options.SaveManager_ConfigList.Value
         if not name then return self.Library:Notify('No config selected.', 2) end
         local ok, err = self:Save(name)
-        if not ok then return warn('[Elite Zone] Failed to save config') end
+        if not ok then return self.Library:Notify('Failed to save config.', 3) end
     end):AddButton('Delete', function()
         local name = Options.SaveManager_ConfigList.Value
         if not name then return self.Library:Notify('No config selected.', 2) end
@@ -5730,7 +5747,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
 
     section:AddButton('Export Config', function()
         local ok, encoded = self:GetConfigJSON()
-        if not ok then return warn('[Elite Zone] Failed to encode config') end
+        if not ok then return self.Library:Notify('Invalid Config.', 3) end
         self.Library:CreatePrompt({
             Title = "Export Config",
             Mode = "Export",
@@ -5746,7 +5763,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
                 end
                 local ok, err = self:LoadConfigJSON(text)
                 if not ok then
-                    return warn('[Elite Zone] Failed to load config')
+                    return self.Library:Notify('Invalid Config.', 2)
                 end
                 self:Save(name)
                 Options.SaveManager_ConfigList.Values = self:RefreshConfigList()
