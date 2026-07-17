@@ -3518,7 +3518,7 @@ function Library:CreateWindow(...)
         local tabOrigName    = tostring(Name or "")
         local tabDisplayName = Library:ApplyCase(tabOrigName, "Tabs")
 
-        local tabFontSz = (13)
+        local tabFontSz = (15)
         local tbW = Library:GetTextBounds(tabDisplayName, Library.Font, tabFontSz) + (18)
         local TBtn = Library:Create('Frame', { BackgroundColor3=Library.BackgroundColor; BorderColor3=Library.OutlineColor; BorderSizePixel=2; Size=UDim2.new(0,tbW,1,0); ZIndex=1; Parent=TabArea })
         Library:AddToRegistry(TBtn, { BackgroundColor3='BackgroundColor'; BorderColor3='OutlineColor' })
