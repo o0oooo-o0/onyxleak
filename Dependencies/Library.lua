@@ -3042,7 +3042,7 @@ function Library:CreateWindow(...)
         backdropGui.Name             = "ScreenGUI"
         backdropGui.IgnoreGuiInset   = true
         backdropGui.ResetOnSpawn     = false
-        backdropGui.DisplayOrder     = 2147483647
+        backdropGui.DisplayOrder     = 2147483646
         backdropGui.ZIndexBehavior   = Enum.ZIndexBehavior.Sibling
         backdropGui.Parent          = parent_gui
 
@@ -3083,6 +3083,7 @@ function Library:CreateWindow(...)
         EzLogoViewport.CurrentCamera = EzLogoCamera
 
         local EzLogoModel
+        local EzLogoOriginalSizes = {}
         local okLogo, logoObjs = pcall(function()
             return game:GetObjects("rbxassetid://134868130308257")
         end)
@@ -3096,6 +3097,7 @@ function Library:CreateWindow(...)
                 if d:IsA("BasePart") then
                     d.Anchored    = true
                     d.CanCollide  = false
+                    d.Material    = Enum.Material.Neon
                 end
             end
             local _, bbSize = EzLogoModel:GetBoundingBox()
@@ -3103,13 +3105,19 @@ function Library:CreateWindow(...)
             if maxExtent > 0 then
                 EzLogoModel:ScaleTo(6 / maxExtent)
             end
+            for _, d in ipairs(EzLogoModel:GetDescendants()) do
+                if d:IsA("BasePart") then
+                    EzLogoOriginalSizes[d] = d.Size
+                end
+            end
             EzLogoModel.Parent = EzLogoViewport
         end
 
-        Library.EzLogoFrame    = EzLogoHolder
-        Library.EzLogoViewport = EzLogoViewport
-        Library.EzLogoCamera   = EzLogoCamera
-        Library.EzLogoModel    = EzLogoModel
+        Library.EzLogoFrame          = EzLogoHolder
+        Library.EzLogoViewport       = EzLogoViewport
+        Library.EzLogoCamera         = EzLogoCamera
+        Library.EzLogoModel          = EzLogoModel
+        Library.EzLogoOriginalSizes  = EzLogoOriginalSizes
     end
 
     local Outer = Library:Create('Frame', {
@@ -4296,6 +4304,26 @@ function Library:CreateWindow(...)
     end
     function Library:SetEzLogoPosition(x, y)
         if Library.EzLogoFrame then Library.EzLogoFrame.Position = UDim2.fromScale(x, y) end
+    end
+    function Library:SetEzLogoSize(size)
+        if Library.EzLogoFrame then Library.EzLogoFrame.Size = UDim2.fromOffset(size, size) end
+    end
+    function Library:SetEzLogoColor(color)
+        if not Library.EzLogoModel then return end
+        for _, d in ipairs(Library.EzLogoModel:GetDescendants()) do
+            if d:IsA("BasePart") then d.Color = color end
+        end
+    end
+    function Library:SetEzLogoFatness(percent)
+        if not Library.EzLogoModel or not Library.EzLogoOriginalSizes then return end
+        local ratio = (percent / 100) * 0.6
+        for d, origSize in next, Library.EzLogoOriginalSizes do
+            if d.Parent then
+                local widest = math.max(origSize.X, origSize.Y)
+                local targetZ = ratio > 0 and (widest * ratio) or origSize.Z
+                d.Size = Vector3.new(origSize.X, origSize.Y, targetZ)
+            end
+        end
     end
     function Library:SetEzLogoMaterial(materialName)
         if not Library.EzLogoModel then return end
@@ -5608,7 +5636,8 @@ function SaveManager.IgnoreThemeSettings(self)
         'CaseTabs', 'CaseSubTabs', 'CaseGroupboxes', 'CaseToggles', 'CaseButtons',
         'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
         'BackgroundOpacity', 'BlurOpacity', 'BackgroundBlur', 'BackgroundFrame',
-        'EzLogo', 'EzLogoTransparency', 'EzLogoPosX', 'EzLogoPosY', 'EzLogoMaterial',
+        'EzLogo', 'EzLogoTransparency', 'EzLogoPosX', 'EzLogoPosY', 'EzLogoMaterial', 'EzLogoSize',
+        'EzLogoColor', 'EzLogoFatness',
     }
 end
 
