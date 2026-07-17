@@ -4339,12 +4339,6 @@ function Library:CreateWindow(...)
             if d:IsA("BasePart") then d.Material = mat end
         end
     end
-    function Library:SetEzLogoReflectance(value)
-        if not Library.EzLogoModel then return end
-        for _, d in ipairs(Library.EzLogoModel:GetDescendants()) do
-            if d:IsA("BasePart") then d.Reflectance = value end
-        end
-    end
     function Library:SetEzLogoSpeed(value)
         Library.EzLogoSpeed = value
     end
@@ -5661,7 +5655,7 @@ function SaveManager.IgnoreThemeSettings(self)
         'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
         'BackgroundOpacity', 'BlurOpacity', 'BackgroundBlur', 'BackgroundFrame',
         'EzLogo', 'EzLogoTransparency', 'EzLogoPosX', 'EzLogoPosY', 'EzLogoMaterial', 'EzLogoSize',
-        'EzLogoColor', 'EzLogoFatness', 'EzLogoReflectance', 'EzLogoSpeed',
+        'EzLogoColor', 'EzLogoFatness', 'EzLogoSpeed',
     }
 end
 
