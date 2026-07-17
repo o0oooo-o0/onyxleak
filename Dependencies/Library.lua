@@ -4740,10 +4740,12 @@ ThemeManager.FontMap = {
     Fredoka      = Enum.Font.FredokaOne,
     Cartoon      = Enum.Font.Cartoon,
     ProggyClean  = 'custom',
+    Tahoma       = Enum.Font.Tahoma,
 }
 ThemeManager.BuiltInThemes = {
     ['Default']      = { 1,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"858586","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
     ['UE']           = { 2,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"4777b6","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
+    ['Better UE']    = { 2.5, Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"4777b6","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"d6d6d6"}') },
     ['BBot']         = { 3,  Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1e1e1e","AccentColor":"7e48a3","BackgroundColor":"232323","OutlineColor":"141414"}') },
     ['Fatality']     = { 4,  Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1e1842","AccentColor":"c50754","BackgroundColor":"191335","OutlineColor":"3c355d"}') },
     ['Jester']       = { 5,  Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"242424","AccentColor":"db4467","BackgroundColor":"1c1c1c","OutlineColor":"373737"}') },
@@ -4788,7 +4790,7 @@ do
 		local colors = entry[2]
 		colors.backgroundBlur, colors.blurOpacity, colors.backgroundFrame = true, 75, true
 		colors.backgroundOpacity = 74
-		colors.caseSettings = (name == 'UE') and LowerCase or CapsCase
+		colors.caseSettings = (name == 'UE' or name == 'Better UE') and LowerCase or CapsCase
 	end
 end
 	local function getFontName(font)
@@ -4939,7 +4941,7 @@ end
 
 		if isBuiltIn then
 			if Options.ThemeManager_Font then
-				Options.ThemeManager_Font:SetValue(theme == 'Gruvbox' and 'arcade' or 'code')
+				Options.ThemeManager_Font:SetValue(theme == 'Gruvbox' and 'arcade' or theme == 'Better UE' and 'tahoma' or 'code')
 				Options.ThemeManager_Font:Display()
 			end
 		else
