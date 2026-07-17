@@ -3113,11 +3113,18 @@ function Library:CreateWindow(...)
             EzLogoModel.Parent = EzLogoViewport
         end
 
+        local EzLogoOrbitDistance = 15
+        if EzLogoModel then
+            local _, finalSize = EzLogoModel:GetBoundingBox()
+            EzLogoOrbitDistance = math.max(finalSize.X, finalSize.Y, finalSize.Z) * 2.2
+        end
+
         Library.EzLogoFrame          = EzLogoHolder
         Library.EzLogoViewport       = EzLogoViewport
         Library.EzLogoCamera         = EzLogoCamera
         Library.EzLogoModel          = EzLogoModel
         Library.EzLogoOriginalSizes  = EzLogoOriginalSizes
+        Library.EzLogoOrbitDistance  = EzLogoOrbitDistance
     end
 
     local Outer = Library:Create('Frame', {
@@ -4332,21 +4339,38 @@ function Library:CreateWindow(...)
             if d:IsA("BasePart") then d.Material = mat end
         end
     end
+    function Library:SetEzLogoReflectance(value)
+        if not Library.EzLogoModel then return end
+        for _, d in ipairs(Library.EzLogoModel:GetDescendants()) do
+            if d:IsA("BasePart") then d.Reflectance = value end
+        end
+    end
+    function Library:SetEzLogoSpeed(value)
+        Library.EzLogoSpeed = value
+    end
+
+    if Library.EzLogoSpeed == nil then Library.EzLogoSpeed = 0.5 end
 
     if Library.EzLogoModel then
         task.spawn(function()
             local angle = 0
+            local currentCFrame
+            local center = Library.EzLogoModel:GetPivot().Position
             while Library.EzLogoModel and Library.EzLogoModel.Parent do
                 local dt = Services.RunService.RenderStepped:Wait()
                 if Library.EzLogoFrame and Library.EzLogoFrame.Visible then
-                    angle = angle + math.rad(45) * dt
-                    local center = Library.EzLogoModel:GetPivot().Position
-                    local _, sz = Library.EzLogoModel:GetBoundingBox()
-                    local dist = math.max(sz.X, sz.Y, sz.Z) * 2.2
-                    Library.EzLogoCamera.CFrame = CFrame.new(
+                    angle = angle + math.rad(90) * (Library.EzLogoSpeed or 0.5) * dt
+                    local dist = Library.EzLogoOrbitDistance or 15
+                    local targetCFrame = CFrame.new(
                         center + Vector3.new(math.sin(angle) * dist, dist * 0.3, math.cos(angle) * dist),
                         center
                     )
+                    if not currentCFrame then
+                        currentCFrame = targetCFrame
+                    else
+                        currentCFrame = currentCFrame:Lerp(targetCFrame, 1 - math.exp(-12 * dt))
+                    end
+                    Library.EzLogoCamera.CFrame = currentCFrame
                 end
             end
         end)
@@ -5637,7 +5661,7 @@ function SaveManager.IgnoreThemeSettings(self)
         'CaseSliders', 'CaseDropdowns', 'CaseDDItems', 'CaseLabels', 'CaseInputs', 'CaseTooltip',
         'BackgroundOpacity', 'BlurOpacity', 'BackgroundBlur', 'BackgroundFrame',
         'EzLogo', 'EzLogoTransparency', 'EzLogoPosX', 'EzLogoPosY', 'EzLogoMaterial', 'EzLogoSize',
-        'EzLogoColor', 'EzLogoFatness',
+        'EzLogoColor', 'EzLogoFatness', 'EzLogoReflectance', 'EzLogoSpeed',
     }
 end
 
