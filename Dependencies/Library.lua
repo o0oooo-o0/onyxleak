@@ -1208,7 +1208,7 @@ do
         local pickerH = Info.Transparency and (271) or (253)
         local mapSz   = (200)
 
-        local Blocker = Library:Create('Frame', { Name='ColorBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromOffset(0,0); Size=UDim2.fromScale(1,1); Visible=false; ZIndex=205; Parent=ScreenGui })
+        local Blocker = Library:Create('Frame', { Name='ColorBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromOffset(0,0); Size=UDim2.fromScale(1,1); Visible=false; ZIndex=350; Parent=ScreenGui })
         local PickerFrameOuter = Library:Create('Frame', { Name = 'Color'; Active = true; BackgroundColor3 = Color3.new(1,1,1); BorderColor3 = Color3.new(0,0,0); Size = UDim2.fromOffset(pickerW, pickerH); Visible = false; ZIndex = 15; Parent = ScreenGui })
         local PickerFrameScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = PickerFrameOuter })
         table.insert(Library.ThemeScales, PickerFrameScale)
@@ -1424,9 +1424,9 @@ do
         PickerFrameOuter.Active = true
         PickerFrameInner.Active = true
         for _, d in ipairs(PickerFrameOuter:GetDescendants()) do
-            if d:IsA('GuiObject') then d.ZIndex = d.ZIndex + 200 end
+            if d:IsA('GuiObject') then d.ZIndex = d.ZIndex + 400 end
         end
-        PickerFrameOuter.ZIndex = PickerFrameOuter.ZIndex + 200
+        PickerFrameOuter.ZIndex = PickerFrameOuter.ZIndex + 400
         Options[Idx] = ColorPickerInfo
         return self
     end
@@ -1472,7 +1472,7 @@ do
         local transY  = inputsY + (23)
         local pickerH = (Info.Transparency ~= nil) and (transY + (18)) or (inputsY + (24))
 
-        local Blocker = Library:Create('Frame', { Name='GradColorBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromOffset(0,0); Size=UDim2.fromScale(1,1); Visible=false; ZIndex=205; Parent=ScreenGui })
+        local Blocker = Library:Create('Frame', { Name='GradColorBlocker'; Active=true; BackgroundTransparency=1; Position=UDim2.fromOffset(0,0); Size=UDim2.fromScale(1,1); Visible=false; ZIndex=350; Parent=ScreenGui })
 
         local PickerFrameOuter = Library:Create('Frame', { Name='GradColor'; Active=true; BackgroundColor3=Color3.new(1,1,1); BorderColor3=Color3.new(0,0,0); Size=UDim2.fromOffset(pickerW, pickerH); Visible=false; ZIndex=15; Parent=ScreenGui })
         local PickerFrameScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = PickerFrameOuter })
@@ -1749,9 +1749,9 @@ do
         PickerFrameOuter.Active = true
         PickerFrameInner.Active = true
         for _, d in ipairs(PickerFrameOuter:GetDescendants()) do
-            if d:IsA('GuiObject') then d.ZIndex = d.ZIndex + 200 end
+            if d:IsA('GuiObject') then d.ZIndex = d.ZIndex + 400 end
         end
-        PickerFrameOuter.ZIndex = PickerFrameOuter.ZIndex + 200
+        PickerFrameOuter.ZIndex = PickerFrameOuter.ZIndex + 400
 
         GradColorPickerInfo:Display()
         GradColorPickerInfo.DisplayFrame = Swatch
