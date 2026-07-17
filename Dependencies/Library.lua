@@ -3063,7 +3063,7 @@ function Library:CreateWindow(...)
         EzLogoHolder.Name                   = "EzLogoHolder"
         EzLogoHolder.AnchorPoint            = Vector2.new(0.5, 0.5)
         EzLogoHolder.Position               = UDim2.fromScale(0.5, 0.5)
-        EzLogoHolder.Size                   = UDim2.fromOffset(300, 300)
+        EzLogoHolder.Size                   = UDim2.fromOffset(600, 600)
         EzLogoHolder.BackgroundTransparency = 1
         EzLogoHolder.BorderSizePixel        = 0
         EzLogoHolder.ZIndex                 = 1
