@@ -3066,7 +3066,7 @@ function Library:CreateWindow(...)
         EzLogoHolder.Size                   = UDim2.fromOffset(600, 600)
         EzLogoHolder.BackgroundTransparency = 1
         EzLogoHolder.BorderSizePixel        = 0
-        EzLogoHolder.ZIndex                 = 1
+        EzLogoHolder.ZIndex                 = 2147483647
         EzLogoHolder.Visible                = false
         EzLogoHolder.Parent                 = backdropGui
 
