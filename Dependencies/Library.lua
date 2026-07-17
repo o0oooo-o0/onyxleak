@@ -165,10 +165,12 @@ Library.CaseSettings = {
 }
 Library.TextRegistry = {}
 
-function Library:ApplyCase(text, category)
+function Library:ApplyCase(text, category, forceMode)
     local s = tostring(text or "")
-    local mode = (Library.CaseSettings and Library.CaseSettings[category]) or "Capitalized"
-    if mode == "Uppercase" then
+    local mode = forceMode or (Library.CaseSettings and Library.CaseSettings[category]) or "Capitalized"
+    if mode == "Original" then
+        return s
+    elseif mode == "Uppercase" then
         return s:upper()
     elseif mode == "Lowercase" then
         return s:lower()
@@ -177,22 +179,45 @@ function Library:ApplyCase(text, category)
     end
 end
 
-function Library:TrackLabel(lbl, originalText, category, prop)
+function Library:TrackLabel(lbl, originalText, category, prop, forceMode)
     if not lbl then return end
-    Library.TextRegistry[#Library.TextRegistry + 1] = { lbl = lbl, text = originalText, cat = category, prop = prop or "Text" }
+    Library.TextRegistry[#Library.TextRegistry + 1] = { lbl = lbl, text = originalText, cat = category, prop = prop or "Text", forceMode = forceMode }
+end
+
+function Library:ForceCase(Root, Mode)
+    if not Root then return end
+    local function Matches(inst)
+        return inst == Root or inst:IsDescendantOf(Root)
+    end
+    for _, e in ipairs(Library.TextRegistry) do
+        if e.lbl and e.lbl.Parent and Matches(e.lbl) then
+            e.forceMode = Mode
+        end
+    end
+    for _, s in ipairs(Library.SliderRegistry or {}) do
+        if s.Outer and s.Outer.Parent and Matches(s.Outer) then
+            s.Info.CaseOverride = Mode
+        end
+    end
+    for _, dd in ipairs(Library.DropdownRegistry or {}) do
+        if dd.Outer and dd.Outer.Parent and Matches(dd.Outer) then
+            dd.CaseOverride = Mode
+        end
+    end
+    Library:RefreshTextRegistry()
 end
 
 function Library:RefreshTextRegistry()
     for _, e in ipairs(Library.TextRegistry) do
         if e.lbl and e.lbl.Parent then
-            e.lbl[e.prop] = Library:ApplyCase(e.text, e.cat)
+            e.lbl[e.prop] = Library:ApplyCase(e.text, e.cat, e.forceMode)
         end
     end
     for _, dd in ipairs(Library.DropdownRegistry or {}) do
         if dd.ItemLabels then
             for _, entry in ipairs(dd.ItemLabels) do
                 if entry.lbl and entry.lbl.Parent then
-                    entry.lbl.Text = Library:ApplyCase(entry.val, "DropdownItems")
+                    entry.lbl.Text = Library:ApplyCase(entry.val, "DropdownItems", dd.CaseOverride)
                 end
             end
         end
@@ -2422,7 +2447,7 @@ do
         end
         function Slider:Display()
             local suf = Slider.Info.Suffix or ''
-            DropdownLabel.Text = Library:ApplyCase(Slider.Info.Text or "", "Sliders")..': '..Slider.Value..suf
+            DropdownLabel.Text = Library:ApplyCase(Slider.Info.Text or "", "Sliders", Slider.Info.CaseOverride)..': '..Slider.Value..suf
             TargetX = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize))
             StartLerp()
         end
@@ -2519,6 +2544,7 @@ do
         local ddH = (20)
         local DropdownOuter = Library:Create('Frame', { BorderColor3=Color3.new(0,0,0); Size=UDim2.new(1,-(4),0,ddH); ZIndex=5; Parent=Groupbox.Container })
         Library:AddToRegistry(DropdownOuter, { BorderColor3='Black' })
+        DropdownData.Outer = DropdownOuter
         local DropdownInner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=DropdownOuter })
         Library:AddToRegistry(DropdownInner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
         Library:Create('UIGradient', { Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,Color3.fromRGB(212,212,212))}); Rotation=90; Parent=DropdownInner })
@@ -2597,7 +2623,7 @@ do
             end
             if #s > 30 then s = s:sub(1, 30) .. '...' end
             if s == '' then s = '...' end
-            if s ~= '...' then s = Library:ApplyCase(s, "DropdownItems") end
+            if s ~= '...' then s = Library:ApplyCase(s, "DropdownItems", DropdownData.CaseOverride) end
             if ItemLabel and ItemLabel.Parent then ItemLabel.Text = s end
         end
 
@@ -3533,6 +3559,7 @@ function Library:CreateWindow(...)
         Library:AddToRegistry(TUnder, { BackgroundColor3='AccentColor' })
 
         local TFrame = Library:Create('Frame', { Name='TabFrame'; BackgroundTransparency=1; Size=UDim2.new(1,0,1,0); Visible=false; ZIndex=2; Parent=TabContainer })
+        Tab.Frame = TFrame
         Tab.TabFrame = TFrame
 
         local function MakeSide(parent, xScale, xOffset)
