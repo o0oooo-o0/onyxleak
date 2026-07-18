@@ -4710,6 +4710,7 @@ ThemeManager.FontMap = {
     ProggyClean  = 'custom',
 }
 ThemeManager.BuiltInThemes = {
+    ['Elite Zone']   = { 0,  Services.HttpService:JSONDecode('{"MainColor":"17181f","AccentColor":"7c5cff","OutlineColor":"232430","BackgroundColor":"0e0f14","FontColor":"f2f2f7"}') },
     ['Default']      = { 1,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"858586","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
     ['UE']           = { 2,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"4777b6","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
     ['Better UE']    = { 2.5, Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"4777b6","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"d6d6d6"}') },
@@ -4845,7 +4846,7 @@ end
 
 	function ThemeManager:GetThemeState(theme, isCustom)
 		local state = {
-			theme     = theme or self.CurrentThemeName or (Options and Options.ThemeManager_ThemeList and Options.ThemeManager_ThemeList.Value) or 'Default',
+			theme     = theme or self.CurrentThemeName or (Options and Options.ThemeManager_ThemeList and Options.ThemeManager_ThemeList.Value) or 'Elite Zone',
 			custom    = type(isCustom) == 'boolean' and isCustom or self.CurrentThemeCustom == true,
 			font      = Options and Options.ThemeManager_Font and Options.ThemeManager_Font.Value or getFontName(self.Library and self.Library.Font),
 			iconSize  = tonumber(Options and Options.ThemeManager_IconSize and Options.ThemeManager_IconSize.Value) or tonumber(self.Library and self.Library.IconSize) or 20,
@@ -5002,7 +5003,7 @@ end
 
 		local theme = self:ReadAutoloadName()
 		if not (self.BuiltInThemes[theme] or self:GetCustomTheme(theme)) then
-			theme = 'Default'
+			theme = 'Elite Zone'
 		end
 
 		self:ApplyTheme(theme)
@@ -5017,7 +5018,7 @@ end
 	end
 
 	function ThemeManager:SaveDefault(theme, isCustom)
-		local name = (type(theme) == 'string' and theme ~= '') and theme or self.CurrentThemeName or 'Default'
+		local name = (type(theme) == 'string' and theme ~= '') and theme or self.CurrentThemeName or 'Elite Zone'
 		self.CurrentThemeName = name
 		self.CurrentThemeCustom = not self.BuiltInThemes[name]
 		WriteAutoloadField('theme', name)
@@ -5136,7 +5137,7 @@ end
 	function ThemeManager:ReadAutoloadName()
 		local name = ReadAutoloadFile().theme
 		if type(name) == 'string' and name ~= '' and name ~= 'none' then return name end
-		return 'Default'
+		return 'Elite Zone'
 	end
 
 	function ThemeManager:RegisterSharedCallbacks(gb)
@@ -5300,7 +5301,7 @@ end
 
 		local theme = self:ReadAutoloadName()
 		if not (self.BuiltInThemes[theme] or self:GetCustomTheme(theme)) then
-			theme = 'Default'
+			theme = 'Elite Zone'
 		end
 
 		local customData = self:GetCustomTheme(theme)
