@@ -4710,8 +4710,8 @@ ThemeManager.FontMap = {
     ProggyClean  = 'custom',
 }
 ThemeManager.BuiltInThemes = {
-    ['Elite Zone']   = { 0,  Services.HttpService:JSONDecode('{"MainColor":"17181f","AccentColor":"7c5cff","OutlineColor":"232430","BackgroundColor":"0e0f14","FontColor":"f2f2f7"}') },
-    ['Default']      = { 1,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"858586","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
+    ['Default']      = { 0,  Services.HttpService:JSONDecode('{"FontColor":"ebdbb2","MainColor":"282828","AccentColor":"fe8019","BackgroundColor":"1d2021","OutlineColor":"3c3836"}') },
+    ['Elite Zone']   = { 1,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"858586","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
     ['UE']           = { 2,  Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"4777b6","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"ffffff"}') },
     ['Better UE']    = { 2.5, Services.HttpService:JSONDecode('{"MainColor":"181818","AccentColor":"4777b6","OutlineColor":"1f1f1f","BackgroundColor":"141414","FontColor":"d6d6d6"}') },
     ['BBot']         = { 3,  Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1e1e1e","AccentColor":"7e48a3","BackgroundColor":"232323","OutlineColor":"141414"}') },
@@ -4738,7 +4738,6 @@ ThemeManager.BuiltInThemes = {
     ['Charcoal']     = { 24, Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"2e2e2e","AccentColor":"aaaaaa","BackgroundColor":"222222","OutlineColor":"444444"}') },
     ['One Dark']     = { 25, Services.HttpService:JSONDecode('{"FontColor":"abb2bf","MainColor":"282c34","AccentColor":"61afef","BackgroundColor":"21252b","OutlineColor":"3e4451"}') },
     ['Nord']         = { 26, Services.HttpService:JSONDecode('{"FontColor":"d8dee9","MainColor":"2e3440","AccentColor":"88c0d0","BackgroundColor":"242933","OutlineColor":"3b4252"}') },
-    ['Gruvbox']      = { 27, Services.HttpService:JSONDecode('{"FontColor":"ebdbb2","MainColor":"282828","AccentColor":"fe8019","BackgroundColor":"1d2021","OutlineColor":"3c3836"}') },
     ['Ayu Mirage']   = { 28, Services.HttpService:JSONDecode('{"FontColor":"cccac2","MainColor":"1f2430","AccentColor":"ffcc66","BackgroundColor":"171b24","OutlineColor":"242936"}') },
     ['Material Ocean']={ 29, Services.HttpService:JSONDecode('{"FontColor":"8f93a2","MainColor":"0f111a","AccentColor":"80cbc4","BackgroundColor":"090b10","OutlineColor":"1a1c25"}') },
     ['Deep Sea']     = { 30, Services.HttpService:JSONDecode('{"FontColor":"ffffff","MainColor":"001220","AccentColor":"0077b6","BackgroundColor":"000b14","OutlineColor":"002a45"}') },
@@ -4909,7 +4908,7 @@ end
 
 		if isBuiltIn then
 			if Options.ThemeManager_Font then
-				Options.ThemeManager_Font:SetValue(theme == 'Gruvbox' and 'arcade' or theme == 'Better UE' and 'tahoma' or 'code')
+				Options.ThemeManager_Font:SetValue(theme == 'Default' and 'arcade' or theme == 'Better UE' and 'tahoma' or 'code')
 				Options.ThemeManager_Font:Display()
 			end
 		else
