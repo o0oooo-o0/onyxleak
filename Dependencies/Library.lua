@@ -792,7 +792,7 @@ function Library:ConfigureNotifications(Cfg)
 
     local AnchorX = C.Alignment == "Left" and 0 or (C.Alignment == "Right" and 1 or 0.5)
     local AnchorY = C.BarSide == "Top" and 0 or 1
-    local VAlign  = C.BarSide == "Top" and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
+    local VAlign  = Enum.VerticalAlignment.Top
     local HAlign  = C.Alignment == "Left" and Enum.HorizontalAlignment.Left or (C.Alignment == "Right" and Enum.HorizontalAlignment.Right or Enum.HorizontalAlignment.Center)
 
     Library.NotificationArea.AnchorPoint        = Vector2.new(AnchorX, AnchorY)
