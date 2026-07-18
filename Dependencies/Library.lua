@@ -792,18 +792,23 @@ function Library:ConfigureNotifications(Cfg)
 
     local AnchorX = C.Alignment == "Left" and 0 or (C.Alignment == "Right" and 1 or 0.5)
     local AnchorY = C.BarSide == "Top" and 0 or 1
-    local VAlign  = Enum.VerticalAlignment.Top
+    local VAlign  = C.BarSide == "Top" and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
     local HAlign  = C.Alignment == "Left" and Enum.HorizontalAlignment.Left or (C.Alignment == "Right" and Enum.HorizontalAlignment.Right or Enum.HorizontalAlignment.Center)
 
     Library.NotificationArea.AnchorPoint        = Vector2.new(AnchorX, AnchorY)
     Library.NotificationArea.Position           = UDim2.new(C.PosX / 100, 0, C.PosY / 100, 0)
     Library.NotificationArea.ClipsDescendants   = C.ClipDescendants
-    Library.NotificationArea.Size               = C.ClipDescendants
-        and UDim2.new(0, 0, 0, C.MaxHeight)
-        or  UDim2.new(0, 0, 0, 0)
-    Library.NotificationArea.AutomaticSize      = C.ClipDescendants
-        and Enum.AutomaticSize.X
-        or  Enum.AutomaticSize.XY
+    Library.NotificationArea.AutomaticSize      = Enum.AutomaticSize.XY
+
+    local SizeConstraint = Library.NotificationArea:FindFirstChildOfClass('UISizeConstraint')
+    if C.ClipDescendants then
+        if not SizeConstraint then
+            SizeConstraint = Library:Create('UISizeConstraint', { Parent = Library.NotificationArea })
+        end
+        SizeConstraint.MaxSize = Vector2.new(math.huge, C.MaxHeight)
+    elseif SizeConstraint then
+        SizeConstraint:Destroy()
+    end
 
     local Layout = Library.NotificationArea:FindFirstChildOfClass('UIListLayout')
     if Layout then
