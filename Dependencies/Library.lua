@@ -799,8 +799,11 @@ function Library:ConfigureNotifications(Cfg)
     Library.NotificationArea.Position           = UDim2.new(C.PosX / 100, 0, C.PosY / 100, 0)
     Library.NotificationArea.ClipsDescendants   = C.ClipDescendants
     Library.NotificationArea.Size               = C.ClipDescendants
-        and UDim2.new(0, (320), 0, C.MaxHeight)
-        or  UDim2.new(0, (320), 1, -(50))
+        and UDim2.new(0, 0, 0, C.MaxHeight)
+        or  UDim2.new(0, 0, 0, 0)
+    Library.NotificationArea.AutomaticSize      = C.ClipDescendants
+        and Enum.AutomaticSize.X
+        or  Enum.AutomaticSize.XY
 
     local Layout = Library.NotificationArea:FindFirstChildOfClass('UIListLayout')
     if Layout then
@@ -1108,8 +1111,26 @@ function Library:SetWatermark(Text)
     Library:SetWatermarkVisibility(true)
 end
 
+Library.NotifyQueue       = {}
+Library.ActiveNotifyCount = 0
+
 function Library:Notify(Text, Time)
     if not Text or Text == "" then return end
+    table.insert(Library.NotifyQueue, { Text = Text, Time = Time })
+    Library:ProcessNotifyQueue()
+end
+
+function Library:ProcessNotifyQueue()
+    local C = Library.NotifyConfig
+    local ItemHeight = (22) + (4)
+    while #Library.NotifyQueue > 0 do
+        if C.ClipDescendants and (Library.ActiveNotifyCount + 1) * ItemHeight > C.MaxHeight then break end
+        local Item = table.remove(Library.NotifyQueue, 1)
+        Library:SpawnNotify(Item.Text, Item.Time)
+    end
+end
+
+function Library:SpawnNotify(Text, Time)
     local xw = Library:GetTextBounds(Text, Library.Font, (14)) or 200
     local H   = (22)
     local NotifyTransparency = (Library.NotifyConfig.Transparency or 0) / 100
@@ -1155,11 +1176,14 @@ function Library:Notify(Text, Time)
     })
     Library:AddToRegistry(Outer:GetChildren()[#Outer:GetChildren()], { BackgroundColor3 = 'AccentColor' }, true)
     pcall(Outer.TweenSize, Outer, UDim2.fromOffset(xw + (16), H), 'Out', 'Quad', 0.35, true)
+    Library.ActiveNotifyCount = Library.ActiveNotifyCount + 1
     task.spawn(function()
         task.wait(Time or 5)
         pcall(Outer.TweenSize, Outer, UDim2.fromOffset(0, H), 'Out', 'Quad', 0.35, true)
         task.wait(0.4)
         Outer:Destroy()
+        Library.ActiveNotifyCount = Library.ActiveNotifyCount - 1
+        Library:ProcessNotifyQueue()
     end)
 end
 
