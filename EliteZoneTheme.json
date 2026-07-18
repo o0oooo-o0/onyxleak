@@ -1,0 +1,10 @@
+{
+    "Name": "Elite Zone",
+    "FontColor": [255, 255, 255],
+    "MainColor": [24, 24, 24],
+    "BackgroundColor": [16, 16, 16],
+    "AccentColor": [235, 235, 235],
+    "OutlineColor": [40, 40, 40],
+    "RiskColor": [255, 50, 50],
+    "Black": [0, 0, 0]
+}
