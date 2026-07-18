@@ -1,10 +1,1 @@
-{
-    "Name": "Elite Zone",
-    "FontColor": [255, 255, 255],
-    "MainColor": [24, 24, 24],
-    "BackgroundColor": [16, 16, 16],
-    "AccentColor": [235, 235, 235],
-    "OutlineColor": [40, 40, 40],
-    "RiskColor": [255, 50, 50],
-    "Black": [0, 0, 0]
-}
+{"mainWindowSize":{"w":545,"h":650},"uiScale":1,"backgroundOpacity":74,"backgroundFrame":true,"font":"code","colors":{"MainColor":"181818","AccentColor":"ebebeb","OutlineColor":"1f1f1f","BackgroundColor":"101010","FontColor":"ffffff"},"notifications":{"MaxHeight":200,"Transparency":60,"PosY":60,"ClipDescendants":false,"SortOrder":"Time","BarSide":"Bottom","Alignment":"Center","PosX":50},"caseSettings":{"CaseTooltip":"Capitalized","CaseButtons":"Capitalized","CaseLabels":"Capitalized","CaseDDItems":"Capitalized","CaseToggles":"Capitalized","CaseSliders":"Capitalized","CaseInputs":"Capitalized","CaseDropdowns":"Capitalized","CaseTabs":"Capitalized","CaseGroupboxes":"Capitalized","CaseSubTabs":"Capitalized"},"backgroundBlur":true,"blurOpacity":75,"iconSize":20}
