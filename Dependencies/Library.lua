@@ -4515,9 +4515,26 @@ function Library:CreatePrompt(config)
         Parent            = inner,
     })
     Library:AddToRegistry(titleBar, {BackgroundColor3="MainColor"})
+
+    local backButton = Library:Create("TextButton", {
+        Position          = UDim2.new(0, (3), 0.5, 0),
+        AnchorPoint       = Vector2.new(0, 0.5),
+        Size              = UDim2.fromOffset((16), (16)),
+        BackgroundTransparency = 1,
+        AutoButtonColor   = false,
+        Text              = "<",
+        TextColor3        = Library.FontColor,
+        TextSize          = (14),
+        Font              = Library.Font,
+        ZIndex            = 2003,
+        Parent            = titleBar,
+    })
+    Library:AddToRegistry(backButton, {TextColor3="FontColor", Font="Font"})
+    backButton.MouseButton1Click:Connect(function() outer:Destroy() end)
+
     Library:CreateLabel({
-        Position        = UDim2.new(0, (5), 0, 0),
-        Size            = UDim2.new(1, -(26), 1, 0),
+        Position        = UDim2.new(0, (22), 0, 0),
+        Size            = UDim2.new(1, -(43), 1, 0),
         Text            = config.Title or "Prompt",
         TextXAlignment  = Enum.TextXAlignment.Left,
         TextSize        = (14),
@@ -4630,6 +4647,10 @@ function Library:CreatePrompt(config)
                 if setclipboard then
                     setclipboard(textBox.Text)
                     Library:Notify("Copied to clipboard.", 2)
+                    actionBtn.Text = "Copied"
+                    task.delay(3, function()
+                        if actionBtn and actionBtn.Parent then actionBtn.Text = "Copy to Clipboard" end
+                    end)
                 else
                     Library:Notify("Executor does not support setclipboard.", 3)
                 end
