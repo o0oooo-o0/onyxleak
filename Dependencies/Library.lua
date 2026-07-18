@@ -5644,7 +5644,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
     section:AddInput('SaveManager_ConfigName', { Text = 'Config Name' })
     section:AddDropdown('SaveManager_ConfigList', { Text = 'Configs', Values = self:RefreshConfigList(), AllowNull = true })
 
-    section:AddButton('Save Config', function()
+    section:AddButton('Save', function()
         local name = Options.SaveManager_ConfigName.Value
         if name:gsub(' ', '') == '' then return self.Library:Notify('Name cannot be empty.', 2) end
         local ok, err = self:Save(name)
@@ -5652,7 +5652,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
         Options.SaveManager_ConfigList.Values = self:RefreshConfigList()
         Options.SaveManager_ConfigList:SetValues()
         Options.SaveManager_ConfigList:SetValue(nil)
-    end):AddButton('Load Config', function()
+    end):AddButton('Load', function()
         local name = Options.SaveManager_ConfigList.Value
         if not name then return self.Library:Notify('No config selected.', 2) end
         local ok, err = self:Load(name)
@@ -5683,11 +5683,11 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
         })
     end)
 
-    section:AddButton('Refresh List', function()
+    section:AddButton('Refresh', function()
         Options.SaveManager_ConfigList.Values = self:RefreshConfigList()
         Options.SaveManager_ConfigList:SetValues()
         Options.SaveManager_ConfigList:SetValue(nil)
-    end):AddButton('Set as autoload', function()
+    end):AddButton('Set as Autoload', function()
         local name = Options.SaveManager_ConfigList.Value
         if not name then return self.Library:Notify('No config selected.', 2) end
         WriteAutoloadField('config', name)
@@ -5695,7 +5695,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
     end)
 
 
-    section:AddButton('Export Config', function()
+    section:AddButton('Export', function()
         local ok, encoded = self:GetConfigJSON()
         if not ok then return self.Library:Notify('Invalid Config.', 3) end
         self.Library:CreatePrompt({
@@ -5703,7 +5703,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
             Mode = "Export",
             Text = encoded,
         })
-    end):AddButton('Import Config', function()
+    end):AddButton('Import', function()
         self.Library:CreatePrompt({
             Title = "Import Config",
             Mode = "Import",
