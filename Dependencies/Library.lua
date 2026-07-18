@@ -2640,7 +2640,7 @@ do
                 local SliderBackFrame = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Middle; Size=UDim2.new(1,-1,0,itemH); ZIndex=23; Active=true; Parent=Scroll })
                 Library:AddToRegistry(SliderBackFrame, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
                 local SliderBarSelected = Library:Create('Frame', { BackgroundColor3=Color3.new(1,1,1); BackgroundTransparency=0.75; BorderSizePixel=0; Size=UDim2.new(1,0,1,0); Visible=false; ZIndex=24; Parent=SliderBackFrame })
-                local SliderBarLabel = Library:CreateLabel({ PreserveCase = true; Active=false; Size=UDim2.new(1,-(6),1,0); Position=UDim2.new(0,(6),0,0); TextSize=(13); Text=Library:ApplyCase(val, "DropdownItems"); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=25; Parent=SliderBackFrame })
+                local SliderBarLabel = Library:CreateLabel({ PreserveCase = true; Active=false; Size=UDim2.new(1,-(6),1,0); Position=UDim2.new(0,(6),0,0); TextSize=(13); Text=Library:ApplyCase(val, "DropdownItems", DropdownData.CaseOverride); TextXAlignment=Enum.TextXAlignment.Left; ZIndex=25; Parent=SliderBackFrame })
                 table.insert(DropdownData.ItemLabels, { lbl = SliderBarLabel, val = val })
                 local selected = Info.Multi and DropdownData.Value[val] or (DropdownData.Value == val)
                 local function UpdateBtn()
