@@ -869,41 +869,9 @@ do
     Library.WatermarkText = WindowMoverLabel
     Library:MakeDraggable(WindowMoverOuter)
 
-    local TaglineText = "Elite Zone \xe2\x80\x94 Quality at its finest."
-    local TaglineWidth = Library:GetTextBounds(TaglineText, Library.Font, (16))
-
-    local TaglineOuter = Library:Create('Frame', {
-        BackgroundColor3  = Library.MainColor;
-        BorderColor3      = Library.OutlineColor;
-        BorderMode        = Enum.BorderMode.Inset;
-        AnchorPoint       = Vector2.new(0.5, 1);
-        Position          = UDim2.new(0.5, 0, 1, -(8));
-        Size              = UDim2.fromOffset(TaglineWidth + (20), (26));
-        Visible           = false;
-        ZIndex            = 200;
-        Parent            = ScreenGui;
-    })
-    Library:AddToRegistry(TaglineOuter, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
-
-    local TaglineLabel = Library:CreateLabel({
-        Size            = UDim2.new(1, 0, 1, 0);
-        TextSize        = (16);
-        Text            = TaglineText;
-        TextColor3      = Library.AccentColor;
-        PreserveCase    = true;
-        TextXAlignment  = Enum.TextXAlignment.Center;
-        ZIndex          = 201;
-        Parent          = TaglineOuter;
-    })
-    Library:AddToRegistry(TaglineLabel, { TextColor3 = 'AccentColor' })
-    Library.Tagline = TaglineOuter
-
-    Library:RegisterVisibilityCallback(function(isVisible) TaglineOuter.Visible = isVisible end)
-
 end
 
 function Library:SetWatermarkVisibility(b)  Library.Watermark.Visible = b end
-function Library:SetTaglineVisibility(b)  Library.Tagline.Visible = b end
 function Library:GetMainWindowSize()
     if self.MainWindow and type(self.MainWindow.GetWindowSize) == 'function' then
         return self.MainWindow:GetWindowSize()
@@ -4311,7 +4279,7 @@ function Library:CreateWindow(...)
             BorderSizePixel   = 0;
             Position          = UDim2.fromOffset(initX, initY);
             Size              = UDim2.fromOffset(btnSz, btnSz);
-            Image             = 'https://the-elite-zone.vercel.app/big_logo.png';
+            Image             = 'https://ez-ez.vercel.app/big_logo.png';
             ScaleType         = Enum.ScaleType.Fit;
             ZIndex            = 260;
             Parent            = ScreenGui;
@@ -4319,7 +4287,7 @@ function Library:CreateWindow(...)
         Library:Create('UICorner', { CornerRadius = UDim.new(0, (8)); Parent = mobLogo })
 
         task.spawn(function()
-            local assetPath = 'Elite Zone/Assets/Logo.png'
+            local assetPath = 'Elite Zone/Assets/big_logo.png'
             pcall(function()
                 if isfile and isfile(assetPath) and getcustomasset then
                     mobLogo.Image = getcustomasset(assetPath)
@@ -4331,7 +4299,7 @@ function Library:CreateWindow(...)
                     pcall(makefolder, 'Elite Zone')
                     pcall(makefolder, 'Elite Zone/Assets')
                 end
-                local res = req({ Url = 'https://the-elite-zone.vercel.app/big_logo.png', Method = 'GET' })
+                local res = req({ Url = 'https://ez-ez.vercel.app/big_logo.png', Method = 'GET' })
                 local body = res and (res.Body or res.body)
                 if type(body) ~= 'string' or #body == 0 then return end
                 writefile(assetPath, body)
