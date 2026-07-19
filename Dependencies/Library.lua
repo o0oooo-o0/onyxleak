@@ -4283,7 +4283,7 @@ function Library:CreateWindow(...)
             BorderSizePixel   = 0;
             Position          = UDim2.fromOffset(initX, initY);
             Size              = UDim2.fromOffset(btnSz, btnSz);
-            Image             = 'https://ez-ez.vercel.app/big_logo.png';
+            Image             = 'https://the-elite-zone.vercel.app/big_logo.png';
             ScaleType         = Enum.ScaleType.Fit;
             ZIndex            = 260;
             Parent            = ScreenGui;
@@ -4303,7 +4303,7 @@ function Library:CreateWindow(...)
                     pcall(makefolder, 'Elite Zone')
                     pcall(makefolder, 'Elite Zone/Assets')
                 end
-                local res = req({ Url = 'https://ez-ez.vercel.app/big_logo.png', Method = 'GET' })
+                local res = req({ Url = 'https://the-elite-zone.vercel.app/big_logo.png', Method = 'GET' })
                 local body = res and (res.Body or res.body)
                 if type(body) ~= 'string' or #body == 0 then return end
                 writefile(assetPath, body)
