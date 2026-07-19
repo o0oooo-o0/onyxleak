@@ -2861,6 +2861,7 @@ Library.SliderRegistry = {}
 Library.DropdownRegistry = {}
 Library.KeybindRegistry = {}
 Library.IconSizeCallbacks = {}
+Library.CaseSettings = {}
 
 function Library:RegisterVisibilityCallback(callback) table.insert(Library.VisibilityCallbacks, callback) end
 function Library:RegisterIconSizeCallback(callback) table.insert(Library.IconSizeCallbacks, callback) end
