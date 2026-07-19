@@ -4303,7 +4303,7 @@ function Library:CreateWindow(...)
         Library:Create('UICorner', { CornerRadius = UDim.new(0, (8)); Parent = mobLogo })
 
         task.spawn(function()
-            local assetPath = 'Elite Zone/Assets/big_logo.png'
+            local assetPath = 'Elite Zone/Assets/Logo.png'
             pcall(function()
                 if isfile and isfile(assetPath) and getcustomasset then
                     mobLogo.Image = getcustomasset(assetPath)
