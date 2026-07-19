@@ -42,6 +42,7 @@ local Library = {
     ActiveDropdownList      = nil;
     DropdownRegistry        = {};
     SliderRegistry          = {};
+    KeybindRegistry         = {};
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -159,6 +160,7 @@ Library.CaseSettings = {
     DropdownItems = "Capitalized",
     Labels        = "Capitalized",
     Inputs        = "Capitalized",
+    Keybinds      = "Capitalized",
     Tooltip       = "Lowercase",
 }
 Library.TextRegistry = {}
@@ -224,6 +226,9 @@ function Library:RefreshTextRegistry()
     for _, s in ipairs(Library.SliderRegistry or {}) do
         if s.Display then pcall(s.Display, s) end
     end
+    for _, k in ipairs(Library.KeybindRegistry or {}) do
+        if k.Update then pcall(k.Update, k) end
+    end
 end
 
 function Library:SetText(Element, NewText)
@@ -268,6 +273,7 @@ function Library:RemoveElement(Element)
     end
     Pull(Library.SliderRegistry)
     Pull(Library.DropdownRegistry)
+    Pull(Library.KeybindRegistry)
     Pull(Library.DependencyBoxes)
 
     for i = #Library.TextRegistry, 1, -1 do
@@ -480,6 +486,7 @@ function Library:Unload()
     end
     Library.DropdownRegistry = {}
     Library.SliderRegistry = {}
+    Library.KeybindRegistry = {}
     if Library.OnUnload then Library.OnUnload() end
     if not IsTouch then
         local ezBlur = Services.Lighting:FindFirstChild("Blur")
@@ -869,9 +876,74 @@ do
     Library.WatermarkText = WindowMoverLabel
     Library:MakeDraggable(WindowMoverOuter)
 
+    if not IsTouch then
+        local KeybindOuter = Library:Create('Frame', {
+            AnchorPoint   = Vector2.new(0, 0.5);
+            BorderColor3  = Color3.new(0,0,0);
+            Position      = UDim2.new(0, (10), 0.5, 0);
+            Size          = UDim2.fromOffset((210), (20));
+            Visible       = false;
+            ZIndex        = 100;
+            Parent        = ScreenGui;
+        })
+        local KeybindInner = Library:Create('Frame', {
+            BackgroundColor3  = Library.MainColor;
+            BorderColor3      = Library.OutlineColor;
+            BorderMode        = Enum.BorderMode.Inset;
+            Size              = UDim2.new(1,0,1,0);
+            ZIndex            = 101;
+            Parent            = KeybindOuter;
+        })
+        Library:AddToRegistry(KeybindInner, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' }, true)
+
+        local KeybindGradient = Library:Create('UIGradient', {
+            Color     = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.new(1,1,1)), ColorSequenceKeypoint.new(1, Color3.fromRGB(212,212,212)) });
+            Rotation  = 90;
+            Parent    = KeybindInner;
+        })
+
+        local KeybindTopLine = Library:Create('Frame', {
+            BackgroundColor3  = Library.AccentColor;
+            BorderSizePixel   = 0;
+            Size              = UDim2.new(1,0,0,2);
+            ZIndex            = 102;
+            Parent            = KeybindInner;
+        })
+        Library:AddToRegistry(KeybindTopLine, { BackgroundColor3 = 'AccentColor' }, true)
+
+        Library:CreateLabel({
+            Size            = UDim2.new(1,0,0,(20));
+            Position        = UDim2.fromOffset(0, (2));
+            TextXAlignment  = Enum.TextXAlignment.Center;
+            Text            = 'Keybinds';
+            Font            = Enum.Font.GothamBold;
+            ZIndex          = 104;
+            Parent          = KeybindInner;
+        })
+        local KeybindContainer = Library:Create('Frame', {
+            BackgroundTransparency  = 1;
+            Position                = UDim2.new(0,0,0,(22));
+            Size                    = UDim2.new(1,0,1,-(22));
+            ZIndex                  = 1;
+            Parent                  = KeybindInner;
+        })
+        Library:Create('UIListLayout', { FillDirection = Enum.FillDirection.Vertical; SortOrder = Enum.SortOrder.LayoutOrder; Parent = KeybindContainer })
+        Library:Create('UIPadding',    { PaddingLeft = UDim.new(0, (5)); Parent = KeybindContainer })
+        Library.KeybindFrame     = KeybindOuter
+        Library.KeybindContainer = KeybindContainer
+        Library:MakeDraggableDirect(KeybindOuter)
+    else
+        local stub = Instance.new('Frame')
+        stub.Visible = false
+        Library.KeybindFrame     = stub
+        Library.KeybindContainer = stub
+    end
 end
 
 function Library:SetWatermarkVisibility(b)  Library.Watermark.Visible = b end
+function Library:SetKeybindVisibility(b)
+    Library.KeybindFrame.Visible = b
+end
 function Library:GetMainWindowSize()
     if self.MainWindow and type(self.MainWindow.GetWindowSize) == 'function' then
         return self.MainWindow:GetWindowSize()
@@ -1717,6 +1789,193 @@ do
         return self
     end
 
+    local function fmtKey(k)
+        local short = { RightShift="RShift", LeftShift="LShift", RightControl="RCtrl", LeftControl="LCtrl" }
+        return short[k] or k
+    end
+
+    function Funcs:AddKeyPicker(Idx, Info)
+        Library:BuildTick()
+        local ParentObj = self
+        local TextLabelRef        = self.TextLabel
+        assert(Info.Default, 'AddKeyPicker: Missing default value.')
+
+        local KeybindInfo = {
+            Value            = Info.Default;
+            Toggled          = false;
+            Mode             = Info.Mode or 'Toggle';
+            Type             = 'KeyPicker';
+            Callback         = Info.Callback       or function() end;
+            ChangedCallback  = Info.ChangedCallback or function() end;
+            SyncToggleState  = Info.SyncToggleState or false;
+        }
+        if KeybindInfo.SyncToggleState then Info.Modes = { 'Toggle' }; Info.Mode = 'Toggle' end
+
+        local KeyPickOuter = Library:Create('Frame', { BorderColor3 = Color3.new(0,0,0); Size = UDim2.fromOffset((44), (15)); ZIndex = 15; Active = true; Parent = TextLabelRef })
+        local KeyPickInner  = Library:Create('Frame', { BackgroundColor3 = Library.BackgroundColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex = 16; Parent = KeyPickOuter })
+        Library:AddToRegistry(KeyPickInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor' })
+        local DisplayLabel = Library:CreateLabel({ Size = UDim2.new(1,0,1,0); TextSize = (12); Text = fmtKey(Info.Default); TextScaled = true; ZIndex = 17; Parent = KeyPickInner })
+
+        local Modes = Info.Modes or { 'Always', 'Toggle', 'Hold' }
+        local ModeOuter = Library:Create('Frame', {
+            Active        = true;
+            BorderColor3  = Color3.new(0,0,0);
+            Size          = UDim2.fromOffset((60), #Modes * (15) + (4));
+            Visible       = false;
+            ZIndex        = 14;
+            Parent        = ScreenGui;
+        })
+        local ModeOuterScale = Library:Create('UIScale', { Scale = Library.UIScaleValue or 1.0; Parent = ModeOuter })
+        table.insert(Library.ThemeScales, ModeOuterScale)
+        local ModeInner = Library:Create('Frame', { BackgroundColor3 = Library.BackgroundColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex = 15; Parent = ModeOuter })
+        Library:AddToRegistry(ModeInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor' })
+        Library:Create('UIListLayout', { FillDirection = Enum.FillDirection.Vertical; SortOrder = Enum.SortOrder.LayoutOrder; Parent = ModeInner })
+
+        local function UpdateModePos()
+            local scale = Library.UIScaleValue or 1.0
+            ModeOuter.Position = UDim2.fromOffset((TextLabelRef.AbsolutePosition.X + TextLabelRef.AbsoluteSize.X + (4)) / scale, (TextLabelRef.AbsolutePosition.Y + 1) / scale)
+        end
+        TextLabelRef:GetPropertyChangedSignal('AbsolutePosition'):Connect(UpdateModePos)
+        UpdateModePos()
+
+        local HudBindLabel = Library:CreateLabel({ TextXAlignment = Enum.TextXAlignment.Left; Size = UDim2.new(1,0,0,(18)); TextSize = (12); Visible = false; ZIndex = 110; Parent = Library.KeybindContainer }, true)
+        table.insert(Library.KeybindRegistry, KeybindInfo)
+
+        local ModeButtonList = {}
+        for _, mode in ipairs(Modes) do
+            local btn = {}
+            local lbl = Library:CreateLabel({ Active = false; Size = UDim2.new(1,0,0,(15)); TextSize = (12); Text = mode; ZIndex = 16; Parent = ModeInner })
+            function btn:Select()
+                for _, b in next, ModeButtonList do b:Deselect() end
+                KeybindInfo.Mode = mode
+                lbl.TextColor3 = Library.AccentColor
+                Library.RegistryMap[lbl].Properties.TextColor3 = 'AccentColor'
+                ModeOuter.Visible = false
+            end
+            function btn:Deselect()
+                lbl.TextColor3 = Library.FontColor
+                Library.RegistryMap[lbl].Properties.TextColor3 = 'FontColor'
+            end
+            lbl.InputBegan:Connect(function(Input)
+                if Library:IsPointerInput(Input) and not Library:MouseIsOverOpenedFrame() then btn:Select(); Library:AttemptSave() end
+            end)
+            if mode == KeybindInfo.Mode then btn:Select() end
+            ModeButtonList[mode] = btn
+        end
+
+        function KeybindInfo:Update()
+            if Info.NoUI then return end
+            local state = KeybindInfo:GetState()
+            local showInList = false
+            if ParentObj.Type == 'Toggle' then
+                showInList = ParentObj.Value
+            else
+                showInList = state
+            end
+
+            HudBindLabel.Text    = string.format('[%s] %s', fmtKey(KeybindInfo.Value), Library:ApplyCase(Info.Text or '', "Keybinds"))
+            HudBindLabel.Visible = showInList
+            HudBindLabel.TextColor3 = state and Library.AccentColor or Library.FontColor
+            Library.RegistryMap[HudBindLabel].Properties.TextColor3 = state and 'AccentColor' or 'FontColor'
+
+            local ys, xs = 0, 0
+            for _, ch in ipairs(Library.KeybindContainer:GetChildren()) do
+                if ch:IsA('TextLabel') and ch.Visible then
+                    ys = ys + (18)
+                    xs = math.max(xs, ch.TextBounds.X)
+                end
+            end
+            Library.KeybindFrame.Size = UDim2.fromOffset(math.max(xs + (16), (210)), ys + (26))
+        end
+
+        function KeybindInfo:GetState()
+            if KeybindInfo.Mode == 'Always' then
+                return ParentObj.Type == 'Toggle' and ParentObj.Value or true
+            end
+            if KeybindInfo.Mode == 'Hold' then
+                if KeybindInfo.Value == 'None' then return false end
+                local down
+                if KeybindInfo.Value == 'MB1' then down = Services.UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+                elseif KeybindInfo.Value == 'MB2' then down = Services.UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+                else down = KeybindInfo.Value ~= nil and Enum.KeyCode[KeybindInfo.Value] and Services.UserInputService:IsKeyDown(Enum.KeyCode[KeybindInfo.Value]) or false end
+                return ParentObj.Type == 'Toggle' and ParentObj.Value and down or down
+            end
+            return ParentObj.Type == 'Toggle' and ParentObj.Value and KeybindInfo.Toggled or KeybindInfo.Toggled
+        end
+
+        function KeybindInfo:SetValue(data)
+            DisplayLabel.Text = fmtKey(data[1]); KeybindInfo.Value = data[1]
+            if ModeButtonList[data[2]] then ModeButtonList[data[2]]:Select() end
+            KeybindInfo:Update()
+        end
+        function KeybindInfo:OnClick(fn)    KeybindInfo.Clicked = fn end
+        function KeybindInfo:OnChanged(fn)  KeybindInfo.Changed = fn; fn(KeybindInfo.Value) end
+        if ParentObj.Addons then table.insert(ParentObj.Addons, KeybindInfo) end
+
+        function KeybindInfo:DoClick()
+            if ParentObj.Type == 'Toggle' and KeybindInfo.SyncToggleState then ParentObj:SetValue(not ParentObj.Value) end
+            Library:SafeCallback(KeybindInfo.Callback, KeybindInfo.Toggled)
+            Library:SafeCallback(KeybindInfo.Clicked,  KeybindInfo.Toggled)
+        end
+
+        local Picking = false
+        KeyPickOuter.InputBegan:Connect(function(Input)
+            if Library:HasOpenedFrames() then return end
+            if Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                ModeOuter.Visible = true; return
+            end
+            if not Library:IsPointerInput(Input) then return end
+            Picking = true; DisplayLabel.Text = ''
+            local dots = ''
+            local dotTask = task.spawn(function()
+                while Picking do
+                    dots = #dots >= 3 and '' or dots..'.'
+                    DisplayLabel.Text = dots
+                    task.wait(0.3)
+                end
+            end)
+            task.wait(0.15)
+            local ev
+            ev = Services.UserInputService.InputBegan:Connect(function(In)
+                local key
+                if In.UserInputType == Enum.UserInputType.Keyboard    then key = In.KeyCode.Name
+                elseif In.UserInputType == Enum.UserInputType.MouseButton1 then key = 'MB1'
+                elseif In.UserInputType == Enum.UserInputType.MouseButton2 then key = 'MB2' end
+                if not key then return end
+                Picking = false; task.cancel(dotTask)
+                DisplayLabel.Text = fmtKey(key); KeybindInfo.Value = key
+                Library:SafeCallback(KeybindInfo.ChangedCallback, In.KeyCode or In.UserInputType)
+                Library:SafeCallback(KeybindInfo.Changed,         In.KeyCode or In.UserInputType)
+                Library:AttemptSave()
+                ev:Disconnect()
+            end)
+        end)
+
+        Library:GiveSignal(Services.UserInputService.InputBegan:Connect(function(Input)
+            if not Picking then
+                if KeybindInfo.Mode == 'Toggle' then
+                    local k = KeybindInfo.Value
+                    if k == 'MB1' and Input.UserInputType == Enum.UserInputType.MouseButton1 then KeybindInfo.Toggled = not KeybindInfo.Toggled; KeybindInfo:DoClick()
+                    elseif k == 'MB2' and Input.UserInputType == Enum.UserInputType.MouseButton2 then KeybindInfo.Toggled = not KeybindInfo.Toggled; KeybindInfo:DoClick()
+                    elseif Input.UserInputType == Enum.UserInputType.Keyboard and Input.KeyCode.Name == k then KeybindInfo.Toggled = not KeybindInfo.Toggled; KeybindInfo:DoClick() end
+                end
+                KeybindInfo:Update()
+            end
+            if Library:IsPointerInput(Input) then
+                local loc = Services.UserInputService:GetMouseLocation()
+                local px = loc.X
+                local py = loc.Y
+                local ap, as = ModeOuter.AbsolutePosition, ModeOuter.AbsoluteSize
+                if px < ap.X or px > ap.X+as.X or py < ap.Y-(20)-1 or py > ap.Y+as.Y then
+                    ModeOuter.Visible = false
+                end
+            end
+        end))
+        Library:GiveSignal(Services.UserInputService.InputEnded:Connect(function() if not Picking then KeybindInfo:Update() end end))
+        KeybindInfo:Update()
+        Options[Idx] = KeybindInfo
+        return self
+    end
 
     BaseAddons.__index = Funcs
 end
