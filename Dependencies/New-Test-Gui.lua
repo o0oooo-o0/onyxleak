@@ -1560,6 +1560,16 @@ function GroupboxFuncs:AddDropdown(index, info)
     return Dropdown
 end
 
+function GroupboxFuncs:AddCustom(instanceOrInfo)
+    local info = typeof(instanceOrInfo) == 'table' and instanceOrInfo or { Instance = instanceOrInfo }
+    local customInstance = info.Instance
+    customInstance.Parent = self.Container
+    if info.FillWidth ~= false then
+        customInstance.Size = UDim2.new(1, 0, customInstance.Size.Y.Scale, customInstance.Size.Y.Offset)
+    end
+    return customInstance
+end
+
 function GroupboxFuncs:AddDependencyBox()
     local groupbox = self
     local DependencyBox = {
@@ -1661,6 +1671,253 @@ local function BuildGroupbox(parentColumn, groupboxName)
         Groupbox[functionName] = functionValue
     end
     return Groupbox
+end
+
+local function BuildTabbox(column)
+    local Tabbox = { Tabs = {} }
+
+    local tabboxFrame = Library:Create('Frame', {
+        BackgroundColor3 = Library.MainColor;
+        BorderSizePixel = 0;
+        Size = UDim2.new(1, 0, 0, 0);
+        AutomaticSize = Enum.AutomaticSize.Y;
+        Parent = column;
+    })
+    Round(tabboxFrame, 10)
+    Stroke(tabboxFrame, Library.OutlineColor)
+    Library:AddToRegistry(tabboxFrame, { BackgroundColor3 = 'MainColor' })
+
+    local tabboxButtonRow = Library:Create('Frame', {
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderSizePixel = 0;
+        Position = UDim2.fromOffset(8, 8);
+        Size = UDim2.new(1, -16, 0, 28);
+        Parent = tabboxFrame;
+    })
+    Round(tabboxButtonRow, 8)
+    Library:Create('UIListLayout', {
+        FillDirection = Enum.FillDirection.Horizontal;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = tabboxButtonRow;
+    })
+
+    local activeSubTab = nil
+
+    function Tabbox:AddTab(subTabName)
+        local TabboxTab = { Name = subTabName }
+
+        local subTabButton = Library:Create('TextButton', {
+            BackgroundColor3 = Library.AccentColor;
+            BackgroundTransparency = 1;
+            BorderSizePixel = 0;
+            Size = UDim2.new(0.5, 0, 1, -6);
+            Position = UDim2.fromOffset(0, 3);
+            Font = Library.Font;
+            Text = subTabName;
+            TextColor3 = Library.DimFontColor;
+            TextSize = 12;
+            AutoButtonColor = false;
+            Parent = tabboxButtonRow;
+        })
+        Round(subTabButton, 6)
+
+        local subTabContainerHolder = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Position = UDim2.fromOffset(12, 44);
+            Size = UDim2.new(1, -24, 0, 0);
+            AutomaticSize = Enum.AutomaticSize.Y;
+            Visible = false;
+            Parent = tabboxFrame;
+        })
+        Library:Create('UIListLayout', {
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = subTabContainerHolder;
+        })
+        Library:Create('UIPadding', {
+            PaddingBottom = UDim.new(0, 12);
+            Parent = subTabContainerHolder;
+        })
+
+        TabboxTab.Container = subTabContainerHolder
+        for functionName, functionValue in pairs(GroupboxFuncs) do
+            TabboxTab[functionName] = functionValue
+        end
+
+        function TabboxTab:Show()
+            if activeSubTab and activeSubTab ~= TabboxTab then activeSubTab:Hide() end
+            activeSubTab = TabboxTab
+            subTabContainerHolder.Visible = true
+            Animate(subTabButton, { BackgroundTransparency = 0.85; TextColor3 = Library.FontColor }, TweenSmooth)
+        end
+        function TabboxTab:Hide()
+            subTabContainerHolder.Visible = false
+            Animate(subTabButton, { BackgroundTransparency = 1; TextColor3 = Library.DimFontColor }, TweenSmooth)
+        end
+        function TabboxTab:Resize() end
+
+        subTabButton.MouseButton1Click:Connect(function() TabboxTab:Show() end)
+
+        local subTabCount = 0
+        for _, child in ipairs(tabboxButtonRow:GetChildren()) do
+            if child:IsA('TextButton') then subTabCount = subTabCount + 1 end
+        end
+        for _, child in ipairs(tabboxButtonRow:GetChildren()) do
+            if child:IsA('TextButton') then child.Size = UDim2.new(1 / subTabCount, 0, 1, -6) end
+        end
+
+        table.insert(Tabbox.Tabs, TabboxTab)
+        if #Tabbox.Tabs == 1 then TabboxTab:Show() end
+        return TabboxTab
+    end
+
+    return Tabbox
+end
+
+local BuildSubTabSystem
+
+local function AttachPageMethods(page, leftColumn, rightColumn, contentFrame)
+    page.Groupboxes = page.Groupboxes or {}
+    page.Tabboxes = page.Tabboxes or {}
+
+    function page:AddGroupbox(groupboxInfo)
+        local targetColumn = groupboxInfo.Side == 2 and rightColumn or leftColumn
+        local Groupbox = BuildGroupbox(targetColumn, groupboxInfo.Name)
+        page.Groupboxes[groupboxInfo.Name] = Groupbox
+        return Groupbox
+    end
+    function page:AddLeftGroupbox(groupboxName)  return page:AddGroupbox({ Side = 1; Name = groupboxName }) end
+    function page:AddRightGroupbox(groupboxName) return page:AddGroupbox({ Side = 2; Name = groupboxName }) end
+
+    function page:AddTabbox(tabboxInfo)
+        tabboxInfo = tabboxInfo or {}
+        local targetColumn = tabboxInfo.Side == 2 and rightColumn or leftColumn
+        local Tabbox = BuildTabbox(targetColumn)
+        page.Tabboxes[tabboxInfo.Name or (#page.Tabboxes + 1)] = Tabbox
+        return Tabbox
+    end
+    function page:AddLeftTabbox(tabboxName)  return page:AddTabbox({ Name = tabboxName; Side = 1 }) end
+    function page:AddRightTabbox(tabboxName) return page:AddTabbox({ Name = tabboxName; Side = 2 }) end
+
+    function page:AddCustom(instanceOrInfo)
+        local info = typeof(instanceOrInfo) == 'table' and instanceOrInfo or { Instance = instanceOrInfo }
+        local customInstance = info.Instance
+        local targetColumn = info.Side == 2 and rightColumn or leftColumn
+        customInstance.Parent = targetColumn
+        if info.FillWidth ~= false then
+            customInstance.Size = UDim2.new(1, 0, customInstance.Size.Y.Scale, customInstance.Size.Y.Offset)
+        end
+        return customInstance
+    end
+
+    function page:AddSubTabs()
+        if page.SubTabSystem then return page.SubTabSystem end
+        leftColumn.Visible = false
+        rightColumn.Visible = false
+        page.SubTabSystem = BuildSubTabSystem(contentFrame)
+        return page.SubTabSystem
+    end
+
+    function page:Resize() end
+end
+
+BuildSubTabSystem = function(parentFrame)
+    local System = { Tabs = {} }
+
+    local buttonRow = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Size = UDim2.new(1, 0, 0, 26);
+        Parent = parentFrame;
+    })
+    Library:Create('UIListLayout', {
+        Padding = UDim.new(0, 6);
+        FillDirection = Enum.FillDirection.Horizontal;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = buttonRow;
+    })
+
+    local pagesHolder = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Position = UDim2.fromOffset(0, 34);
+        Size = UDim2.new(1, 0, 0, 0);
+        AutomaticSize = Enum.AutomaticSize.Y;
+        Parent = parentFrame;
+    })
+
+    local activePage = nil
+
+    function System:AddTab(subTabName)
+        local Page = { Name = subTabName }
+
+        local pageButton = Library:Create('TextButton', {
+            BackgroundColor3 = Library.AccentColor;
+            BackgroundTransparency = 1;
+            BorderSizePixel = 0;
+            Size = UDim2.fromOffset(0, 26);
+            AutomaticSize = Enum.AutomaticSize.X;
+            Font = Library.Font;
+            Text = subTabName;
+            TextColor3 = Library.DimFontColor;
+            TextSize = 12;
+            AutoButtonColor = false;
+            Parent = buttonRow;
+        })
+        Round(pageButton, 7)
+        Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 10); PaddingRight = UDim.new(0, 10); Parent = pageButton })
+
+        local pageFrame = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 0, 0, 0);
+            AutomaticSize = Enum.AutomaticSize.Y;
+            Visible = false;
+            Parent = pagesHolder;
+        })
+        local pageLeftColumn = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(0.5, -6, 0, 0);
+            AutomaticSize = Enum.AutomaticSize.Y;
+            Parent = pageFrame;
+        })
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 12);
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = pageLeftColumn;
+        })
+        local pageRightColumn = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Position = UDim2.new(0.5, 6, 0, 0);
+            Size = UDim2.new(0.5, -6, 0, 0);
+            AutomaticSize = Enum.AutomaticSize.Y;
+            Parent = pageFrame;
+        })
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 12);
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = pageRightColumn;
+        })
+
+        function Page:ShowTab()
+            if activePage and activePage ~= Page then activePage:HideTab() end
+            activePage = Page
+            pageFrame.Visible = true
+            Animate(pageButton, { BackgroundTransparency = 0.85; TextColor3 = Library.FontColor }, TweenSmooth)
+        end
+        function Page:HideTab()
+            pageFrame.Visible = false
+            Animate(pageButton, { BackgroundTransparency = 1; TextColor3 = Library.DimFontColor }, TweenSmooth)
+        end
+
+        pageButton.MouseButton1Click:Connect(function() Page:ShowTab() end)
+
+        AttachPageMethods(Page, pageLeftColumn, pageRightColumn, pageFrame)
+
+        System.Tabs[subTabName] = Page
+        if not activePage then Page:ShowTab() end
+        return Page
+    end
+
+    function System:GetTab(subTabName) return System.Tabs[subTabName] end
+
+    return System
 end
 
 function Library:CreateWindow(...)
@@ -1885,121 +2142,7 @@ function Library:CreateWindow(...)
             end
         end)
 
-        function Tab:AddGroupbox(groupboxInfo)
-            local column = groupboxInfo.Side == 2 and RightColumn or LeftColumn
-            local Groupbox = BuildGroupbox(column, groupboxInfo.Name)
-            Tab.Groupboxes[groupboxInfo.Name] = Groupbox
-            return Groupbox
-        end
-        function Tab:AddLeftGroupbox(groupboxName)  return Tab:AddGroupbox({ Side = 1; Name = groupboxName }) end
-        function Tab:AddRightGroupbox(groupboxName) return Tab:AddGroupbox({ Side = 2; Name = groupboxName }) end
-
-        function Tab:AddTabbox(tabboxInfo)
-            tabboxInfo = tabboxInfo or {}
-            local column = tabboxInfo.Side == 2 and RightColumn or LeftColumn
-            local Tabbox = { Tabs = {} }
-
-            local tabboxFrame = Library:Create('Frame', {
-                BackgroundColor3 = Library.MainColor;
-                BorderSizePixel = 0;
-                Size = UDim2.new(1, 0, 0, 0);
-                AutomaticSize = Enum.AutomaticSize.Y;
-                Parent = column;
-            })
-            Round(tabboxFrame, 10)
-            Stroke(tabboxFrame, Library.OutlineColor)
-            Library:AddToRegistry(tabboxFrame, { BackgroundColor3 = 'MainColor' })
-
-            local tabboxButtonRow = Library:Create('Frame', {
-                BackgroundColor3 = Library.BackgroundColor;
-                BorderSizePixel = 0;
-                Position = UDim2.fromOffset(8, 8);
-                Size = UDim2.new(1, -16, 0, 28);
-                Parent = tabboxFrame;
-            })
-            Round(tabboxButtonRow, 8)
-            Library:Create('UIListLayout', {
-                FillDirection = Enum.FillDirection.Horizontal;
-                SortOrder = Enum.SortOrder.LayoutOrder;
-                Parent = tabboxButtonRow;
-            })
-
-            local activeSubTab = nil
-
-            function Tabbox:AddTab(subTabName)
-                local TabboxTab = { Name = subTabName }
-
-                local subTabButton = Library:Create('TextButton', {
-                    BackgroundColor3 = Library.AccentColor;
-                    BackgroundTransparency = 1;
-                    BorderSizePixel = 0;
-                    Size = UDim2.new(0.5, 0, 1, -6);
-                    Position = UDim2.fromOffset(0, 3);
-                    Font = Library.Font;
-                    Text = subTabName;
-                    TextColor3 = Library.DimFontColor;
-                    TextSize = 12;
-                    AutoButtonColor = false;
-                    Parent = tabboxButtonRow;
-                })
-                Round(subTabButton, 6)
-                Library:Create('UIPadding', { PaddingTop = UDim.new(0, 0); Parent = subTabButton })
-
-                local subTabContainerHolder = Library:Create('Frame', {
-                    BackgroundTransparency = 1;
-                    Position = UDim2.fromOffset(12, 44);
-                    Size = UDim2.new(1, -24, 0, 0);
-                    AutomaticSize = Enum.AutomaticSize.Y;
-                    Visible = false;
-                    Parent = tabboxFrame;
-                })
-                Library:Create('UIListLayout', {
-                    SortOrder = Enum.SortOrder.LayoutOrder;
-                    Parent = subTabContainerHolder;
-                })
-                Library:Create('UIPadding', {
-                    PaddingBottom = UDim.new(0, 12);
-                    Parent = subTabContainerHolder;
-                })
-
-                TabboxTab.Container = subTabContainerHolder
-                for functionName, functionValue in pairs(GroupboxFuncs) do
-                    TabboxTab[functionName] = functionValue
-                end
-
-                function TabboxTab:Show()
-                    if activeSubTab and activeSubTab ~= TabboxTab then activeSubTab:Hide() end
-                    activeSubTab = TabboxTab
-                    subTabContainerHolder.Visible = true
-                    Animate(subTabButton, { BackgroundTransparency = 0.85; TextColor3 = Library.FontColor }, TweenSmooth)
-                end
-                function TabboxTab:Hide()
-                    subTabContainerHolder.Visible = false
-                    Animate(subTabButton, { BackgroundTransparency = 1; TextColor3 = Library.DimFontColor }, TweenSmooth)
-                end
-                function TabboxTab:Resize() end
-
-                subTabButton.MouseButton1Click:Connect(function() TabboxTab:Show() end)
-
-                local subTabCount = 0
-                for _, child in ipairs(tabboxButtonRow:GetChildren()) do
-                    if child:IsA('TextButton') then subTabCount = subTabCount + 1 end
-                end
-                for _, child in ipairs(tabboxButtonRow:GetChildren()) do
-                    if child:IsA('TextButton') then child.Size = UDim2.new(1 / subTabCount, 0, 1, -6) end
-                end
-
-                table.insert(Tabbox.Tabs, TabboxTab)
-                if #Tabbox.Tabs == 1 then TabboxTab:Show() end
-                return TabboxTab
-            end
-
-            Tab.Tabboxes[tabboxInfo.Name or #Tab.Tabboxes + 1] = Tabbox
-            return Tabbox
-        end
-        function Tab:AddLeftTabbox(tabboxName)  return Tab:AddTabbox({ Name = tabboxName; Side = 1 }) end
-        function Tab:AddRightTabbox(tabboxName) return Tab:AddTabbox({ Name = tabboxName; Side = 2 }) end
-        function Tab:Resize() end
+        AttachPageMethods(Tab, LeftColumn, RightColumn, TabContent)
 
         Window.Tabs[tabName] = Tab
         if not activeTab then ShowTab() end
