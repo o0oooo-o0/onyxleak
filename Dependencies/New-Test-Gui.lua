@@ -1128,13 +1128,7 @@ function GroupboxFuncs:AddToggle(index, info)
     return Toggle
 end
 
-function GroupboxFuncs:AddSlider(index, info)
-    assert(info.Default ~= nil, 'AddSlider: Missing default.')
-    assert(info.Text,           'AddSlider: Missing text.')
-    assert(info.Min ~= nil,     'AddSlider: Missing min.')
-    assert(info.Max ~= nil,     'AddSlider: Missing max.')
-    assert(info.Rounding ~= nil,'AddSlider: Missing rounding.')
-
+local function BuildSliderPiece(parent, outerSize, info)
     local Slider = {
         Value = info.Default;
         Min = info.Min;
@@ -1144,18 +1138,17 @@ function GroupboxFuncs:AddSlider(index, info)
         Callback = info.Callback or function() end;
         Info = info;
     }
-    local groupbox = self
 
-    local sliderHolder = Library:Create('Frame', {
+    local sliderOuter = Library:Create('Frame', {
         BackgroundTransparency = 1;
-        Size = UDim2.new(1, -4, 0, 34);
-        Parent = groupbox.Container;
+        Size = outerSize;
+        Parent = parent;
     })
     local sliderTitle = Library:CreateLabel({
         Size = UDim2.new(0.6, 0, 0, 14);
-        Text = info.Text;
+        Text = info.Text or '';
         TextXAlignment = Enum.TextXAlignment.Left;
-        Parent = sliderHolder;
+        Parent = sliderOuter;
     })
     local sliderValueLabel = Library:CreateLabel({
         AnchorPoint = Vector2.new(1, 0);
@@ -1163,14 +1156,14 @@ function GroupboxFuncs:AddSlider(index, info)
         Position = UDim2.new(1, 0, 0, 0);
         TextColor3 = Library.DimFontColor;
         TextXAlignment = Enum.TextXAlignment.Right;
-        Parent = sliderHolder;
+        Parent = sliderOuter;
     })
     local sliderTrack = Library:Create('Frame', {
         BackgroundColor3 = Library.BackgroundColor;
         BorderSizePixel = 0;
         Position = UDim2.new(0, 0, 0, 22);
         Size = UDim2.new(1, 0, 0, 8);
-        Parent = sliderHolder;
+        Parent = sliderOuter;
     })
     Round(sliderTrack, 4)
     Stroke(sliderTrack, Library.OutlineColor, 0.5)
@@ -1256,14 +1249,46 @@ function GroupboxFuncs:AddSlider(index, info)
         end
     end))
 
-    if type(info.Tooltip) == 'string' then Library:AddToolTip(info.Tooltip, sliderHolder) end
+    if type(info.Tooltip) == 'string' then Library:AddToolTip(info.Tooltip, sliderOuter) end
 
-    Slider.Outer = sliderHolder
+    Slider.Outer = sliderOuter
     Slider.TextLabel = sliderTitle
     Slider:Display()
-    self:AddBlank(6)
-    Options[index] = Slider
     return Slider
+end
+
+function GroupboxFuncs:AddSlider(index, info)
+    assert(info.Default ~= nil, 'AddSlider: Missing default.')
+    assert(info.Text,           'AddSlider: Missing text.')
+    assert(info.Min ~= nil,     'AddSlider: Missing min.')
+    assert(info.Max ~= nil,     'AddSlider: Missing max.')
+    assert(info.Rounding ~= nil,'AddSlider: Missing rounding.')
+
+    local groupbox = self
+    local First = BuildSliderPiece(groupbox.Container, UDim2.new(1, -4, 0, 34), info)
+    local Count = 1
+
+    local function Chain(PrevSlider)
+        function PrevSlider:AddSlider(index2, info2)
+            assert(info2.Default ~= nil, 'AddSlider: Missing default.')
+            assert(info2.Text,           'AddSlider: Missing text.')
+            assert(info2.Min ~= nil,     'AddSlider: Missing min.')
+            assert(info2.Max ~= nil,     'AddSlider: Missing max.')
+            assert(info2.Rounding ~= nil,'AddSlider: Missing rounding.')
+            Count = Count + 1
+            First.Outer.Size = UDim2.new(1 / Count, -3, 0, 34)
+            local Sub = BuildSliderPiece(PrevSlider.Outer, UDim2.new(1, -3, 1, 0), info2)
+            Sub.Outer.Position = UDim2.new(1, 3, 0, 0)
+            Chain(Sub)
+            Options[index2] = Sub
+            return Sub
+        end
+    end
+    Chain(First)
+
+    self:AddBlank(6)
+    Options[index] = First
+    return First
 end
 
 local function GetPlayersString()
