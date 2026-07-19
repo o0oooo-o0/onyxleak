@@ -1866,10 +1866,15 @@ do
             ModeButtonList[mode] = btn
         end
 
+        local function ParentEnabled()
+            if ParentObj.Type ~= 'Toggle' then return true end
+            return ParentObj.Value and true or false
+        end
+
         function KeybindInfo:Update()
             if Info.NoUI then return end
             local state   = KeybindInfo:GetState()
-            local enabled = ParentObj.Type == 'Toggle' and ParentObj.Value or true
+            local enabled = ParentEnabled()
             local mode    = Library.KeybindListMode or 'Enabled'
             local showInList
             if mode == 'All' then
@@ -1897,7 +1902,7 @@ do
 
         function KeybindInfo:GetState()
             if KeybindInfo.Mode == 'Always' then
-                return ParentObj.Type == 'Toggle' and ParentObj.Value or true
+                return ParentEnabled()
             end
             if KeybindInfo.Mode == 'Hold' then
                 if KeybindInfo.Value == 'None' then return false end
@@ -1905,9 +1910,9 @@ do
                 if KeybindInfo.Value == 'MB1' then down = Services.UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
                 elseif KeybindInfo.Value == 'MB2' then down = Services.UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
                 else down = KeybindInfo.Value ~= nil and Enum.KeyCode[KeybindInfo.Value] and Services.UserInputService:IsKeyDown(Enum.KeyCode[KeybindInfo.Value]) or false end
-                return ParentObj.Type == 'Toggle' and ParentObj.Value and down or down
+                return ParentEnabled() and down
             end
-            return ParentObj.Type == 'Toggle' and ParentObj.Value and KeybindInfo.Toggled or KeybindInfo.Toggled
+            return ParentEnabled() and KeybindInfo.Toggled
         end
 
         function KeybindInfo:SetValue(data)
@@ -5759,6 +5764,8 @@ function SaveManager.IgnoreThemeSettings(self)
         'BackgroundOpacity', 'BlurOpacity', 'BackgroundBlur', 'BackgroundFrame',
         'EzLogo', 'EzLogoTransparency', 'EzLogoPosX', 'EzLogoPosY', 'EzLogoMaterial', 'EzLogoSize',
         'EzLogoColor', 'EzLogoFatness', 'EzLogoSpeed',
+        'NotifyClipDescendants', 'NotifyMaxHeight', 'NotifyPosX', 'NotifyPosY',
+        'NotifyTransparency', 'NotifyAlignment', 'NotifyBarSide', 'NotifySortOrder',
     }
 end
 
