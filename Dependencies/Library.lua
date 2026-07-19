@@ -869,9 +869,25 @@ do
     Library.WatermarkText = WindowMoverLabel
     Library:MakeDraggable(WindowMoverOuter)
 
+    local TaglineLabel = Library:CreateLabel({
+        AnchorPoint     = Vector2.new(0.5, 1);
+        Position        = UDim2.new(0.5, 0, 1, -(4));
+        Size            = UDim2.new(0, 0, 0, (14));
+        TextSize        = (12);
+        Text            = "Elite Zone \xe2\x80\x94 Quality at its finest.";
+        TextColor3      = Library.AccentColor;
+        PreserveCase    = true;
+        TextXAlignment  = Enum.TextXAlignment.Center;
+        ZIndex          = 200;
+        Parent          = ScreenGui;
+    })
+    Library:AddToRegistry(TaglineLabel, { TextColor3 = 'AccentColor' })
+    Library.Tagline = TaglineLabel
+
 end
 
 function Library:SetWatermarkVisibility(b)  Library.Watermark.Visible = b end
+function Library:SetTaglineVisibility(b)  Library.Tagline.Visible = b end
 function Library:GetMainWindowSize()
     if self.MainWindow and type(self.MainWindow.GetWindowSize) == 'function' then
         return self.MainWindow:GetWindowSize()
@@ -1813,10 +1829,6 @@ do
 
         Groupbox:AddBlank(5); Groupbox:Resize()
         return Note
-    end
-
-    function Funcs:AddTagline()
-        return self:AddNote("Elite Zone \xe2\x80\x94 Quality at its finest.")
     end
 
     function Funcs:AddDynamicList(Info)
