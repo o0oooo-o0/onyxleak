@@ -583,6 +583,318 @@ function BaseAddons:AddColorPicker(index, info)
     return self
 end
 
+function BaseAddons:AddGradientColorPicker(index, info)
+    info = info or {}
+    assert(type(info.Defaults) == 'table' and info.Defaults[1] and info.Defaults[2] and info.Defaults[3],
+        'AddGradientColorPicker: Defaults must be a table of 3 Color3 values.')
+    local parentElement = self
+    local STOP_NAMES = { 'Start', 'Middle', 'End' }
+    local hasTransparency = info.Transparency ~= nil
+
+    local GradientData = {
+        Values = { info.Defaults[1]; info.Defaults[2]; info.Defaults[3] };
+        Transparencies = { info.Transparency or 0; info.Transparency or 0; info.Transparency or 0 };
+        ActiveStop = 1;
+        Type = 'GradientColorPicker';
+        Title = tostring(info.Title or 'Gradient');
+        Callback = info.Callback or function() end;
+    }
+    GradientData.Hue, GradientData.Sat, GradientData.Vib = Color3.toHSV(GradientData.Values[1])
+
+    local function BuildGradientSequence()
+        return ColorSequence.new({
+            ColorSequenceKeypoint.new(0,   GradientData.Values[1]);
+            ColorSequenceKeypoint.new(0.5, GradientData.Values[2]);
+            ColorSequenceKeypoint.new(1,   GradientData.Values[3]);
+        })
+    end
+    local function BuildTransparencySequence()
+        return NumberSequence.new({
+            NumberSequenceKeypoint.new(0,   GradientData.Transparencies[1]);
+            NumberSequenceKeypoint.new(0.5, GradientData.Transparencies[2]);
+            NumberSequenceKeypoint.new(1,   GradientData.Transparencies[3]);
+        })
+    end
+
+    local holder = parentElement.AddonHolder
+    local SwatchButton = Library:Create('TextButton', {
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Size = UDim2.fromOffset(36, 14);
+        Text = '';
+        AutoButtonColor = false;
+        ZIndex = 10;
+        Parent = holder;
+    })
+    Round(SwatchButton, 5)
+    Stroke(SwatchButton, Library.OutlineColor)
+    local SwatchGradient = Library:Create('UIGradient', { Color = BuildGradientSequence(); Parent = SwatchButton })
+    GradientData.DisplayFrame = SwatchButton
+
+    local PopupFrame = Library:Create('Frame', {
+        BackgroundColor3 = Library.MainColor;
+        BorderSizePixel = 0;
+        Size = UDim2.fromOffset(210, hasTransparency and 300 or 280);
+        Visible = false;
+        ZIndex = 300;
+        Parent = ScreenGui;
+    })
+    Round(PopupFrame, 10)
+    Stroke(PopupFrame, Library.OutlineColor)
+    Library.OpenedFrames[PopupFrame] = PopupFrame
+
+    local TabRow = Library:Create('Frame', {
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderSizePixel = 0;
+        Position = UDim2.fromOffset(10, 10);
+        Size = UDim2.new(1, -20, 0, 24);
+        ZIndex = 301;
+        Parent = PopupFrame;
+    })
+    Round(TabRow, 6)
+    Library:Create('UIListLayout', {
+        FillDirection = Enum.FillDirection.Horizontal;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = TabRow;
+    })
+
+    local stopButtons = {}
+    for stopIndex = 1, 3 do
+        local stopButton = Library:Create('TextButton', {
+            BackgroundColor3 = Library.AccentColor;
+            BackgroundTransparency = stopIndex == 1 and 0.85 or 1;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1 / 3, 0, 1, 0);
+            Font = Library.Font;
+            Text = STOP_NAMES[stopIndex];
+            TextColor3 = stopIndex == 1 and Library.FontColor or Library.DimFontColor;
+            TextSize = 11;
+            AutoButtonColor = false;
+            ZIndex = 302;
+            Parent = TabRow;
+        })
+        Round(stopButton, 5)
+        stopButtons[stopIndex] = stopButton
+    end
+
+    local SaturationMap = Library:Create('ImageButton', {
+        BackgroundColor3 = Color3.fromHSV(GradientData.Hue, 1, 1);
+        BorderSizePixel = 0;
+        Position = UDim2.fromOffset(10, 44);
+        Size = UDim2.fromOffset(190, 150);
+        Image = 'rbxassetid://4155801252';
+        AutoButtonColor = false;
+        ZIndex = 301;
+        Parent = PopupFrame;
+    })
+    Round(SaturationMap, 8)
+    local SaturationCursor = Library:Create('Frame', {
+        AnchorPoint = Vector2.new(0.5, 0.5);
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Size = UDim2.fromOffset(10, 10);
+        ZIndex = 303;
+        Parent = SaturationMap;
+    })
+    Round(SaturationCursor, 5)
+    Stroke(SaturationCursor, Color3.new(0, 0, 0), 0.5)
+
+    local HueBar = Library:Create('TextButton', {
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Position = UDim2.fromOffset(10, 202);
+        Size = UDim2.fromOffset(190, 14);
+        Text = '';
+        AutoButtonColor = false;
+        ZIndex = 301;
+        Parent = PopupFrame;
+    })
+    Round(HueBar, 7)
+    Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0));
+            ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0));
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0));
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255));
+            ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255));
+            ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255));
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0));
+        });
+        Parent = HueBar;
+    })
+    local HueCursor = Library:Create('Frame', {
+        AnchorPoint = Vector2.new(0.5, 0.5);
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Position = UDim2.new(0, 0, 0.5, 0);
+        Size = UDim2.fromOffset(6, 18);
+        ZIndex = 302;
+        Parent = HueBar;
+    })
+    Round(HueCursor, 3)
+    Stroke(HueCursor, Color3.new(0, 0, 0), 0.5)
+
+    local TransparencyBar, TransparencyCursor
+    local previewY = hasTransparency and 246 or 226
+    if hasTransparency then
+        TransparencyBar = Library:Create('Frame', {
+            BackgroundColor3 = GradientData.Values[1];
+            BorderSizePixel = 0;
+            Position = UDim2.fromOffset(10, 222);
+            Size = UDim2.new(1, -20, 0, 14);
+            ZIndex = 301;
+            Parent = PopupFrame;
+        })
+        Round(TransparencyBar, 7)
+        Stroke(TransparencyBar, Library.OutlineColor)
+        TransparencyCursor = Library:Create('Frame', {
+            AnchorPoint = Vector2.new(0.5, 0.5);
+            BackgroundColor3 = Color3.new(1, 1, 1);
+            BorderSizePixel = 0;
+            Position = UDim2.new(0, 0, 0.5, 0);
+            Size = UDim2.fromOffset(6, 18);
+            ZIndex = 302;
+            Parent = TransparencyBar;
+        })
+        Round(TransparencyCursor, 3)
+        Stroke(TransparencyCursor, Color3.new(0, 0, 0), 0.5)
+    end
+
+    local PreviewFrame = Library:Create('Frame', {
+        BackgroundColor3 = Color3.new(1, 1, 1);
+        BorderSizePixel = 0;
+        Position = UDim2.fromOffset(10, previewY);
+        Size = UDim2.new(1, -20, 0, 24);
+        ZIndex = 301;
+        Parent = PopupFrame;
+    })
+    Round(PreviewFrame, 7)
+    Stroke(PreviewFrame, Library.OutlineColor)
+    local PreviewGradient = Library:Create('UIGradient', { Color = BuildGradientSequence(); Transparency = BuildTransparencySequence(); Parent = PreviewFrame })
+
+    local function RefreshTabs()
+        for stopIndex = 1, 3 do
+            local isActive = stopIndex == GradientData.ActiveStop
+            Animate(stopButtons[stopIndex], { BackgroundTransparency = isActive and 0.85 or 1; TextColor3 = isActive and Library.FontColor or Library.DimFontColor }, TweenFast)
+        end
+    end
+
+    local function UpdateVisuals()
+        SaturationMap.BackgroundColor3 = Color3.fromHSV(GradientData.Hue, 1, 1)
+        SaturationCursor.Position = UDim2.new(GradientData.Sat, 0, 1 - GradientData.Vib, 0)
+        HueCursor.Position = UDim2.new(GradientData.Hue, 0, 0.5, 0)
+        SwatchGradient.Color = BuildGradientSequence()
+        PreviewGradient.Color = BuildGradientSequence()
+        PreviewGradient.Transparency = BuildTransparencySequence()
+        if hasTransparency then
+            TransparencyBar.BackgroundColor3 = GradientData.Values[GradientData.ActiveStop]
+            TransparencyCursor.Position = UDim2.new(1 - GradientData.Transparencies[GradientData.ActiveStop], 0, 0.5, 0)
+        end
+        RefreshTabs()
+    end
+
+    function GradientData:Display()
+        UpdateVisuals()
+        Library:SafeCallback(GradientData.Callback, GradientData.Values, GradientData.Transparencies)
+        Library:SafeCallback(GradientData.Changed, GradientData.Values, GradientData.Transparencies)
+    end
+
+    local function ApplyHSV()
+        GradientData.Values[GradientData.ActiveStop] = Color3.fromHSV(GradientData.Hue, GradientData.Sat, GradientData.Vib)
+        GradientData:Display()
+    end
+
+    function GradientData:SetStop(stopIndex)
+        GradientData.ActiveStop = stopIndex
+        GradientData.Hue, GradientData.Sat, GradientData.Vib = Color3.toHSV(GradientData.Values[stopIndex])
+        GradientData:Display()
+    end
+    function GradientData:SetValues(values, transparencies)
+        for stopIndex = 1, 3 do
+            if values[stopIndex] then GradientData.Values[stopIndex] = values[stopIndex] end
+            if transparencies and transparencies[stopIndex] then GradientData.Transparencies[stopIndex] = transparencies[stopIndex] end
+        end
+        GradientData.Hue, GradientData.Sat, GradientData.Vib = Color3.toHSV(GradientData.Values[GradientData.ActiveStop])
+        GradientData:Display()
+    end
+    function GradientData:OnChanged(callback)
+        GradientData.Changed = callback
+        callback(GradientData.Values, GradientData.Transparencies)
+    end
+
+    for stopIndex = 1, 3 do
+        stopButtons[stopIndex].MouseButton1Click:Connect(function() GradientData:SetStop(stopIndex) end)
+    end
+
+    local draggingMap = false
+    local draggingHue = false
+    local draggingTransparency = false
+    SaturationMap.InputBegan:Connect(function(input)
+        if Library:IsPointerInput(input) then draggingMap = true end
+    end)
+    HueBar.InputBegan:Connect(function(input)
+        if Library:IsPointerInput(input) then draggingHue = true end
+    end)
+    if hasTransparency then
+        TransparencyBar.InputBegan:Connect(function(input)
+            if Library:IsPointerInput(input) then draggingTransparency = true end
+        end)
+    end
+    Library:GiveSignal(UserInputService.InputEnded:Connect(function(input)
+        if Library:IsPointerInput(input) then draggingMap = false; draggingHue = false; draggingTransparency = false end
+    end))
+    Library:GiveSignal(RunService.RenderStepped:Connect(function()
+        if not PopupFrame.Visible then return end
+        local mouseLocation = UserInputService:GetMouseLocation()
+        if draggingMap then
+            local relativeX = math.clamp((mouseLocation.X - SaturationMap.AbsolutePosition.X) / SaturationMap.AbsoluteSize.X, 0, 1)
+            local relativeY = math.clamp((mouseLocation.Y - SaturationMap.AbsolutePosition.Y) / SaturationMap.AbsoluteSize.Y, 0, 1)
+            GradientData.Sat = relativeX
+            GradientData.Vib = 1 - relativeY
+            ApplyHSV()
+        elseif draggingHue then
+            local relativeX = math.clamp((mouseLocation.X - HueBar.AbsolutePosition.X) / HueBar.AbsoluteSize.X, 0, 1)
+            GradientData.Hue = relativeX
+            ApplyHSV()
+        elseif draggingTransparency and hasTransparency then
+            local relativeX = math.clamp((mouseLocation.X - TransparencyBar.AbsolutePosition.X) / TransparencyBar.AbsoluteSize.X, 0, 1)
+            GradientData.Transparencies[GradientData.ActiveStop] = 1 - relativeX
+            GradientData:Display()
+        end
+    end))
+
+    local function OpenPopup()
+        local absolutePosition = SwatchButton.AbsolutePosition
+        PopupFrame.Position = UDim2.fromOffset(absolutePosition.X, absolutePosition.Y + SwatchButton.AbsoluteSize.Y + 6)
+        PopupFrame.Visible = true
+        PopupFrame.BackgroundTransparency = 1
+        UpdateVisuals()
+        Animate(PopupFrame, { BackgroundTransparency = 0 }, TweenFast)
+    end
+    local function ClosePopup()
+        PopupFrame.Visible = false
+    end
+
+    Library:GiveSignal(UserInputService.InputBegan:Connect(function(input)
+        if PopupFrame.Visible and Library:IsPointerInput(input) then
+            local mouseLocation = UserInputService:GetMouseLocation()
+            local insidePopup = mouseLocation.X >= PopupFrame.AbsolutePosition.X and mouseLocation.X <= PopupFrame.AbsolutePosition.X + PopupFrame.AbsoluteSize.X
+                and mouseLocation.Y >= PopupFrame.AbsolutePosition.Y and mouseLocation.Y <= PopupFrame.AbsolutePosition.Y + PopupFrame.AbsoluteSize.Y
+            local insideSwatch = mouseLocation.X >= SwatchButton.AbsolutePosition.X and mouseLocation.X <= SwatchButton.AbsolutePosition.X + SwatchButton.AbsoluteSize.X
+                and mouseLocation.Y >= SwatchButton.AbsolutePosition.Y and mouseLocation.Y <= SwatchButton.AbsolutePosition.Y + SwatchButton.AbsoluteSize.Y
+            if not insidePopup and not insideSwatch then ClosePopup() end
+        end
+    end))
+    SwatchButton.MouseButton1Click:Connect(function()
+        if PopupFrame.Visible then ClosePopup() else OpenPopup() end
+    end)
+
+    UpdateVisuals()
+    if parentElement.Addons then table.insert(parentElement.Addons, GradientData) end
+    Options[index] = GradientData
+    return self
+end
+
 local KeyNameOverrides = {
     LeftControl = 'LCtrl'; RightControl = 'RCtrl';
     LeftShift = 'LShift'; RightShift = 'RShift';
