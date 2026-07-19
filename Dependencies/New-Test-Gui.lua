@@ -1124,6 +1124,323 @@ function GroupboxFuncs:AddDivider()
     return dividerFrame
 end
 
+function GroupboxFuncs:AddCaseRow(index, info)
+    info = info or {}
+    local groupbox = self
+    local modes = { 'Capitalized'; 'Lowercase'; 'Uppercase' }
+    local CaseOption = { Value = info.Default or 'Capitalized'; Type = 'CaseRow'; Callback = info.Callback or function() end }
+
+    local row = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Size = UDim2.new(1, -4, 0, 22);
+        Parent = groupbox.Container;
+    })
+    Library:CreateLabel({
+        Size = UDim2.new(0.55, 0, 1, 0);
+        Text = info.Text or index;
+        TextXAlignment = Enum.TextXAlignment.Left;
+        Parent = row;
+    })
+
+    local valueButton = Library:Create('TextButton', {
+        AnchorPoint = Vector2.new(1, 0);
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderSizePixel = 0;
+        Position = UDim2.new(1, 0, 0, 0);
+        Size = UDim2.new(0.42, 0, 1, 0);
+        Font = Library.Font;
+        Text = CaseOption.Value;
+        TextColor3 = Library.FontColor;
+        TextSize = 12;
+        AutoButtonColor = false;
+        Parent = row;
+    })
+    Round(valueButton, 6)
+    local valueStroke = Stroke(valueButton, Library.OutlineColor)
+
+    valueButton.MouseEnter:Connect(function() Animate(valueStroke, { Color = Library.AccentColor }, TweenFast) end)
+    valueButton.MouseLeave:Connect(function() Animate(valueStroke, { Color = Library.OutlineColor }, TweenFast) end)
+
+    function CaseOption:OnChanged(callback)
+        CaseOption.Changed = callback
+        callback(CaseOption.Value)
+    end
+    function CaseOption:SetValue(newValue)
+        CaseOption.Value = newValue
+        valueButton.Text = newValue
+        Library:SafeCallback(CaseOption.Callback, newValue)
+        Library:SafeCallback(CaseOption.Changed, newValue)
+    end
+
+    valueButton.MouseButton1Click:Connect(function()
+        if Library:HasOpenedFrames() then return end
+        local currentIndex = 1
+        for modeIndex, modeName in ipairs(modes) do
+            if modeName == CaseOption.Value then currentIndex = modeIndex break end
+        end
+        CaseOption:SetValue(modes[(currentIndex % #modes) + 1])
+        Library:AttemptSave()
+    end)
+
+    self:AddBlank(4)
+    Options[index] = CaseOption
+    return CaseOption
+end
+
+function GroupboxFuncs:AddInlineTabs(tabNames)
+    local groupbox = self
+    local result = {}
+    local tabObjects = {}
+
+    local buttonRow = Library:Create('Frame', {
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderSizePixel = 0;
+        Size = UDim2.new(1, -4, 0, 24);
+        Parent = groupbox.Container;
+    })
+    Round(buttonRow, 6)
+    Library:Create('UIListLayout', {
+        FillDirection = Enum.FillDirection.Horizontal;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = buttonRow;
+    })
+
+    local count = #tabNames
+    for tabIndex, tabName in ipairs(tabNames) do
+        local tabButton = Library:Create('TextButton', {
+            BackgroundColor3 = Library.AccentColor;
+            BackgroundTransparency = 1;
+            BorderSizePixel = 0;
+            Size = UDim2.new(1 / count, 0, 1, 0);
+            Font = Library.Font;
+            Text = tabName;
+            TextColor3 = Library.DimFontColor;
+            TextSize = 12;
+            AutoButtonColor = false;
+            Parent = buttonRow;
+        })
+        Round(tabButton, 5)
+
+        local contentFrame = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 0, 0, 0);
+            AutomaticSize = Enum.AutomaticSize.Y;
+            Visible = false;
+            Parent = groupbox.Container;
+        })
+        Library:Create('UIListLayout', {
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = contentFrame;
+        })
+
+        local InlineTab = { Container = contentFrame; Name = tabName }
+        for functionName, functionValue in pairs(GroupboxFuncs) do
+            InlineTab[functionName] = functionValue
+        end
+
+        function InlineTab:InlineHide()
+            contentFrame.Visible = false
+            Animate(tabButton, { BackgroundTransparency = 1; TextColor3 = Library.DimFontColor }, TweenSmooth)
+        end
+        function InlineTab:Show()
+            for _, otherTab in ipairs(tabObjects) do otherTab:InlineHide() end
+            contentFrame.Visible = true
+            Animate(tabButton, { BackgroundTransparency = 0.85; TextColor3 = Library.FontColor }, TweenSmooth)
+        end
+
+        tabButton.MouseButton1Click:Connect(function() InlineTab:Show() end)
+
+        tabObjects[tabIndex] = InlineTab
+        result[tabName] = InlineTab
+    end
+
+    groupbox.InlineTabs = tabObjects
+    if tabObjects[1] then tabObjects[1]:Show() end
+    self:AddBlank(4)
+    return result
+end
+
+function GroupboxFuncs:AddDynamicList(info)
+    info = info or {}
+    local groupbox = self
+    local onChange = info.OnChanged or function() end
+    local textOnly = info.TextOnly or false
+    local entries = {}
+    local rowCounter = 0
+
+    local listHolder = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Size = UDim2.new(1, -4, 0, 0);
+        AutomaticSize = Enum.AutomaticSize.Y;
+        Parent = groupbox.Container;
+    })
+    Library:Create('UIListLayout', {
+        Padding = UDim.new(0, 4);
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = listHolder;
+    })
+
+    local function fireChanged()
+        local out = {}
+        if textOnly then
+            for _, entry in ipairs(entries) do
+                if entry.textVal ~= '' then out[#out + 1] = entry.textVal end
+            end
+        else
+            for _, entry in ipairs(entries) do
+                local chance = tonumber(entry.chanceVal) or 0
+                if entry.textVal ~= '' and chance > 0 then
+                    out[#out + 1] = { text = entry.textVal; chance = chance }
+                end
+            end
+        end
+        Library:SafeCallback(onChange, out)
+    end
+
+    local function makeRow(defaultText, defaultChance)
+        local entry = { textVal = defaultText or ''; chanceVal = tostring(defaultChance or 50) }
+
+        rowCounter = rowCounter + 1
+        local row = Library:Create('Frame', {
+            BackgroundTransparency = 1;
+            Size = UDim2.new(1, 0, 0, 24);
+            LayoutOrder = rowCounter;
+            Parent = listHolder;
+        })
+        Library:Create('UIListLayout', {
+            Padding = UDim.new(0, 4);
+            FillDirection = Enum.FillDirection.Horizontal;
+            VerticalAlignment = Enum.VerticalAlignment.Center;
+            SortOrder = Enum.SortOrder.LayoutOrder;
+            Parent = row;
+        })
+
+        local function makeBox(widthScale, defaultValue)
+            local boxOuter = Library:Create('Frame', {
+                BackgroundColor3 = Library.BackgroundColor;
+                BorderSizePixel = 0;
+                Size = UDim2.new(widthScale, -2, 1, 0);
+                Parent = row;
+            })
+            Round(boxOuter, 6)
+            local boxStroke = Stroke(boxOuter, Library.OutlineColor)
+            local box = Library:Create('TextBox', {
+                BackgroundTransparency = 1;
+                Size = UDim2.new(1, -12, 1, 0);
+                Position = UDim2.fromOffset(6, 0);
+                Font = Library.Font;
+                Text = defaultValue or '';
+                TextColor3 = Library.FontColor;
+                TextSize = 12;
+                TextXAlignment = Enum.TextXAlignment.Left;
+                ClearTextOnFocus = false;
+                Parent = boxOuter;
+            })
+            box.Focused:Connect(function() Animate(boxStroke, { Color = Library.AccentColor }, TweenFast) end)
+            box.FocusLost:Connect(function() Animate(boxStroke, { Color = Library.OutlineColor }, TweenFast) end)
+            return box
+        end
+
+        local textBox = makeBox(textOnly and 0.8 or 0.6, entry.textVal)
+        local percentBox = not textOnly and makeBox(0.2, entry.chanceVal) or nil
+
+        local removeButton = Library:Create('TextButton', {
+            BackgroundColor3 = Library.BackgroundColor;
+            BorderSizePixel = 0;
+            Size = UDim2.new(0.2, -2, 1, 0);
+            Font = Library.FontBold;
+            Text = '-';
+            TextColor3 = Library.DimFontColor;
+            TextSize = 14;
+            AutoButtonColor = false;
+            Parent = row;
+        })
+        Round(removeButton, 6)
+        local removeStroke = Stroke(removeButton, Library.OutlineColor)
+        removeButton.MouseEnter:Connect(function()
+            Animate(removeStroke, { Color = Library.RiskColor }, TweenFast)
+            Animate(removeButton, { TextColor3 = Library.RiskColor }, TweenFast)
+        end)
+        removeButton.MouseLeave:Connect(function()
+            Animate(removeStroke, { Color = Library.OutlineColor }, TweenFast)
+            Animate(removeButton, { TextColor3 = Library.DimFontColor }, TweenFast)
+        end)
+
+        textBox:GetPropertyChangedSignal('Text'):Connect(function()
+            entry.textVal = textBox.Text
+            fireChanged()
+        end)
+        if percentBox then
+            percentBox:GetPropertyChangedSignal('Text'):Connect(function()
+                local numericValue = tonumber(percentBox.Text)
+                if numericValue then entry.chanceVal = tostring(math.clamp(math.floor(numericValue), 0, 100)) end
+                fireChanged()
+            end)
+            percentBox.FocusLost:Connect(function()
+                local numericValue = math.clamp(math.floor(tonumber(percentBox.Text) or 0), 0, 100)
+                percentBox.Text = tostring(numericValue)
+                entry.chanceVal = tostring(numericValue)
+            end)
+        end
+
+        removeButton.MouseButton1Click:Connect(function()
+            for entryIndex, storedEntry in ipairs(entries) do
+                if storedEntry == entry then table.remove(entries, entryIndex) break end
+            end
+            row:Destroy()
+            fireChanged()
+        end)
+
+        table.insert(entries, entry)
+        return entry
+    end
+
+    local addRow = Library:Create('TextButton', {
+        BackgroundColor3 = Library.BackgroundColor;
+        BorderSizePixel = 0;
+        Size = UDim2.new(1, 0, 0, 24);
+        LayoutOrder = 999999;
+        Font = Library.Font;
+        Text = '+ add';
+        TextColor3 = Library.DimFontColor;
+        TextSize = 12;
+        AutoButtonColor = false;
+        Parent = listHolder;
+    })
+    Round(addRow, 6)
+    local addStroke = Stroke(addRow, Library.OutlineColor)
+    addRow.MouseEnter:Connect(function()
+        Animate(addStroke, { Color = Library.AccentColor }, TweenFast)
+        Animate(addRow, { TextColor3 = Library.FontColor }, TweenFast)
+    end)
+    addRow.MouseLeave:Connect(function()
+        Animate(addStroke, { Color = Library.OutlineColor }, TweenFast)
+        Animate(addRow, { TextColor3 = Library.DimFontColor }, TweenFast)
+    end)
+    addRow.MouseButton1Click:Connect(function()
+        makeRow('', 50)
+        fireChanged()
+    end)
+
+    local DynamicList = { TextOnly = textOnly; Container = listHolder }
+    function DynamicList:GetEntries() return entries end
+    function DynamicList:AddEntry(text, chance) makeRow(text, textOnly and nil or chance); fireChanged() end
+    function DynamicList:SetEntries(list)
+        for _, child in ipairs(listHolder:GetChildren()) do
+            if child:IsA('Frame') and child ~= addRow then child:Destroy() end
+        end
+        table.clear(entries)
+        for _, value in ipairs(list) do
+            if textOnly then makeRow(tostring(value))
+            else makeRow(value.text or '', value.chance or 50) end
+        end
+        fireChanged()
+    end
+
+    self:AddBlank(4)
+    return DynamicList
+end
+
 local function StyleButton(buttonInstance)
     Round(buttonInstance, 7)
     local buttonStroke = Stroke(buttonInstance, Library.OutlineColor)
