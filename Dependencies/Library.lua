@@ -5002,7 +5002,7 @@ end
 
 		local theme = self:ReadAutoloadName()
 		if not (self.BuiltInThemes[theme] or self:GetCustomTheme(theme)) then
-			theme = 'Elite Zone'
+			theme = 'Default'
 		end
 
 		self:ApplyTheme(theme)
@@ -5300,7 +5300,7 @@ end
 
 		local theme = self:ReadAutoloadName()
 		if not (self.BuiltInThemes[theme] or self:GetCustomTheme(theme)) then
-			theme = 'Elite Zone'
+			theme = 'Default'
 		end
 
 		local customData = self:GetCustomTheme(theme)
