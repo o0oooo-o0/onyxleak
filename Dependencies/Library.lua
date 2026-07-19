@@ -1773,28 +1773,13 @@ do
         local Groupbox = self
         local Note = {}
 
-        local Outer = Library:Create('Frame', { BackgroundColor3=Color3.new(0,0,0); BorderColor3=Color3.new(0,0,0); Size=UDim2.new(1,-4,0,0); ZIndex=5; Parent=Groupbox.Container })
-        local Inner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=Outer })
-        Library:AddToRegistry(Outer, { BorderColor3='Black' })
-        Library:AddToRegistry(Inner, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor' })
-
-        local TitleLabel = Library:CreateLabel({
-            Position        = UDim2.new(0,4,0,2);
-            Size            = UDim2.new(1,-8,0,14);
-            TextSize        = (12);
-            Text            = Library:ApplyCase("note", "Labels");
-            TextColor3      = Library.AccentColor;
-            TextXAlignment  = Enum.TextXAlignment.Left;
-            ZIndex          = 7;
-            Parent          = Inner;
-        })
-        Library:AddToRegistry(TitleLabel, { TextColor3='AccentColor' })
-
-        local AccentLine = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderSizePixel=0; Position=UDim2.new(0,4,0,17); Size=UDim2.new(1,-8,0,1); ZIndex=7; Parent=Inner })
-        Library:AddToRegistry(AccentLine, { BackgroundColor3='AccentColor' })
+        local Outer = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderColor3=Library.AccentColor; Size=UDim2.new(1,-4,0,0); ZIndex=5; Parent=Groupbox.Container })
+        local Inner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.AccentColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=Outer })
+        Library:AddToRegistry(Outer, { BackgroundColor3='AccentColor'; BorderColor3='AccentColor' })
+        Library:AddToRegistry(Inner, { BackgroundColor3='MainColor'; BorderColor3='AccentColor' })
 
         local TextLabelRef = Library:CreateLabel({
-            Position        = UDim2.new(0,4,0,21);
+            Position        = UDim2.new(0,4,0,4);
             Size            = UDim2.new(1,-8,0,14);
             TextSize        = (13);
             Text            = Library:ApplyCase(Text or "", "Labels");
@@ -1810,7 +1795,7 @@ do
         local function Reflow()
             local _, TextHeight = Library:GetTextBounds(TextLabelRef.Text, Library.Font, (13), Vector2.new(TextLabelRef.AbsoluteSize.X, math.huge))
             TextLabelRef.Size = UDim2.new(1,-8,0,TextHeight)
-            Outer.Size = UDim2.new(1,-4,0, 25 + TextHeight)
+            Outer.Size = UDim2.new(1,-4,0, 8 + TextHeight)
             Groupbox:Resize()
         end
         Reflow()
