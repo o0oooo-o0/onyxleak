@@ -4845,7 +4845,7 @@ end
 
 	function ThemeManager:GetThemeState(theme, isCustom)
 		local state = {
-			theme     = theme or self.CurrentThemeName or (Options and Options.ThemeManager_ThemeList and Options.ThemeManager_ThemeList.Value) or 'Elite Zone',
+			theme     = theme or self.CurrentThemeName or (Options and Options.ThemeManager_ThemeList and Options.ThemeManager_ThemeList.Value) or 'Default',
 			custom    = type(isCustom) == 'boolean' and isCustom or self.CurrentThemeCustom == true,
 			font      = Options and Options.ThemeManager_Font and Options.ThemeManager_Font.Value or getFontName(self.Library and self.Library.Font),
 			iconSize  = tonumber(Options and Options.ThemeManager_IconSize and Options.ThemeManager_IconSize.Value) or tonumber(self.Library and self.Library.IconSize) or 20,
@@ -5017,7 +5017,7 @@ end
 	end
 
 	function ThemeManager:SaveDefault(theme, isCustom)
-		local name = (type(theme) == 'string' and theme ~= '') and theme or self.CurrentThemeName or 'Elite Zone'
+		local name = (type(theme) == 'string' and theme ~= '') and theme or self.CurrentThemeName or 'Default'
 		self.CurrentThemeName = name
 		self.CurrentThemeCustom = not self.BuiltInThemes[name]
 		WriteAutoloadField('theme', name)
@@ -5136,7 +5136,7 @@ end
 	function ThemeManager:ReadAutoloadName()
 		local name = ReadAutoloadFile().theme
 		if type(name) == 'string' and name ~= '' and name ~= 'none' then return name end
-		return 'Elite Zone'
+		return 'Default'
 	end
 
 	function ThemeManager:RegisterSharedCallbacks(gb)
