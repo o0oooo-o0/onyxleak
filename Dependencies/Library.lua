@@ -1812,7 +1812,7 @@ do
         }
         if KeybindInfo.SyncToggleState then Info.Modes = { 'Toggle' }; Info.Mode = 'Toggle' end
 
-        local KeyPickOuter = Library:Create('Frame', { BorderColor3 = Color3.new(0,0,0); Size = UDim2.fromOffset((44), (15)); ZIndex = 15; Active = true; Parent = TextLabelRef })
+        local KeyPickOuter = Library:Create('Frame', { BorderColor3 = Color3.new(0,0,0); Size = UDim2.fromOffset((44), (15)); ZIndex = 15; Active = true; Visible = not IsTouch; Parent = TextLabelRef })
         local KeyPickInner  = Library:Create('Frame', { BackgroundColor3 = Library.BackgroundColor; BorderColor3 = Library.OutlineColor; BorderMode = Enum.BorderMode.Inset; Size = UDim2.new(1,0,1,0); ZIndex = 16; Parent = KeyPickOuter })
         Library:AddToRegistry(KeyPickInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor' })
         local DisplayLabel = Library:CreateLabel({ Size = UDim2.new(1,0,1,0); TextSize = (12); Text = fmtKey(Info.Default); TextScaled = true; ZIndex = 17; Parent = KeyPickInner })
@@ -1840,7 +1840,9 @@ do
         UpdateModePos()
 
         local HudBindLabel = Library:CreateLabel({ TextXAlignment = Enum.TextXAlignment.Left; Size = UDim2.new(1,0,0,(18)); TextSize = (12); Visible = false; ZIndex = 110; Parent = Library.KeybindContainer }, true)
-        table.insert(Library.KeybindRegistry, KeybindInfo)
+        if not IsTouch then
+            table.insert(Library.KeybindRegistry, KeybindInfo)
+        end
 
         local ModeButtonList = {}
         for _, mode in ipairs(Modes) do
@@ -4591,7 +4593,7 @@ function Library:CreateWindow(...)
             end)
         end)
 
-        local dragging    = false
+        local ActiveDragInput = nil
         local movedLogo   = false
         local dragStartX, dragStartY = 0, 0
         local frameStartX, frameStartY = 0, 0
@@ -4599,7 +4601,7 @@ function Library:CreateWindow(...)
         mobLogo.InputBegan:Connect(function(inp)
             if inp.UserInputType ~= Enum.UserInputType.Touch
                 and inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-            dragging    = true
+            ActiveDragInput = inp
             movedLogo   = false
             dragStartX  = inp.Position.X
             dragStartY  = inp.Position.Y
@@ -4608,9 +4610,8 @@ function Library:CreateWindow(...)
         end)
 
         Library:GiveSignal(Services.UserInputService.InputChanged:Connect(function(inp)
-            if not dragging then return end
-            if inp.UserInputType ~= Enum.UserInputType.Touch
-                and inp.UserInputType ~= Enum.UserInputType.MouseMovement then return end
+            if not ActiveDragInput then return end
+            if inp ~= ActiveDragInput and inp.UserInputType ~= Enum.UserInputType.MouseMovement then return end
             local dx = inp.Position.X - dragStartX
             local dy = inp.Position.Y - dragStartY
             if not movedLogo and (math.abs(dx) > 5 or math.abs(dy) > 5) then
@@ -4627,10 +4628,9 @@ function Library:CreateWindow(...)
         end))
 
         Library:GiveSignal(Services.UserInputService.InputEnded:Connect(function(inp)
-            if not dragging then return end
-            if inp.UserInputType ~= Enum.UserInputType.Touch
-                and inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-            dragging    = false
+            if not ActiveDragInput then return end
+            if inp ~= ActiveDragInput then return end
+            ActiveDragInput = nil
             if not movedLogo then
                 task.spawn(Library.Toggle)
             end
