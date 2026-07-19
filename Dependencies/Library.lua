@@ -2740,6 +2740,7 @@ do
                         UpdateBtn(); DropdownData:Display()
                         Library:SafeCallback(DropdownData.Callback, DropdownData.Value)
                         Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
+                        Library:UpdateDependencyBoxes()
                         Library:AttemptSave()
                     end)
                 end
@@ -2782,6 +2783,7 @@ do
             DropdownData:Display()
             Library:SafeCallback(DropdownData.Callback, DropdownData.Value)
             Library:SafeCallback(DropdownData.Changed,  DropdownData.Value)
+            Library:UpdateDependencyBoxes()
         end
 
         table.insert(Library.DropdownRegistry, DropdownData)
@@ -2848,8 +2850,21 @@ do
 
         function Depbox:Update()
             for _, dep in ipairs(Depbox.Dependencies) do
-                if dep[1].Type == 'Toggle' and dep[1].Value ~= dep[2] then
-                    Holder.Visible = false; Depbox:Resize(); return
+                local option, want = dep[1], dep[2]
+                if option.Type == 'Toggle' then
+                    if option.Value ~= want then
+                        Holder.Visible = false; Depbox:Resize(); return
+                    end
+                elseif option.Type == 'Dropdown' then
+                    local match
+                    if option.Multi then
+                        match = option.Value[want] ~= nil
+                    else
+                        match = option.Value == want
+                    end
+                    if not match then
+                        Holder.Visible = false; Depbox:Resize(); return
+                    end
                 end
             end
             Holder.Visible = true; Depbox:Resize()
