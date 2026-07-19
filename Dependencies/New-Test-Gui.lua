@@ -1006,6 +1006,8 @@ function GroupboxFuncs:AddInput(index, info)
     end
 
     if type(info.Tooltip) == 'string' then Library:AddToolTip(info.Tooltip, inputFrame) end
+    Textbox.Outer = inputFrame
+    Textbox.DestroyParts = { Textbox.TitleLabel }
     self:AddBlank(6)
     Options[index] = Textbox
     return Textbox
@@ -1071,6 +1073,7 @@ function GroupboxFuncs:AddToggle(index, info)
     Toggle.AddonHolder = addonHolder
     Toggle.TextLabel = toggleLabel
     Toggle.Container = groupbox.Container
+    Toggle.Outer = toggleRow
 
     function Toggle:Display()
         if Toggle.Value then
@@ -1197,6 +1200,7 @@ function GroupboxFuncs:AddSlider(index, info)
 
     function Slider:Display()
         local suffix = Slider.Info.Suffix or ''
+        sliderTitle.Text = Slider.Info.Text or ''
         sliderValueLabel.Text = tostring(Slider.Value) .. suffix
         local alpha = 0
         if Slider.Max ~= Slider.Min then
@@ -1254,6 +1258,8 @@ function GroupboxFuncs:AddSlider(index, info)
 
     if type(info.Tooltip) == 'string' then Library:AddToolTip(info.Tooltip, sliderHolder) end
 
+    Slider.Outer = sliderHolder
+    Slider.TextLabel = sliderTitle
     Slider:Display()
     self:AddBlank(6)
     Options[index] = Slider
@@ -1543,6 +1549,11 @@ function GroupboxFuncs:AddDropdown(index, info)
 
     if type(info.Tooltip) == 'string' then Library:AddToolTip(info.Tooltip, dropdownFrame) end
 
+    Dropdown.Outer = dropdownFrame
+    Dropdown.List = listFrame
+    Dropdown.Holder = listScroll
+    Dropdown.Container = listScroll
+    Dropdown.DestroyParts = { listFrame; Dropdown.TitleLabel }
     Dropdown:Display()
     self:AddBlank(6)
     Options[index] = Dropdown
@@ -1684,6 +1695,7 @@ function Library:CreateWindow(...)
     Round(WindowFrame, 12)
     Stroke(WindowFrame, Library.OutlineColor)
     Library:AddToRegistry(WindowFrame, { BackgroundColor3 = 'BackgroundColor' })
+    Library.DefaultWindowSize = UDim2.fromOffset(windowWidth, windowHeight)
     local WindowScale = Library:Create('UIScale', { Scale = 1; Parent = WindowFrame })
 
     local sidebarWidth = 150
@@ -2047,6 +2059,106 @@ Library.ThemeScales = {}
 Library.UIScaleValue = 1.0
 Library.IsMobile = false
 Library.IconSize = 20
+Library.TextRegistry = {}
+Library.SliderRegistry = {}
+Library.DropdownRegistry = {}
+Library.KeybindRegistry = {}
+Library.IconSizeCallbacks = {}
+
+function Library:RegisterVisibilityCallback(callback) table.insert(Library.VisibilityCallbacks, callback) end
+function Library:RegisterIconSizeCallback(callback) table.insert(Library.IconSizeCallbacks, callback) end
+
+function Library:GetTextBounds(text, font, size, resolution)
+    local success, bounds = pcall(Services.TextService.GetTextSize, Services.TextService, text, size, font, resolution or Vector2.new(1920, 1080))
+    if not success or not bounds then
+        local fallbackSuccess, fallbackBounds = pcall(Services.TextService.GetTextSize, Services.TextService, text, size, Enum.Font.Code, resolution or Vector2.new(1920, 1080))
+        bounds = fallbackSuccess and fallbackBounds or Vector2.new(200, size)
+    end
+    return bounds.X, bounds.Y
+end
+
+function Library:SetText(element, newText)
+    if not element or newText == nil then return false end
+    newText = tostring(newText)
+    if element.Info and element.Info.Text ~= nil and element.Display then
+        element.Info.Text = newText
+        pcall(element.Display, element)
+        return true
+    end
+    local label = element.TextLabel or element.TitleLabel
+    if not label then return false end
+    local success = pcall(function() label.Text = newText end)
+    return success
+end
+
+function Library:RemoveElement(element)
+    if not element then return false end
+    for _, part in ipairs(element.DestroyParts or {}) do
+        if part then pcall(function() part:Destroy() end) end
+    end
+    if element.Outer then pcall(function() element.Outer:Destroy() end) end
+    for index, storedElement in pairs(Toggles) do if storedElement == element then Toggles[index] = nil end end
+    for index, storedElement in pairs(Options) do if storedElement == element then Options[index] = nil end end
+    for listIndex = #Library.DependencyBoxes, 1, -1 do
+        if Library.DependencyBoxes[listIndex] == element then table.remove(Library.DependencyBoxes, listIndex) end
+    end
+    return true
+end
+
+function Library:OnHighlight(hoverInstance, targetInstance, onProperties, offProperties)
+    local function ResolveAndApply(properties)
+        for propertyName, propertyValue in pairs(properties) do
+            local resolvedValue = (type(propertyValue) == 'string' and Library[propertyValue]) or propertyValue
+            pcall(function() targetInstance[propertyName] = resolvedValue end)
+        end
+    end
+    hoverInstance.MouseEnter:Connect(function() ResolveAndApply(onProperties) end)
+    hoverInstance.MouseLeave:Connect(function() ResolveAndApply(offProperties) end)
+end
+
+function Library:ForceCase() end
+function Library:RefreshTextRegistry() end
+function Library:ApplyTextMetrics() end
+function Library:RememberTextSize() end
+function Library:SetKeybindVisibility() end
+function Library:ConfigureNotifications(configuration) Library.NotificationConfig = configuration end
+function Library:BindResizeHandle() end
+function Library:BindResizeHandleGhost() end
+function Library:SetBackdropColor() end
+function Library:SetBackdropOpacity() end
+function Library:SetBlurOpacity() end
+function Library:SetEzLogoTransparency() end
+function Library:SetEzLogoPosition() end
+function Library:SetEzLogoSize() end
+function Library:SetEzLogoColor() end
+function Library:SetEzLogoFatness() end
+function Library:SetEzLogoMaterial() end
+function Library:SetEzLogoSpeed() end
+
+function Library:SetWindowVisible(visible)
+    if Library.WindowFrame then Library.WindowFrame.Visible = visible and Library.Toggled end
+end
+
+function Library:ResetMainWindowPosition(skipSave)
+    if Library.WindowFrame then
+        Library.WindowFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+        Library.WindowFrame.Position = UDim2.fromScale(0.5, 0.5)
+    end
+end
+
+function Library:ResetMainWindowSize()
+    if Library.WindowFrame and Library.DefaultWindowSize then
+        Library.WindowFrame.Size = Library.DefaultWindowSize
+    end
+end
+
+function Library:CreateHeadlessGroupbox(container)
+    local Groupbox = { Container = container }
+    for functionName, functionValue in pairs(GroupboxFuncs) do
+        Groupbox[functionName] = functionValue
+    end
+    return Groupbox
+end
 function Library:GetMainWindowSize() return Library.MainWindowSize end
 function Library:SetMainWindowSize(width, height, skipSave)
     Library.MainWindowSize = { w = tonumber(width); h = tonumber(height) }
@@ -2057,7 +2169,12 @@ function Library:SetUIScale(scale, skipSave)
         pcall(function() themeScale.Scale = Library.UIScaleValue end)
     end
 end
-function Library:SetIconSize(size) Library.IconSize = tonumber(size) or Library.IconSize end
+function Library:SetIconSize(size)
+    Library.IconSize = tonumber(size) or Library.IconSize
+    for _, callback in ipairs(Library.IconSizeCallbacks) do
+        Library:SafeCallback(callback, Library.IconSize)
+    end
+end
 
 function Library:CreatePrompt(config)
     local outer = Library:Create("TextButton", {
