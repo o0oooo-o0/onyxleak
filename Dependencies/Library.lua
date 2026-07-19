@@ -869,20 +869,36 @@ do
     Library.WatermarkText = WindowMoverLabel
     Library:MakeDraggable(WindowMoverOuter)
 
+    local TaglineText = "Elite Zone \xe2\x80\x94 Quality at its finest."
+    local TaglineWidth = Library:GetTextBounds(TaglineText, Library.Font, (16))
+
+    local TaglineOuter = Library:Create('Frame', {
+        BackgroundColor3  = Library.MainColor;
+        BorderColor3      = Library.OutlineColor;
+        BorderMode        = Enum.BorderMode.Inset;
+        AnchorPoint       = Vector2.new(0.5, 1);
+        Position          = UDim2.new(0.5, 0, 1, -(8));
+        Size              = UDim2.fromOffset(TaglineWidth + (20), (26));
+        Visible           = false;
+        ZIndex            = 200;
+        Parent            = ScreenGui;
+    })
+    Library:AddToRegistry(TaglineOuter, { BackgroundColor3 = 'MainColor'; BorderColor3 = 'OutlineColor' })
+
     local TaglineLabel = Library:CreateLabel({
-        AnchorPoint     = Vector2.new(0.5, 1);
-        Position        = UDim2.new(0.5, 0, 1, -(4));
-        Size            = UDim2.new(0, 0, 0, (14));
-        TextSize        = (12);
-        Text            = "Elite Zone \xe2\x80\x94 Quality at its finest.";
+        Size            = UDim2.new(1, 0, 1, 0);
+        TextSize        = (16);
+        Text            = TaglineText;
         TextColor3      = Library.AccentColor;
         PreserveCase    = true;
         TextXAlignment  = Enum.TextXAlignment.Center;
-        ZIndex          = 200;
-        Parent          = ScreenGui;
+        ZIndex          = 201;
+        Parent          = TaglineOuter;
     })
     Library:AddToRegistry(TaglineLabel, { TextColor3 = 'AccentColor' })
-    Library.Tagline = TaglineLabel
+    Library.Tagline = TaglineOuter
+
+    Library:RegisterVisibilityCallback(function(isVisible) TaglineOuter.Visible = isVisible end)
 
 end
 
