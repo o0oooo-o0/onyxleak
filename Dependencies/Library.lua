@@ -2032,14 +2032,14 @@ do
         local Groupbox = self
         local Note = {}
 
-        local Outer = Library:Create('Frame', { BackgroundColor3=Library.AccentColor; BorderColor3=Library.AccentColor; Size=UDim2.new(1,-4,0,0); ZIndex=5; Parent=Groupbox.Container })
-        local Inner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderColor3=Library.AccentColor; BorderMode=Enum.BorderMode.Inset; Size=UDim2.new(1,0,1,0); ZIndex=6; Parent=Outer })
-        Library:AddToRegistry(Outer, { BackgroundColor3='AccentColor'; BorderColor3='AccentColor' })
-        Library:AddToRegistry(Inner, { BackgroundColor3='MainColor'; BorderColor3='AccentColor' })
+        local Inner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderSizePixel=0; Size=UDim2.new(1,-4,0,0); ZIndex=5; Parent=Groupbox.Container })
+        Library:AddToRegistry(Inner, { BackgroundColor3='MainColor' })
+        local Stroke = Library:Create('UIStroke', { Color=Library.AccentColor; Thickness=1; Parent=Inner })
+        Library:AddToRegistry(Stroke, { Color='AccentColor' })
 
         local TextLabelRef = Library:CreateLabel({
-            Position        = UDim2.new(0,4,0,4);
-            Size            = UDim2.new(1,-8,0,14);
+            Position        = UDim2.new(0,6,0,6);
+            Size            = UDim2.new(1,-12,0,14);
             TextSize        = (13);
             Text            = Library:ApplyCase(Text or "", "Labels");
             TextWrapped     = true;
@@ -2053,8 +2053,8 @@ do
 
         local function Reflow()
             local _, TextHeight = Library:GetTextBounds(TextLabelRef.Text, Library.Font, (13), Vector2.new(TextLabelRef.AbsoluteSize.X, math.huge))
-            TextLabelRef.Size = UDim2.new(1,-8,0,TextHeight)
-            Outer.Size = UDim2.new(1,-4,0, 8 + TextHeight)
+            TextLabelRef.Size = UDim2.new(1,-12,0,TextHeight)
+            Inner.Size = UDim2.new(1,-4,0, 12 + TextHeight)
             Groupbox:Resize()
         end
         Reflow()
