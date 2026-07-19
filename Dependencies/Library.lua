@@ -43,6 +43,7 @@ local Library = {
     DropdownRegistry        = {};
     SliderRegistry          = {};
     KeybindRegistry         = {};
+    KeybindListMode         = 'Enabled';
     DependencyBoxes         = {};
     Signals                 = {};
     ThemeScales             = {};
@@ -1865,12 +1866,16 @@ do
 
         function KeybindInfo:Update()
             if Info.NoUI then return end
-            local state = KeybindInfo:GetState()
-            local showInList = false
-            if ParentObj.Type == 'Toggle' then
-                showInList = ParentObj.Value
+            local state   = KeybindInfo:GetState()
+            local enabled = ParentObj.Type == 'Toggle' and ParentObj.Value or true
+            local mode    = Library.KeybindListMode or 'Enabled'
+            local showInList
+            if mode == 'All' then
+                showInList = true
+            elseif mode == 'Toggled' then
+                showInList = enabled and state
             else
-                showInList = state
+                showInList = enabled
             end
 
             HudBindLabel.Text    = string.format('[%s] %s', fmtKey(KeybindInfo.Value), Library:ApplyCase(Info.Text or '', "Keybinds"))
