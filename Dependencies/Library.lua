@@ -3099,15 +3099,20 @@ function Library:CreateWindow(...)
     local WinW, WinH
     do
         WinW = 545; WinH = 650
+        if typeof(Config.Size) == 'UDim2' then
+            WinW = Config.Size.X.Offset; WinH = Config.Size.Y.Offset
+        end
+        if IsTouch then
+            local Viewport = workspace.CurrentCamera.ViewportSize
+            WinW = math.clamp(math.floor(Viewport.X - (20)), (280), WinW)
+            WinH = math.clamp(math.floor(Viewport.Y - (20)), (240), WinH)
+        end
         if Config.Center then
             Config.AnchorPoint = Vector2.zero
             Config.Position    = UDim2.new(0.5, -math.floor(WinW / 2), 0.5, -math.floor(WinH / 2))
         else
             Config.AnchorPoint = Config.AnchorPoint or Vector2.zero
             if typeof(Config.Position) ~= 'UDim2' then Config.Position = UDim2.fromOffset(175, 50) end
-        end
-        if typeof(Config.Size) == 'UDim2' then
-            WinW = Config.Size.X.Offset; WinH = Config.Size.Y.Offset
         end
     end
 
