@@ -1064,7 +1064,7 @@ function Library:ProcessNotifyQueue()
 end
 
 function Library:SpawnNotify(Text, Time)
-    local xw = Library:GetTextBounds(Text, Library.CustomFontFace or Library.Font, (13)) or 200
+    local xw = (Library:GetTextBounds(Text, Library.CustomFontFace or Library.Font, (13)) or 200) * fontScale(Library.Font)
     local H   = (22)
     local NotifyTransparency = (Library.NotifyConfig.Transparency or 0) / 100
     Library.NotifyCounter = Library.NotifyCounter + 1
