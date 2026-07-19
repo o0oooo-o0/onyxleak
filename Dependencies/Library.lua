@@ -1815,6 +1815,10 @@ do
         return Note
     end
 
+    function Funcs:AddTagline()
+        return self:AddNote("Elite Zone \xe2\x80\x94 Quality at its finest.")
+    end
+
     function Funcs:AddDynamicList(Info)
         local Groupbox       = self
         local ROW_H    = (20)
