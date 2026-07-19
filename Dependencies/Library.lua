@@ -2034,8 +2034,8 @@ do
 
         local Inner = Library:Create('Frame', { BackgroundColor3=Library.MainColor; BorderSizePixel=0; Size=UDim2.new(1,-4,0,0); ZIndex=5; Parent=Groupbox.Container })
         Library:AddToRegistry(Inner, { BackgroundColor3='MainColor' })
-        local Stroke = Library:Create('UIStroke', { Color=Library.AccentColor; Thickness=1; Parent=Inner })
-        Library:AddToRegistry(Stroke, { Color='AccentColor' })
+        local Stroke = Library:Create('UIStroke', { Color=Library.OutlineColor; Thickness=1; Parent=Inner })
+        Library:AddToRegistry(Stroke, { Color='OutlineColor' })
 
         local TextLabelRef = Library:CreateLabel({
             Position        = UDim2.new(0,6,0,6);
