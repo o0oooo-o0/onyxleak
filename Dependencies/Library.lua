@@ -4549,7 +4549,7 @@ function Library:CreateWindow(...)
 
     if IsTouch then
         local vp0   = workspace.CurrentCamera.ViewportSize
-        local btnSz = (36)
+        local btnSz = (44)
         local initX = math.floor(vp0.X / 2 - btnSz / 2)
         local initY = (12)
 
@@ -4588,17 +4588,14 @@ function Library:CreateWindow(...)
 
         local dragging    = false
         local movedLogo   = false
-        local activeTouch = nil
         local dragStartX, dragStartY = 0, 0
         local frameStartX, frameStartY = 0, 0
 
         mobLogo.InputBegan:Connect(function(inp)
             if inp.UserInputType ~= Enum.UserInputType.Touch
                 and inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-            if dragging then return end
             dragging    = true
             movedLogo   = false
-            activeTouch = inp
             dragStartX  = inp.Position.X
             dragStartY  = inp.Position.Y
             frameStartX = mobLogo.AbsolutePosition.X
@@ -4606,7 +4603,7 @@ function Library:CreateWindow(...)
         end)
 
         Library:GiveSignal(Services.UserInputService.InputChanged:Connect(function(inp)
-            if not dragging or inp ~= activeTouch then return end
+            if not dragging then return end
             if inp.UserInputType ~= Enum.UserInputType.Touch
                 and inp.UserInputType ~= Enum.UserInputType.MouseMovement then return end
             local dx = inp.Position.X - dragStartX
@@ -4625,11 +4622,10 @@ function Library:CreateWindow(...)
         end))
 
         Library:GiveSignal(Services.UserInputService.InputEnded:Connect(function(inp)
-            if not dragging or inp ~= activeTouch then return end
+            if not dragging then return end
             if inp.UserInputType ~= Enum.UserInputType.Touch
                 and inp.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
             dragging    = false
-            activeTouch = nil
             if not movedLogo then
                 task.spawn(Library.Toggle)
             end
@@ -5154,9 +5150,14 @@ end
 		self.CurrentThemeCustom = not isBuiltIn
 		self.ApplyingTheme = true
 
-		if not isBuiltIn and data.mainWindowSize and self.Library and type(self.Library.SetMainWindowSize) == 'function' then
-			local sw = tonumber(data.mainWindowSize.w)
-			local sh = tonumber(data.mainWindowSize.h)
+		if self.Library and type(self.Library.SetMainWindowSize) == 'function' then
+			local sw, sh
+			if isBuiltIn then
+				sw, sh = 500, 592
+			elseif data.mainWindowSize then
+				sw = tonumber(data.mainWindowSize.w)
+				sh = tonumber(data.mainWindowSize.h)
+			end
 			if sw and sh then
 				self.Library:SetMainWindowSize(sw, sh, true)
 			end
