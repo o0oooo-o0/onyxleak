@@ -879,13 +879,14 @@ do
 
     if not IsTouch then
         local KeybindOuter = Library:Create('Frame', {
-            AnchorPoint   = Vector2.new(0, 0.5);
-            BorderColor3  = Color3.new(0,0,0);
-            Position      = UDim2.new(0, (10), 0.5, 0);
-            Size          = UDim2.fromOffset((210), (20));
-            Visible       = false;
-            ZIndex        = 100;
-            Parent        = ScreenGui;
+            AnchorPoint            = Vector2.new(0, 0.5);
+            BackgroundTransparency = 1;
+            BorderColor3           = Color3.new(0,0,0);
+            Position               = UDim2.new(0, (10), 0.5, 0);
+            Size                   = UDim2.fromOffset((210), (20));
+            Visible                = false;
+            ZIndex                 = 100;
+            Parent                 = ScreenGui;
         })
         local KeybindInner = Library:Create('Frame', {
             BackgroundColor3  = Library.MainColor;
