@@ -2501,13 +2501,16 @@ do
         Library:AddToRegistry(HideBR, { BackgroundColor3='AccentColor' })
         local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=''; ZIndex=9; Parent=SInner })
         Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4); PaddingRight = UDim.new(0, 4); Parent = DropdownLabel })
-        
-        
+
+        local ValueInputBox = Library:Create('TextBox', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; Visible=false; Font=Library.Font; Text=''; TextColor3=Library.FontColor; TextSize=(13); TextXAlignment=Enum.TextXAlignment.Left; ClearTextOnFocus=false; Size=UDim2.new(1,0,1,0); ZIndex=10; Parent=SInner })
+        Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4); PaddingRight = UDim.new(0, 4); Parent = ValueInputBox })
+        Library:AddToRegistry(ValueInputBox, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor'; TextColor3='FontColor'; Font='Font' })
+
         Library:OnHighlight(SOuter, SInner, { BorderColor3='AccentColor' }, { BorderColor3='OutlineColor' })
         if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, SOuter) end
 
         local function Round(v)
-            if Slider.Rounding == 0 then return math.floor(v) end
+            if Slider.Rounding == 0 then return math.floor(v + 0.5) end
             return tonumber(string.format('%.'..Slider.Rounding..'f', v))
         end
         function Slider:GetValueFromX(x)
@@ -2531,7 +2534,7 @@ do
         function Slider:Display()
             local suf = Slider.Info.Suffix or ''
             DropdownLabel.Text = Library:ApplyCase(Slider.Info.Text or "", "Sliders", Slider.Info.CaseOverride)..': '..Slider.Value..suf
-            TargetX = math.ceil(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize))
+            TargetX = math.floor(Library:MapValue(Slider.Value, Slider.Min, Slider.Max, 0, Slider.MaxSize) + 0.5)
             StartLerp()
         end
         function Slider:UpdateColors()
@@ -2545,6 +2548,36 @@ do
             Library:SafeCallback(Slider.Callback, n)
             Library:SafeCallback(Slider.Changed,  n)
         end
+
+        local function OpenValueInput()
+            ValueInputBox.Text = tostring(Slider.Value)
+            ValueInputBox.Visible = true
+            DropdownLabel.Visible = false
+            ValueInputBox:CaptureFocus()
+        end
+        ValueInputBox.FocusLost:Connect(function(enterPressed)
+            if enterPressed then
+                local n = tonumber(ValueInputBox.Text)
+                if n then Slider:SetValue(n) end
+            end
+            ValueInputBox.Visible = false
+            DropdownLabel.Visible = true
+        end)
+        local HoldToken = nil
+        SInner.InputBegan:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                OpenValueInput()
+            elseif Input.UserInputType == Enum.UserInputType.Touch then
+                local Token = {}
+                HoldToken = Token
+                task.delay(0.45, function()
+                    if HoldToken == Token then OpenValueInput() end
+                end)
+            end
+        end)
+        SInner.InputEnded:Connect(function(Input)
+            if Input.UserInputType == Enum.UserInputType.Touch then HoldToken = nil end
+        end)
 
         HandleDrag(SInner, function(x,y)
             local ap = Fill.AbsolutePosition
