@@ -932,6 +932,7 @@ do
         Library:Create('UIPadding',    { PaddingLeft = UDim.new(0, (5)); Parent = KeybindContainer })
         Library.KeybindFrame     = KeybindOuter
         Library.KeybindContainer = KeybindContainer
+        Library.KeybindInner     = KeybindInner
         Library:MakeDraggableDirect(KeybindOuter)
     else
         local stub = Instance.new('Frame')
@@ -942,6 +943,10 @@ do
 end
 
 function Library:SetWatermarkVisibility(b)  Library.Watermark.Visible = b end
+function Library:SetKeybindTransparency(t)
+    if Library.KeybindInner then Library.KeybindInner.BackgroundTransparency = t end
+end
+
 function Library:SetKeybindVisibility(b)
     Library.KeybindFrame.Visible = b
 end
@@ -5723,10 +5728,15 @@ SaveManager.Parser = {
     },
     KeyPicker = {
         Save = function(idx, object)
-            return { type = 'KeyPicker', idx = idx, mode = object.Mode, key = object.Value }
+            return { type = 'KeyPicker', idx = idx, mode = object.Mode, key = object.Value, toggled = object.Toggled }
         end,
         Load = function(idx, data)
-            if Options[idx] then Options[idx]:SetValue{ data.key, data.mode } end
+            if not Options[idx] then return end
+            Options[idx]:SetValue{ data.key, data.mode }
+            if type(data.toggled) == 'boolean' then
+                Options[idx].Toggled = data.toggled
+                Options[idx]:Update()
+            end
         end,
     },
     Input = {
