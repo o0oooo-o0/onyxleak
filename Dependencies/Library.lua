@@ -1,11 +1,19 @@
-getgenv().Library = (function()
-local Services = setmetatable({}, {
-    __index = function(self, k)
-        local ok, res = pcall(game.GetService, game, k)
-        if ok and res then rawset(self, k, res) return res end
-        return nil
-    end
-})
+local cloneref=cloneref or function(v)return v end
+
+getgenv().Library=(function()
+	local Services=setmetatable({},{
+		__index=function(t,k)
+			local o,s=pcall(game.GetService,game,k)
+			if o and s then
+				s=cloneref(s)
+				rawset(t,k,s)
+				return s
+			end
+		end
+	})
+
+	return{Services=Services}
+end)()
 
 local Drawing = (typeof(Drawing) == 'table' and Drawing) or DrawingLib
 
@@ -3186,7 +3194,7 @@ function Library:CreateWindow(...)
             pcall(function() parent_gui = gethui() end)
         end
         if not parent_gui then
-            pcall(function() parent_gui = game:GetService("CoreGui") end)
+            pcall(function() parent_gui = cloneref(game:GetService("CoreGui"))
         end
         if not parent_gui then
             pcall(function() parent_gui = Services.Players.LocalPlayer:WaitForChild("PlayerGui") end)
@@ -4801,7 +4809,7 @@ function Library:CreatePrompt(config)
         Parent                  = Library.ScreenGui,
     })
     outer.MouseButton1Click:Connect(function()
-        local mouse = game:GetService("UserInputService"):GetMouseLocation()
+        local mouse = cloneref(game:GetService("UserInputService")):GetMouseLocation()
         local pos  = inner.AbsolutePosition
         local size = inner.AbsoluteSize
         if mouse.X < pos.X or mouse.X > pos.X + size.X
