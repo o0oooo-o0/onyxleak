@@ -2508,9 +2508,12 @@ do
         local DropdownLabel = Library:CreateLabel({ Size=UDim2.new(1,0,1,0); TextSize=(13); Text=''; ZIndex=9; Parent=SInner })
         Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4); PaddingRight = UDim.new(0, 4); Parent = DropdownLabel })
 
-        local ValueInputBox = Library:Create('TextBox', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; Visible=false; Font=Library.Font; Text=''; TextColor3=Library.FontColor; TextSize=(13); TextXAlignment=Enum.TextXAlignment.Left; ClearTextOnFocus=false; Size=UDim2.new(1,0,1,0); ZIndex=10; Parent=SInner })
+        local ValueInputBox = Library:Create('TextBox', { BackgroundColor3=Library.MainColor; BorderColor3=Library.OutlineColor; Visible=false; Font=Library.Font; Text=''; TextColor3=Library.FontColor; TextSize=(13); TextXAlignment=Enum.TextXAlignment.Left; ClearTextOnFocus=false; Size=UDim2.new(1,-16,1,0); ZIndex=10; Parent=SInner })
         Library:Create('UIPadding', { PaddingLeft = UDim.new(0, 4); PaddingRight = UDim.new(0, 4); Parent = ValueInputBox })
         Library:AddToRegistry(ValueInputBox, { BackgroundColor3='MainColor'; BorderColor3='OutlineColor'; TextColor3='FontColor'; Font='Font' })
+
+        local ValueConfirmBtn = Library:Create('TextButton', { BackgroundColor3=Library.AccentColor; BorderColor3=Library.OutlineColor; Visible=false; Font=Library.Font; Text='✓'; TextColor3=Color3.new(1,1,1); TextSize=(13); Position=UDim2.new(1,-16,0,0); Size=UDim2.new(0,16,1,0); Active=true; ZIndex=11; Parent=SInner })
+        Library:AddToRegistry(ValueConfirmBtn, { BackgroundColor3='AccentColor'; BorderColor3='OutlineColor'; Font='Font' })
 
         Library:OnHighlight(SOuter, SInner, { BorderColor3='AccentColor' }, { BorderColor3='OutlineColor' })
         if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, SOuter) end
@@ -2555,20 +2558,27 @@ do
             Library:SafeCallback(Slider.Changed,  n)
         end
 
+        local function CloseValueInput()
+            ValueInputBox.Visible = false
+            ValueConfirmBtn.Visible = false
+            DropdownLabel.Visible = true
+        end
         local function OpenValueInput()
             ValueInputBox.Text = tostring(Slider.Value)
             ValueInputBox.Visible = true
+            ValueConfirmBtn.Visible = true
             DropdownLabel.Visible = false
             ValueInputBox:CaptureFocus()
         end
+        local function CommitValueInput()
+            local n = tonumber(ValueInputBox.Text)
+            if n then Slider:SetValue(n) end
+            CloseValueInput()
+        end
         ValueInputBox.FocusLost:Connect(function(enterPressed)
-            if enterPressed then
-                local n = tonumber(ValueInputBox.Text)
-                if n then Slider:SetValue(n) end
-            end
-            ValueInputBox.Visible = false
-            DropdownLabel.Visible = true
+            if enterPressed then CommitValueInput() else CloseValueInput() end
         end)
+        ValueConfirmBtn.MouseButton1Click:Connect(CommitValueInput)
         local HoldToken = nil
         SInner.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton2 then
