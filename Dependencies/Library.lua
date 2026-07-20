@@ -2519,7 +2519,10 @@ do
         if type(Info.Tooltip)=='string' then Library:AddToolTip(Info.Tooltip, SOuter) end
 
         local function Round(v)
-            if Slider.Rounding == 0 then return math.floor(v + 0.5) end
+            if Slider.Rounding == 0 then
+                local step = math.max(1, math.floor((Slider.Max - Slider.Min) / 200))
+                return math.floor(v / step + 0.5) * step
+            end
             return tonumber(string.format('%.'..Slider.Rounding..'f', v))
         end
         function Slider:GetValueFromX(x)
