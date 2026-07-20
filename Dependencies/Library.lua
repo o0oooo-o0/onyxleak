@@ -5434,7 +5434,7 @@ end
 					end
 					if not writefile then return self.Library:Notify('Unsupported executor.', 2) end
 					local ok = pcall(Services.HttpService.JSONDecode, Services.HttpService, text)
-					if not ok then return self.Library:Notify('Invalid Theme.', 2) end
+					if not ok then return self.Library:Notify('Invalid Theme.', 3) end
 					writefile(self.Folder .. '/Themes/' .. name .. '.json', text)
 					local list = self:ReloadCustomThemes()
 					Options.ThemeManager_CustomThemeList.Values = list
@@ -6054,7 +6054,7 @@ function SaveManager.BuildConfigSection(self, tabOrGroupbox)
                 end
                 local ok, err = self:LoadConfigJSON(text)
                 if not ok then
-                    return self.Library:Notify('Invalid Config.', 2)
+                    return self.Library:Notify('Invalid Config.', 3)
                 end
                 self:Save(name)
                 Options.SaveManager_ConfigList.Values = self:RefreshConfigList()
