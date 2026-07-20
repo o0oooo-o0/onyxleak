@@ -5954,7 +5954,7 @@ function SaveManager.LoadAutoloadConfig(self)
     if type(name) == 'string' and name ~= '' and name ~= 'none' then
         local ok = self:Load(name)
         if not ok then
-            if self.Library then warn('[Elite Zone] Autoload failed for config: ' .. tostring(name)) end
+            if self.Library then self.Library:Notify('Autoload failed for config: ' .. tostring(name), 3) end
             return
         end
     end
