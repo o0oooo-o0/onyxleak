@@ -3186,7 +3186,7 @@ function Library:CreateWindow(...)
             pcall(function() parent_gui = gethui() end)
         end
         if not parent_gui then
-            pcall(function() parent_gui = game:GetService("CoreGui") end)
+            pcall(function() parent_gui = cloneref(game:GetService("CoreGui")) end)
         end
         if not parent_gui then
             pcall(function() parent_gui = Services.Players.LocalPlayer:WaitForChild("PlayerGui") end)
@@ -4801,7 +4801,7 @@ function Library:CreatePrompt(config)
         Parent                  = Library.ScreenGui,
     })
     outer.MouseButton1Click:Connect(function()
-        local mouse = game:GetService("UserInputService"):GetMouseLocation()
+        local mouse = cloneref(game:GetService("UserInputService")):GetMouseLocation()
         local pos  = inner.AbsolutePosition
         local size = inner.AbsoluteSize
         if mouse.X < pos.X or mouse.X > pos.X + size.X
