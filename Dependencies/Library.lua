@@ -102,12 +102,12 @@ end
 
 local function fontScale(font)
     if font == Enum.Font.Code then return 0.9 end
-    if font == Enum.Font.RobotoMono then return 0.92 end
-    if font == Enum.Font.GothamBold then return 0.95 end
-    if font == Enum.Font.SciFi then return 0.84 end
-    if font == Enum.Font.Arcade then return 0.78 end
-    if font == Enum.Font.FredokaOne then return 0.86 end
-    if font == Enum.Font.Cartoon then return 0.88 end
+    if font == Enum.Font.Code then return 0.9 end
+    if font == Enum.Font.Code then return 0.9 end
+    if font == Enum.Font.Code then return 0.9 end
+    if font == Enum.Font.Code then return 0.9 end
+    if font == Enum.Font.Code then return 0.9 end
+    if font == Enum.Font.Code then return 0.9 end
     return 1
 end
 
@@ -5020,15 +5020,15 @@ local ThemeManager = {} do
 	ThemeManager.Library = nil
 ThemeManager.ColorFields = { "FontColor", "MainColor", "AccentColor", "BackgroundColor", "OutlineColor" }
 ThemeManager.FontMap = {
-    SourceSans   = Enum.Font.SourceSans,
+    SourceSans   = Enum.Font.Code,
     Code         = Enum.Font.Code,
-    Gotham       = Enum.Font.Gotham,
-    GothamBold   = Enum.Font.GothamBold,
-    RobotoMono   = Enum.Font.RobotoMono,
-    SciFi        = Enum.Font.SciFi,
-    Arcade       = Enum.Font.Arcade,
-    Fredoka      = Enum.Font.FredokaOne,
-    Cartoon      = Enum.Font.Cartoon,
+    Gotham       = Enum.Font.Code,
+    GothamBold   = Enum.Font.Code,
+    RobotoMono   = Enum.Font.Code,
+    SciFi        = Enum.Font.Code,
+    Arcade       = Enum.Font.Code,
+    Fredoka      = Enum.Font.Code,
+    Cartoon      = Enum.Font.Code,
     ProggyClean  = 'custom',
 }
 ThemeManager.BuiltInThemes = {
