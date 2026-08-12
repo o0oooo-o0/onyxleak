@@ -5235,7 +5235,7 @@ end
 
 		if isBuiltIn then
 			if Options.ThemeManager_Font then
-				Options.ThemeManager_Font:SetValue(theme == 'Default' and 'arcade' or theme == 'Better UE' and 'tahoma' or 'code')
+				Options.ThemeManager_Font:SetValue(theme == 'Code' and 'Code' or theme == 'Better UE' and 'Code' or 'code')
 				Options.ThemeManager_Font:Display()
 			end
 		else
